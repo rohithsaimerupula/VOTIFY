@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#06b6d4">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <title>Branch Admin Dashboard — OVS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Playfair+Display:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+      (function() {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('ovs_theme', 'dark');
+      })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root {
+      --bg:#050505; --surface:#111111; --border:rgba(6,182,212,0.3);
+      --cyan:#06b6d4; --blue:#3b82f6; --green:#22c55e; --red:#ef4444; --gold:#f59e0b;
+      --purple:#a855f7; --text:#f8fafc; --muted:#cbd5e1;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;}
+    input,select{width:100%;padding:0.8rem 1rem;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:white;font-size:0.95rem;font-family:'Outfit',sans-serif;outline:none;transition:border 0.3s;}
+    input[type="checkbox"] { width: auto; cursor: pointer; }
+    input:focus,select:focus{border-color:var(--cyan);}
+    select option{background:#1e293b;}
+    label{display:block;color:var(--muted);font-size:0.78rem;margin-bottom:0.3rem;text-transform:uppercase;letter-spacing:0.05em;}
+    .btn{padding:0.75rem 1.5rem;border-radius:10px;border:none;cursor:pointer;font-size:0.95rem;font-weight:600;font-family:'Outfit',sans-serif;transition:all 0.3s;}
+    .btn-cyan{background:linear-gradient(135deg,var(--cyan),var(--blue));color:white;}
+    .btn-green{background:linear-gradient(135deg,var(--green),#16a34a);color:white;}
+    .btn-red{background:linear-gradient(135deg,var(--red),#dc2626);color:white;}
+    .btn:hover{transform:translateY(-2px);opacity:0.9;}
+    .btn-sm{padding:0.3rem 0.8rem;border-radius:6px;border:none;cursor:pointer;font-size:0.78rem;font-family:'Outfit',sans-serif;font-weight:600;}
+    .btn-d{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+    .btn-g{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);}
+    .btn-e{background:rgba(6,182,212,0.15);color:var(--cyan);border:1px solid rgba(6,182,212,0.3);}
+    .layout{display:flex;min-height:100vh;}
+    .sidebar {
+      width: 240px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+    }
+
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      padding: 2rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Mobile Sidebar State */
+    @media (max-width: 900px) {
+      .sidebar {
+        left: -240px;
+      }
+      .sidebar.open {
+        left: 0;
+        box-shadow: 0 0 50px rgba(0,0,0,0.8);
+      }
+      .main {
+        margin-left: 0;
+        padding: 1.5rem;
+      }
+    }
+
+    /* Sidebar Toggle */
+    .sa-toggle-bar {
+        position: fixed;
+        left: 1.5rem;
+        top: 1.5rem;
+        z-index: 2000;
+        display: none;
+    }
+    @media (max-width: 900px) {
+        .sa-toggle-bar { display: block; }
+    }
+
+    .sa-sidebar-toggle {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--cyan), var(--blue));
+        border: none;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0;
+    }
+
+    .sa-hamburger {
+        width: 22px;
+        height: 2px;
+        background: white;
+        position: relative;
+        transition: all 0.3s;
+    }
+
+    .sa-hamburger::before,
+    .sa-hamburger::after {
+        content: '';
+        width: 22px;
+        height: 2px;
+        background: white;
+        position: absolute;
+        left: 0;
+        transition: all 0.3s;
+    }
+
+    .sa-hamburger::before { top: -7px; }
+    .sa-hamburger::after { bottom: -7px; }
+
+    .sa-sidebar-toggle.active .sa-hamburger { background: transparent; }
+    .sa-sidebar-toggle.active .sa-hamburger::before { transform: rotate(45deg); top: 0; }
+    .sa-sidebar-toggle.active .sa-hamburger::after { transform: rotate(-45deg); bottom: 0; }
+
+    .sa-sidebar-toggle:hover { transform: scale(1.1); box-shadow: 0 0 30px rgba(6, 182, 212, 0.6); }
+    .brand{font-size:1.4rem;font-weight:900;color:var(--cyan);margin-bottom:0.2rem;font-family:'Playfair Display', serif;padding-left:60px;}
+    .role-tag{font-size:0.75rem;color:var(--muted);margin-bottom:1.5rem;padding-left:60px;}
+    .nav-item{padding:0.7rem 1rem;border-radius:10px;cursor:pointer;transition:all 0.2s;margin-bottom:0.15rem;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;color:var(--muted);}
+    .nav-icon{display:flex;align-items:center;justify-content:center;width:24px;flex-shrink:0;font-size:1.1rem;}
+    .nav-item:hover,.nav-item.active{background:rgba(6,182,212,0.1);color:var(--cyan);font-weight:600;}
+    .nav-group-label{font-size:0.68rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.1em;padding:0.8rem 1rem 0.3rem;margin-top:0.5rem;}
+    .nav-sub-item{padding:0.55rem 1rem 0.55rem 2rem;border-radius:10px;cursor:pointer;transition:all 0.2s;margin-bottom:0.1rem;font-size:0.85rem;display:flex;align-items:center;gap:0.5rem;color:var(--muted);}
+    .nav-sub-item:hover,.nav-sub-item.active{background:rgba(6,182,212,0.08);color:var(--cyan);}
+    .sidebar-footer{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);}
+    .page{display:none;}.page.active{display:block;}
+    .page-title{font-size:1.6rem;font-weight:800;margin-bottom:0.4rem;font-family:'Playfair Display', serif;}
+    .page-sub{color:var(--muted);font-size:0.9rem;margin-bottom:2rem;}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:2rem;}
+    .stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.2rem;text-align:center;}
+    .stat .num{font-size:2rem;font-weight:900;}.stat .lbl{color:var(--muted);font-size:0.78rem;margin-top:0.2rem;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem;}
+    .card h3{font-size:1rem;font-weight:700;margin-bottom:1.2rem;}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;}
+    .form-field{display:flex;flex-direction:column;gap:0.3rem;}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:0.7rem 0.8rem;color:var(--muted);font-size:0.75rem;text-transform:uppercase;border-bottom:1px solid var(--border);}
+    td{padding:0.7rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.88rem;vertical-align:middle;}
+    tr:hover td{background:rgba(255,255,255,0.02);}
+    .badge{padding:0.2rem 0.6rem;border-radius:20px;font-size:0.72rem;font-weight:600;}
+    .ba{background:rgba(34,197,94,0.15);color:var(--green);}
+    .bp{background:rgba(245,158,11,0.15);color:var(--gold);}
+    .br{background:rgba(239,68,68,0.15);color:var(--red);}
+    .empty{text-align:center;color:var(--muted);padding:2rem;}
+    .toast{position:fixed;bottom:2rem;right:2rem;background:#1e293b;border:1px solid var(--border);border-radius:10px;padding:0.9rem 1.5rem;font-size:0.9rem;transform:translateY(100px);opacity:0;transition:all 0.4s;z-index:999;}
+    .toast.show{transform:translateY(0);opacity:1;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:#0f172a;border:1px solid var(--border);border-radius:16px;padding:2rem;width:100%;max-width:500px;position:relative;max-height:85vh;overflow-y:auto;}
+    .modal h3{font-size:1.1rem;font-weight:700;margin-bottom:1.2rem;}
+    .modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;}
+    /* Action Dropdown */
+    .action-select{padding:0.35rem 0.6rem;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:white;font-size:0.8rem;font-family:'Outfit',sans-serif;cursor:pointer;min-width:130px;}
+    .action-select:focus{border-color:var(--cyan);outline:none;}
+    /* Checkbox Hierarchy */
+    .hierarchy-group { margin-bottom: 0.5rem; }
+    .hierarchy-year { font-weight: bold; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+    .hierarchy-classes { margin-left: 2rem; display: none; flex-direction: column; gap: 0.2rem; }
+    .hierarchy-classes.open { display: flex; }
+    /* Election Code */
+    .election-code-box{background:linear-gradient(135deg,rgba(6,182,212,0.15),rgba(6,182,212,0.05));border:2px solid rgba(6,182,212,0.5);border-radius:16px;padding:1.5rem;text-align:center;margin-bottom:1.5rem;}
+    .election-code-box .code{font-size:2.5rem;font-weight:900;letter-spacing:0.3em;color:#fff;font-family:monospace;}
+    .pill-active{background:rgba(34,197,94,0.15);color:var(--green);border:1px solid rgba(34,197,94,0.3);padding:0.25rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700;}
+    .pill-pending{background:rgba(245,158,11,0.15);color:var(--gold);border:1px solid rgba(245,158,11,0.3);padding:0.25rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700;}
+    .pill-completed{background:rgba(100,116,139,0.15);color:#64748b;border:1px solid rgba(100,116,139,0.3);padding:0.25rem 0.75rem;border-radius:20px;font-size:0.75rem;font-weight:700;}
+  </style>
+    <script src="session-guard.js"></script>
+</head>
+<body>
+  <script src="storage.js"></script>
+  <script>
+      // Safety: Logout if institution is deleted
+      StorageManager.validateInstitution().then(isValid => {
+          if (!isValid) {
+              alert('Access Denied. Your institution is no longer active.');
+              window.location.href = 'index.html';
+          }
+      });
+  </script>
+  <div id="tsparticles" style="position:fixed;inset:0;z-index:-1;pointer-events:none;"></div>
+
+<!-- NO EMBEDDED LOGIN: Auth is handled by login.html -->
+<div class="layout" id="main-layout">
+  <div class="sidebar">
+    <div class="brand">🧑‍💼 OVS</div>
+    <div class="role-tag" id="branch-label">Branch Authority</div>
+    <div class="nav-item active" id="nav-overview" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</div>
+    <div class="nav-item" id="nav-students" onclick="showPage('students',this)"><span class="nav-icon">🎓</span> My Branch Students</div>
+    <div class="nav-item" id="nav-ca-approvals" onclick="showPage('ca-approvals',this)"><span class="nav-icon">✅</span> Class Admin Approvals</div>
+    <div class="nav-item" id="nav-subadmins" onclick="showPage('subadmins',this)"><span class="nav-icon">👥</span> Manage Sub-Admins</div>
+    <div class="nav-group-label">🗳️ Voting</div>
+    <div class="nav-sub-item" id="nav-voting-my" onclick="showPage('voting-my',this)"><span class="nav-icon">🏢</span> My Election</div>
+    <div class="nav-sub-item" id="nav-voting-college" onclick="showPage('voting-college',this)"><span class="nav-icon">🎓</span> College Head Election</div>
+      <div class="sidebar-footer" style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);">
+        <div class="nav-item" onclick="refreshAll()" style="color:var(--cyan)"><span class="nav-icon">🔄</span> Refresh Data</div>
+        <div class="nav-item" onclick="adminLogout()" style="color:var(--red)"><span class="nav-icon">🚪</span> Logout</div>
+      </div>
+    </div>
+
+  <!-- Sidebar Toggle -->
+  <div class="sa-toggle-bar">
+    <button class="sa-sidebar-toggle" onclick="toggleSidebar()" id="sa-toggle-btn">
+      <div class="sa-hamburger"></div>
+    </button>
+  </div>
+
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <div class="page-title">📊 Branch Overview</div>
+      <div class="page-sub" id="branch-sub">Loading...</div>
+      <div class="stats-grid">
+        <div class="stat" style="border-bottom: 4px solid var(--cyan);">
+          <div class="num" id="o-students" style="color:var(--cyan)">-</div>
+          <div class="lbl">Students</div>
+        </div>
+        <div class="stat" style="border-bottom: 4px solid var(--purple);">
+          <div class="num" id="o-subadmins" style="color:var(--purple)">-</div>
+          <div class="lbl">Sub-Admins</div>
+        </div>
+      </div>
+
+
+
+    </div>
+
+    <!-- CLASS ADMIN APPROVALS -->
+    <div class="page" id="page-ca-approvals">
+      <div class="page-title">✅ Class Admin Approved Students</div>
+      <div class="page-sub">Students approved by each Class Admin (Sub-Admin) in your branch</div>
+      <div id="ca-approvals-list"><p style="color:var(--muted);text-align:center;padding:2rem;">Loading...</p></div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div class="page" id="page-students">
+      <div class="page-title">🎓 My Branch Students</div>
+      <div class="page-sub">Manage student details and viewing permissions</div>
+      <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <input style="flex:1;min-width:200px;" id="search-students" placeholder="🔍 Search students..." oninput="filterStudents()">
+        <select id="sf-year" onchange="filterStudents()" style="min-width:140px;max-width:180px;">
+          <option value="">All Years</option>
+          <option value="1st">1st Year</option>
+          <option value="2nd">2nd Year</option>
+          <option value="3rd">3rd Year</option>
+          <option value="4th">4th Year</option>
+        </select>
+      </div>
+      <div class="card" style="padding:0.5rem;overflow-x:auto;">
+        <table><thead><tr><th>ID Proof</th><th>AI Capture</th><th>Reg No</th><th>Name</th><th>Yr</th><th>Cls</th></tr></thead>
+        <tbody id="student-table"></tbody></table>
+      </div>
+    </div>
+
+    <!-- SUBADMINS -->
+    <div class="page" id="page-subadmins">
+      <div class="page-title">👥 Manage Sub-Admins</div>
+      <div class="page-sub">Create and manage class-level administrators for your branch</div>
+      <div class="card">
+        <h3>➕ Create Sub-Admin</h3>
+        <div class="form-grid">
+          <div class="form-field"><label>Sub-Admin ID (9 chars)</label><input type="text" id="sa-id" maxlength="9"></div>
+          <div class="form-field"><label>Full Name</label><input type="text" id="sa-name"></div>
+          <div class="form-field"><label>Email</label><input type="email" id="sa-email"></div>
+          <div class="form-field"><label>Assigned Class</label><input type="text" id="sa-class" placeholder="CSE-1" oninput="this.value=this.value.toUpperCase()"></div>
+          <div class="form-field"><label>Year</label><select id="sa-year"><option value="1st">1st</option><option value="2nd">2nd</option><option value="3rd">3rd</option><option value="4th">4th</option></select></div>
+          <div class="form-field"><label>Password</label><input type="password" id="sa-pass" maxlength="6"></div>
+        </div>
+        <button class="btn btn-cyan" style="margin-top:1rem" onclick="createSubadmin()">Create Sub-Admin</button>
+      </div>
+      <div class="card">
+        <h3>📋 Sub-Admins in My Branch</h3>
+        <table><thead><tr><th>ID</th><th>Name</th><th>Year</th><th>Class</th><th>Email</th><th>Actions</th></tr></thead>
+        <tbody id="sa-table"></tbody></table>
+      </div>
+    </div>
+
+    <!-- MY ELECTION -->
+    <div class="page" id="page-voting-my">
+      <div class="page-title">🏢 My Election</div>
+      <div class="page-sub">Create and manage branch-level elections with advanced scope</div>
+      
+      <!-- Election Setup -->
+      <div class="card" id="br-create-election-card">
+        <h3>➕ Create Branch Election</h3>
+        <div class="form-grid">
+          <div class="form-field"><label>Election Name</label><input type="text" id="br-elec-name" placeholder="Branch Pres 26"></div>
+          <div class="form-field"><label>Start Date</label><input type="datetime-local" id="br-elec-start"></div>
+          <div class="form-field"><label>End Date</label><input type="datetime-local" id="br-elec-end"></div>
+          <div class="form-field">
+            <label>Result Visibility</label>
+            <select id="br-elec-visibility">
+              <option value="all">Entire College</option>
+              <option value="branch">Branch Only</option>
+              <option value="voters_only">Only Eligible Voters</option>
+            </select>
+          </div>
+        </div>
+        
+        <h4 style="margin: 1.5rem 0 0.5rem; color:var(--text); font-size: 0.95rem;">🎛️ Select Voting Access Scope</h4>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:1rem; margin-bottom:1rem;">
+           <label style="display:flex; align-items:center; gap:0.5rem; font-weight:bold; color:var(--cyan); margin-bottom:1rem; font-size:0.9rem; text-transform:none;">
+              <input type="checkbox" id="br-scope-all" onchange="toggleScopeAll()"> Select All Branch Students
+           </label>
+           
+           <div id="br-scope-hierarchy">
+              <!-- Dynamically populated hierarchy based on available branch classes -->
+           </div>
+        </div>
+
+        <button class="btn btn-cyan" onclick="createBranchElection()">🚀 Create Branch Election</button>
+
+        <!-- Categories & Candidates Builder -->
+        <div style="border-top:1px solid var(--border); padding-top:1.5rem; margin-top:1.5rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h3 style="margin:0; font-size:1rem;">📂 Categories &amp; Candidates</h3>
+            <button class="btn-sm" onclick="brAddCategory()" style="background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);color:var(--cyan);padding:0.4rem 0.9rem;border-radius:8px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.85rem;font-weight:600;">+ Add Category</button>
+          </div>
+          <div id="br-category-builder">
+            <div style="text-align:center;padding:1.5rem;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);border-radius:10px;">
+              <p style="color:var(--muted);font-size:0.85rem;">No categories yet. Click <strong style="color:var(--cyan);">+ Add Category</strong> to add your first.</p>
+            </div>
+          </div>
+          <div style="margin-top:0.5rem; font-size:0.75rem; color:var(--muted);">ℹ️ Min 1 category · Min 2 candidates per category. Enter a Student ID to auto-fill from registered students, or type any name for non-registered candidates.</div>
+        </div>
+      </div>
+
+      <!-- Active Election -->
+      <div id="br-election-active" style="display:none;">
+        <div class="election-code-box">
+          <div style="font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem;">🔑 Branch Election Code</div>
+          <div class="code" id="br-elec-code">------</div>
+          <div style="margin-top:0.8rem; display:flex; justify-content:center; gap:0.75rem;">
+            <button class="btn-sm btn-e" onclick="copyBrCode()">📋 Copy</button>
+            <button class="btn-sm btn-g" id="br-elec-start-btn" onclick="startBrElection()">▶ Start</button>
+            <button class="btn-sm btn-g" id="br-elec-restart-btn" onclick="restartBrElection()" style="display:none;">🔄 Restart</button>
+            <button class="btn-sm btn-d" id="br-elec-stop-btn" onclick="stopBrElection()" style="display:none;">⏹ End</button>
+            <button class="btn-sm btn-d" style="background:rgba(239,68,68,0.1);" onclick="deleteBrElection()">🗑 Delete</button>
+          </div>
+        </div>
+
+
+        <!-- 🏆 Live Election Results -->
+        <div class="card" id="br-elec-results-card" style="margin-top:1.5rem; display:none;">
+            <h3>🏆 Live Election Results</h3>
+            <div id="br-elec-results-list" style="display:flex; flex-direction:column; gap:1rem;">
+                <p class="text-muted">Loading results...</p>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLLEGE HEAD ELECTION -->
+    <div class="page" id="page-voting-college">
+      <div class="page-title">🎓 College Head Election</div>
+      <div class="page-sub">Monitor participation of your branch in institutional-level elections</div>
+      
+      <div id="col-elec-info-box">
+        <div class="card" id="col-elec-info" style="color:var(--muted); text-align:center; padding:2rem; background:rgba(6,182,212,0.03); border-style:dashed;">
+          Loading college election data...
+        </div>
+      </div>
+      
+      <div class="card" id="col-elec-results-card" style="margin-top:1.5rem; display:none;">
+          <h3>🏆 Live Institution-wide Results</h3>
+          <div id="col-elec-results-list" style="display:flex; flex-direction:column; gap:1rem;">
+              <p class="text-muted">Loading results...</p>
+          </div>
+      </div>
+
+      <div class="card" id="col-stats-card">
+        <h3>📊 Branch Students in College Election</h3>
+        <div class="stats-grid" style="grid-template-columns:1fr; gap:1.5rem;">
+          <div class="stat" style="border-top:3px solid var(--cyan);">
+            <div class="num" id="col-br-total" style="color:var(--cyan)">-</div>
+            <div class="lbl">Total Branch Students</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDIT MODAL (for Sub-Admins only - students are read-only) -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeEdit()">✕</button>
+    <h3 id="edit-modal-title">✏️ Edit Details</h3>
+    <input type="hidden" id="edit-regnum"><input type="hidden" id="edit-role">
+    <div id="student-readonly-notice" style="display:none;background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.3);border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.85rem;color:#f59e0b;">
+      🔒 Student personal details cannot be modified. You may only manage their registration status and voting access.
+    </div>
+    <div class="form-grid" style="margin-bottom:1rem;">
+      <div class="form-field"><label>Full Name</label><input type="text" id="edit-name"></div>
+      <div class="form-field"><label>Email</label><input type="email" id="edit-email"></div>
+    </div>
+    <div class="form-grid" style="margin-bottom:1rem;">
+      <div class="form-field"><label>Year</label>
+        <select id="edit-year"><option value="1st">1st Year</option><option value="2nd">2nd Year</option><option value="3rd">3rd Year</option><option value="4th">4th Year</option></select>
+      </div>
+      <div class="form-field"><label>Class</label><input type="text" id="edit-class"></div>
+    </div>
+    <div class="form-field" style="margin-bottom:1.5rem;">
+      <label>Password</label><input type="password" id="edit-pass">
+    </div>
+    <button class="btn btn-cyan" id="edit-save-btn" style="width:100%" onclick="saveEdit()">Save Changes</button>
+  </div>
+</div>
+
+<!-- PORTRAIT -->
+<div id="portrait-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9000;background:rgba(0,0,0,0.9);flex-direction:column;align-items:center;justify-content:center;">
+  <img id="portrait-preview" src="" style="max-height:80vh;max-width:90%;border-radius:8px;border:2px solid white;">
+  <button class="btn btn-cyan" style="margin-top:1rem;" onclick="document.getElementById('portrait-modal').style.display='none'">Close Review</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API=(location.hostname==='localhost'?'http://localhost:3001':'')+'/api';
+let session = null;
+try {
+  const stored = localStorage.getItem('ovs_currentUser');
+  if (stored && stored !== 'undefined') session = JSON.parse(stored);
+} catch(e) { console.error('Session parse error:', e); }
+let branchStudents=[];
+let branchSAs=[];
+let branchElection=null;
+let cReg=null,cVote=null;
+
+// Global DOM Utilities
+function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+}
+function setHTML(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+}
+
+function toggleAuthPass() {
+  const inp = document.getElementById('auth-pass');
+  const eye = document.getElementById('auth-pass-eye');
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  if (eye) eye.textContent = inp.type === 'password' ? '👁️' : '🕑';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (session && session.role === 'admin') {
+    setText('branch-label', `Branch Admin (${session.branch})`);
+    setText('branch-sub', `Managing ${session.branch} — ${session.institution}`);
+    loadAll().then(() => {
+        const lastPage = sessionStorage.getItem('ovs_last_page_admin');
+        if (lastPage) showPage(lastPage);
+    });
+    // Single-session guard: auto-logout if another device logs in
+    if (typeof startSessionGuard === 'function') {
+      startSessionGuard(session.regNum, session.institution, (reason) => {
+        if (reason === 'session_replaced') {
+          alert('⚠️ You have been logged out because your account was logged in from another device.');
+        }
+        localStorage.removeItem('ovs_admin_session');
+        localStorage.removeItem('ovs_currentUser');
+        const instCode = localStorage.getItem('ovs_inst_code') || '';
+        window.location.href = instCode ? `index.html?inst_code=${encodeURIComponent(instCode)}` : 'index.html';
+      });
+    }
+  } else {
+    window.location.href = 'login.html?admin=true';
+  }
+});
+
+async function apiFetch(path, opts = {}) {
+    // Standardize to use the new fetchApi which includes security headers
+    return await fetchApi(path, opts);
+}
+function toast(m,ok=true){
+    const t=document.getElementById('toast');
+    if(!t) return;
+    t.textContent=(ok?'✅ ':'❌ ')+m;
+    t.style.borderColor=ok?'rgba(34,197,94,0.5)':'rgba(239,68,68,0.5)';
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function adminLogout() { localStorage.removeItem('ovs_admin_session'); window.location.href = 'login.html?admin=true'; }
+
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const btn = document.getElementById('sa-toggle-btn');
+  sidebar.classList.toggle('open');
+  btn.classList.toggle('active');
+}
+
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.nav-sub-item').forEach(n=>n.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  if(el) el.classList.add('active');
+  else {
+      const nav = document.getElementById('nav-'+id);
+      if(nav) nav.classList.add('active');
+  }
+  
+  sessionStorage.setItem('ovs_last_page_admin', id);
+
+  if(id==='ca-approvals') loadClassAdminApprovals();
+  if(id==='voting-my')loadBranchElection();
+  if(id==='voting-college')loadCollegeElection();
+}
+async function refreshAll(){ toast('🔄 Refreshing Page...'); setTimeout(() => location.reload(), 500); }
+
+async function loadAll(){
+    try {
+        const [studs, sas] = await Promise.all([
+            apiFetch(`/voters/by-branch/${encodeURIComponent(session.branch)}?institution=${encodeURIComponent(session.institution)}`),
+            apiFetch(`/staff/branch/${encodeURIComponent(session.branch)}?institution=${encodeURIComponent(session.institution)}`)
+        ]);
+        branchStudents=studs; branchSAs=sas;
+        setText('o-students', studs.length);
+        setText('o-subadmins', sas.length);
+
+
+
+        filterStudents();
+        renderSAs(sas);
+        buildScopeHierarchy(studs);
+
+        // chart logic removed as redundant
+        
+    }catch(e){toast(e.message,false);}
+}
+
+function filterStudents(){
+    const q=document.getElementById('search-students').value.toLowerCase();
+    const y=document.getElementById('sf-year').value;
+    const f=branchStudents.filter(s=>(!q||(s.regNum+' '+s.name).toLowerCase().includes(q))&&(!y||s.year===y));
+    if(!f.length){setHTML('student-table', '<tr><td colspan="8" class="empty">No students found</td></tr>');return;}
+    setHTML('student-table', f.map(s=>{
+        let p='<div style="width:30px;height:30px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;">None</div>';
+        if(s.portrait){
+            if(s.portrait.startsWith('data:image')) p=`<img src="${s.portrait}" onclick="showP('${s.portrait}')" style="width:30px;height:30px;border-radius:4px;object-fit:cover;cursor:pointer;">`;
+            else p=`<div onclick="showP('${s.portrait}',true)" style="width:30px;height:30px;background:#ef4444;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;cursor:pointer;font-size:10px;">PDF</div>`;
+        }
+        let w='<div style="width:30px;height:30px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;">N/A</div>';
+        if(s.webcamReg) w=`<img src="${s.webcamReg}" onclick="showP('${s.webcamReg}')" style="width:30px;height:30px;border-radius:4px;object-fit:cover;cursor:pointer;border:1px solid #06b6d4;">`;
+        const lb = s.livenessSkipped == 1
+          ? '<span style="font-size:0.7rem;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.4);border-radius:4px;padding:1px 5px;">⚠️Skip</span>'
+          : '';
+        return `<tr>
+         <td>${p}</td><td>${w}</td><td><strong>${s.regNum}</strong></td>
+         <td>${s.name} ${lb}</td>
+         <td>${s.year||'-'}</td><td>${s.class||'-'}</td>
+        </tr>`;
+    }).join(''));
+}
+
+// === CLASS ADMIN APPROVALS ===
+async function loadClassAdminApprovals() {
+    try {
+        const container = document.getElementById('ca-approvals-list');
+        if(container) container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:2rem;">Loading...</p>';
+
+        // Get all subadmins in this branch
+        const sas = branchSAs.length > 0 ? branchSAs : await apiFetch(`/staff/branch/${encodeURIComponent(session.branch)}?institution=${encodeURIComponent(session.institution)}`);
+        // Get all active students in this branch
+        const approved = branchStudents.filter(s => s.status === 'active');
+
+        if (!approved.length) {
+            if(container) container.innerHTML = '<p style="color:var(--muted);text-align:center;padding:2rem;">No approved students yet in this branch.</p>';
+            return;
+        }
+
+        // Group students by their managedBy (subadmin regNum)
+        const groups = {};
+        const unassigned = [];
+        approved.forEach(s => {
+            if(s.managedBy) {
+                if(!groups[s.managedBy]) groups[s.managedBy] = [];
+                groups[s.managedBy].push(s);
+            } else {
+                unassigned.push(s);
+            }
+        });
+
+        let html = '';
+
+        // Render each subadmin group
+        for(const saRegNum of Object.keys(groups)) {
+            const sa = sas.find(x => x.regNum === saRegNum);
+            const saName = sa ? sa.name : saRegNum;
+            const saClass = sa ? (sa.class || 'Unknown Class') : 'Unknown Class';
+            const students = groups[saRegNum];
+            const livenessSkippedCount = students.filter(s => s.livenessSkipped == 1).length;
+
+            html += `
+            <div class="card" style="padding:0;overflow:hidden;margin-bottom:1.5rem;">
+              <div style="padding:1rem 1.5rem;background:rgba(168,85,247,0.07);border-bottom:1px solid rgba(168,85,247,0.2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+                <div>
+                  <div style="font-weight:700;color:#c084fc;font-size:1rem;">👤 ${saName}</div>
+                  <div style="font-size:0.8rem;color:var(--muted);">Class Admin · ${saClass} · ID: ${saRegNum}</div>
+                </div>
+                <div style="display:flex;gap:0.6rem;align-items:center;">
+                  <span style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:0.2rem 0.7rem;font-size:0.8rem;font-weight:700;">${students.length} Approved</span>
+                  ${livenessSkippedCount > 0 ? `<span style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.4);border-radius:8px;padding:0.2rem 0.7rem;font-size:0.8rem;font-weight:700;">⚠️ ${livenessSkippedCount} Liveness Skipped</span>` : ''}
+                </div>
+              </div>
+              <div style="overflow-x:auto;">
+                <table>
+                  <thead><tr><th>ID Proof</th><th>Webcam</th><th>Reg No</th><th>Name</th><th>Class</th><th>Liveness</th></tr></thead>
+                  <tbody>
+                    ${students.map(s => {
+                        let p='<div style="width:30px;height:30px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;">None</div>';
+                        if(s.portrait && s.portrait.startsWith('data:image')) p=`<img src="${s.portrait}" onclick="showP('${s.portrait}')" style="width:30px;height:30px;border-radius:4px;object-fit:cover;cursor:pointer;">`;                        
+                        let w='<div style="width:30px;height:30px;background:#333;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;">N/A</div>';
+                        if(s.webcamReg) w=`<img src="${s.webcamReg}" onclick="showP('${s.webcamReg}')" style="width:30px;height:30px;border-radius:4px;object-fit:cover;cursor:pointer;border:1px solid #06b6d4;">`;                        
+                        const lb = s.livenessSkipped == 1
+                            ? '<span style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.4);border-radius:6px;padding:2px 6px;font-size:0.7rem;font-weight:700;">⚠️ Skipped</span>'
+                            : '<span style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:2px 6px;font-size:0.7rem;font-weight:700;">✅ Verified</span>';
+                        return `<tr><td>${p}</td><td>${w}</td><td><strong>${s.regNum}</strong></td><td>${s.name}</td><td>${s.class||'-'}</td><td>${lb}</td></tr>`;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>`;
+        }
+
+        // Unassigned students (registered directly without a class admin)
+        if(unassigned.length) {
+            html += `
+            <div class="card" style="padding:0;overflow:hidden;">
+              <div style="padding:1rem 1.5rem;background:rgba(100,116,139,0.07);border-bottom:1px solid rgba(100,116,139,0.2);">
+                <div style="font-weight:700;color:var(--muted);">📂 Unassigned (No Class Admin)</div>
+                <div style="font-size:0.8rem;color:var(--muted);">These students registered without a class admin code</div>
+              </div>
+              <div style="overflow-x:auto;"><table><thead><tr><th>Reg No</th><th>Name</th><th>Class</th></tr></thead><tbody>
+                ${unassigned.map(s=>`<tr><td><strong>${s.regNum}</strong></td><td>${s.name}</td><td>${s.class||'-'}</td></tr>`).join('')}
+              </tbody></table></div>
+            </div>`;
+        }
+
+        if(container) container.innerHTML = html;
+    } catch(e) { toast(e.message, false); }
+}
+
+function renderSAs(sas){
+    if(!sas.length){setHTML('sa-table', '<tr><td colspan="6" class="empty">No sub-admins found</td></tr>');return;}
+    setHTML('sa-table', sas.map(s=>`<tr>
+        <td><strong>${s.regNum}</strong></td><td>${s.name}</td><td>${s.year||'-'}</td><td>${s.class||'-'}</td><td>${s.email||'-'}</td>
+        <td style="display:flex;gap:0.4rem;">
+           <button class="btn-sm btn-outline" style="color:var(--purple);border-color:rgba(168,85,247,0.3);" onclick="doSaAction(\'edit\',\''+s.regNum+'\')">✏️ Edit</button>
+           <button class="btn-sm btn-danger-sm" onclick="doSaAction(\'remove\',\''+s.regNum+'\')">🗑 Remove</button>
+        </td>
+    </tr>`).join(''));
+}
+
+
+async function doAction(act, id) {
+    // Only accept actions from class admins (subadmins) now
+    return toast('This action is restricted to Class Admins.', false);
+}
+async function doSaAction(act, id) {
+    if(!act) return;
+    if(act==='remove'){if(confirm(`Remove SubAdmin ${id}?`)){await apiFetch(`/users/${id}?institution=${encodeURIComponent(session.institution)}`,{method:'DELETE'});toast('Removed');loadAll();}}
+    if(act==='edit'){
+        const s = branchSAs.find(x=>x.regNum===id); if(!s) return;
+        document.getElementById('edit-regnum').value=id; document.getElementById('edit-role').value='subadmin';
+        document.getElementById('edit-name').value=s.name; document.getElementById('edit-email').value=s.email||'';
+        document.getElementById('edit-class').value=s.class||''; document.getElementById('edit-year').value=s.year||'1st';
+        document.getElementById('edit-pass').value=''; document.getElementById('edit-modal').classList.add('open');
+    }
+}
+
+function closeEdit(){document.getElementById('edit-modal').classList.remove('open');}
+async function saveEdit(){
+    const rl = document.getElementById('edit-role').value;
+    // Students cannot be edited by admin — only sub-admins can
+    if(rl === 'voter' || rl === 'contestant') return toast('Cannot edit student details', false);
+    const id=document.getElementById('edit-regnum').value;
+    const upd={name:document.getElementById('edit-name').value,email:document.getElementById('edit-email').value,class:document.getElementById('edit-class').value.toUpperCase(),year:document.getElementById('edit-year').value};
+    const p=document.getElementById('edit-pass').value; if(p) { upd.password = await StorageManager.hashPassword(p); }
+    try{await apiFetch(`/users/${id}?institution=${encodeURIComponent(session.institution)}`,{method:'PATCH',body:JSON.stringify(upd)});toast('Saved');closeEdit();loadAll();}catch(e){toast(e.message,false);}
+}
+async function createSubadmin(){
+    const id=document.getElementById('sa-id').value.toUpperCase(); const nm=document.getElementById('sa-name').value;
+    const em=document.getElementById('sa-email').value; const cl=document.getElementById('sa-class').value.toUpperCase();
+    const yr=document.getElementById('sa-year').value; const p=document.getElementById('sa-pass').value;
+    if(id.length!==9)return toast('ID must be 9 chars',false); if(!nm||!cl||!p)return toast('Fill fields',false);
+    const hashedPass = await StorageManager.hashPassword(p);
+    try{await apiFetch('/users/add',{method:'POST',body:JSON.stringify({regNum:id,password:hashedPass,role:'subadmin',name:nm,email:em,branch:session.branch,class:cl,year:yr,institution:session.institution,managedBy:session.regNum,status:'active'})});toast('Subadmin created');loadAll();}catch(e){toast(e.message,false);}
+}
+function showP(s,isPdf){
+    if(isPdf){const w=window.open('','_blank');if(w)w.document.body.innerHTML=`<iframe src="${s}" width="100%" height="100%" style="border:none;"></iframe>`;return;}
+    document.getElementById('portrait-preview').src=s; document.getElementById('portrait-modal').style.display='flex';
+}
+
+// === SCOPE HIERARCHY ===
+let branchClassMap = {};
+function buildScopeHierarchy(studs) {
+    branchClassMap = {};
+    const years = ['1st','2nd','3rd','4th'];
+    // Collect classes for each year dynamically based on students in the branch
+    studs.forEach(s => {
+        if(s.year && s.class) {
+            if(!branchClassMap[s.year]) branchClassMap[s.year] = new Set();
+            branchClassMap[s.year].add(s.class);
+        }
+    });
+    let html = '';
+    years.forEach(yy => {
+        if(branchClassMap[yy] && branchClassMap[yy].size > 0) {
+            const classes = Array.from(branchClassMap[yy]).sort();
+            html += `<div class="hierarchy-group">
+                <div class="hierarchy-year" onclick="toggleHierarchy('${yy}')">
+                    <span id="icon-${yy}">▶</span> 
+                    <input type="checkbox" class="cb-year cb-all" data-year="${yy}" id="cb-y-${yy}" onclick="event.stopPropagation(); checkYear('${yy}')"> ${yy} Year
+                </div>
+                <div class="hierarchy-classes" id="hc-${yy}">
+                    ${classes.map(cl => `<label style="display:flex;align-items:center;gap:0.4rem;font-size:0.85rem;color:var(--muted);text-transform:none;"><input type="checkbox" class="cb-class cb-all cb-y-${yy}" data-class="${cl}"> ${cl}</label>`).join('')}
+                </div>
+            </div>`;
+        }
+    });
+    setHTML('br-scope-hierarchy', html);
+}
+function toggleHierarchy(yy) {
+    const el = document.getElementById(`hc-${yy}`); const ic = document.getElementById(`icon-${yy}`);
+    if(el.classList.contains('open')){el.classList.remove('open');ic.textContent='▶';}else{el.classList.add('open');ic.textContent='▼';}
+}
+function checkYear(yy) {
+    const ycb = document.getElementById(`cb-y-${yy}`);
+    document.querySelectorAll(`.cb-y-${yy}`).forEach(cb => cb.checked = ycb.checked);
+}
+function toggleScopeAll() {
+    const sa = document.getElementById('br-scope-all').checked;
+    document.querySelectorAll('.cb-all').forEach(cb => cb.checked = sa);
+}
+
+// === MY ELECTION ===
+async function loadBranchElection() {
+    try{
+        const elecs = await apiFetch(`/elections?institution=${encodeURIComponent(session.institution)}&type=branch&createdBy=${encodeURIComponent(session.regNum)}`);
+        branchElection = elecs[0]||null;
+        if(branchElection) {
+            const createCard = document.getElementById('br-create-election-card');
+            if(createCard) createCard.style.display='none';
+            const activeEl = document.getElementById('br-election-active');
+            if(activeEl) activeEl.style.display='block';
+            setText('br-elec-code', branchElection.electionCode);
+            const startBtn = document.getElementById('br-elec-start-btn');
+            const stopBtn = document.getElementById('br-elec-stop-btn');
+            const restartBtn = document.getElementById('br-elec-restart-btn');
+
+            if(startBtn) startBtn.style.display='none';
+            if(stopBtn) stopBtn.style.display='none';
+            if(restartBtn) restartBtn.style.display='none';
+
+            if(branchElection.isActive){
+                if(stopBtn) stopBtn.style.display='inline-block';
+            } else if(branchElection.isCompleted) {
+                if(restartBtn) restartBtn.style.display='inline-block';
+            } else {
+                if(startBtn) startBtn.style.display='inline-block';
+            }
+
+
+            // Fetch and Render Results
+            const res = await StorageManager.fetchElectionResults(branchElection.id);
+            const rList = document.getElementById('br-elec-results-list');
+            const rCard = document.getElementById('br-elec-results-card');
+            
+            if (res.success && res.results.length > 0) {
+                if(rCard) rCard.style.display = 'block';
+                const totalV = res.results.reduce((s, r) => s + r.votes, 0);
+                setHTML('br-elec-results-list', res.results.map((r, idx) => {
+                    const pct = totalV > 0 ? Math.round((r.votes / totalV) * 100) : 0;
+                    const isWin = idx === 0 && r.votes > 0;
+                    return `
+                        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:12px; border:1px solid ${isWin ? 'var(--gold)' : 'var(--border)'}; position:relative; overflow:hidden;">
+                            ${isWin ? '<div style="position:absolute; top:0; right:0; background:var(--gold); color:black; font-size:0.6rem; font-weight:bold; padding:2px 8px; border-bottom-left-radius:8px;">LEADING</div>' : ''}
+                            <div style="display:flex; align-items:center; gap:1rem;">
+                                <div style="width:40px; height:40px; border-radius:50%; background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.3); display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0;">${r.symbol || '⭐'}</div>
+                                <div style="flex:1;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+                                        <span style="font-weight:700; font-size:0.9rem;">${r.name} <span style="font-size:1.2rem; margin-left:0.5rem;">${r.symbol}</span></span>
+                                        <span style="color:var(--gold); font-weight:700;">${r.votes} Votes</span>
+                                    </div>
+                                    <div style="width:100%; background:rgba(255,255,255,0.05); height:8px; border-radius:4px; overflow:hidden;">
+                                        <div style="width:${pct}%; background:${isWin ? 'var(--gold)' : 'var(--cyan)'}; height:100%; transition:width 0.5s ease;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join(''));
+            } else {
+                if(rCard) rCard.style.display = 'none';
+            }
+        } else {
+            const createCard = document.getElementById('br-create-election-card');
+            if(createCard) createCard.style.display='block';
+            const activeEl = document.getElementById('br-election-active');
+            if(activeEl) activeEl.style.display='none';
+        }
+    }catch(e){toast(e.message,false);}
+}
+
+// === BRANCH ADMIN CATEGORY BUILDER ===
+let brCategories = [];
+
+function brAddCategory() {
+  brCategories.push({ name: '', candidates: [{ name: '', regNum: '', symbol: '⭐' }, { name: '', regNum: '', symbol: '🔥' }] });
+  brRenderCategories();
+}
+function brRemoveCategory(idx) {
+  brCategories.splice(idx, 1);
+  brRenderCategories();
+}
+function brAddCandidate(catIdx) {
+  const syms = ['💎','🎯','🌈','⚡','🍀','🏆','🚀','👑'];
+  brCategories[catIdx].candidates.push({ name: '', regNum: '', symbol: syms[brCategories[catIdx].candidates.length % syms.length] });
+  brRenderCategories();
+}
+function brRemoveCandidate(catIdx, candIdx) {
+  brCategories[catIdx].candidates.splice(candIdx, 1);
+  brRenderCategories();
+}
+function brAutoFill(catIdx, candIdx) {
+  const reg = brCategories[catIdx].candidates[candIdx].regNum;
+  const student = branchStudents.find(s => s.regNum === reg);
+  if (student) {
+    brCategories[catIdx].candidates[candIdx].name = student.name;
+    const nameEl = document.getElementById(`br-cn-${catIdx}-${candIdx}`);
+    if (nameEl) nameEl.value = student.name;
+    const previewEl = document.getElementById(`br-cp-${catIdx}-${candIdx}`);
+    if (previewEl && student.portrait) previewEl.innerHTML = `<img src="${student.portrait}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  }
+}
+function brSyncData() {
+  document.querySelectorAll('.br-cat-name').forEach((inp, i) => {
+    if (brCategories[i]) brCategories[i].name = inp.value;
+  });
+  document.querySelectorAll('.br-cand-row').forEach(row => {
+    const ci = parseInt(row.dataset.cat); const ki = parseInt(row.dataset.cand);
+    if (brCategories[ci] && brCategories[ci].candidates[ki]) {
+      brCategories[ci].candidates[ki].name   = row.querySelector('.br-cn').value;
+      brCategories[ci].candidates[ki].regNum = row.querySelector('.br-cr').value;
+      brCategories[ci].candidates[ki].symbol = row.querySelector('.br-cs').value || '⭐';
+    }
+  });
+}
+function brRenderCategories() {
+  const container = document.getElementById('br-category-builder');
+  if (!container) return;
+  if (brCategories.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:1.5rem;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);border-radius:10px;"><p style="color:var(--muted);font-size:0.85rem;">No categories yet. Click <strong style="color:var(--cyan);">+ Add Category</strong> to add your first.</p></div>';
+    return;
+  }
+  container.innerHTML = brCategories.map((cat, ci) => `
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(6,182,212,0.2);border-radius:12px;padding:1.2rem;margin-bottom:1rem;">
+      <div style="display:flex;gap:0.8rem;align-items:center;margin-bottom:1rem;">
+        <input class="br-cat-name" value="${cat.name}" placeholder="Category name (e.g. President)" style="flex:1;padding:0.5rem 0.8rem;border-radius:8px;border:1px solid rgba(6,182,212,0.3);background:rgba(6,182,212,0.05);color:white;font-family:'Outfit';outline:none;">
+        <button onclick="brSyncData();brRemoveCategory(${ci})" style="padding:0.4rem 0.7rem;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.1);color:#ef4444;cursor:pointer;font-size:0.8rem;">🗑️</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:0.8rem;">
+        ${cat.candidates.map((cand, ki) => `
+          <div class="br-cand-row" data-cat="${ci}" data-cand="${ki}" style="display:flex;gap:0.5rem;align-items:center;background:rgba(255,255,255,0.02);padding:0.5rem 0.8rem;border-radius:8px;border:1px solid rgba(255,255,255,0.06);">
+            <div id="br-cp-${ci}-${ki}" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--muted);">?</div>
+            <input class="br-cr" value="${cand.regNum}" placeholder="Student ID" oninput="brCategories[${ci}].candidates[${ki}].regNum=this.value.toUpperCase();this.value=this.value.toUpperCase();brAutoFill(${ci},${ki})" style="width:110px;padding:0.35rem 0.6rem;border-radius:6px;border:1px solid rgba(6,182,212,0.3);background:rgba(6,182,212,0.04);color:white;font-family:'Outfit';outline:none;min-width:0;">
+            <input id="br-cn-${ci}-${ki}" class="br-cn" value="${cand.name}" placeholder="Candidate Name *" oninput="brCategories[${ci}].candidates[${ki}].name=this.value" style="flex:2;padding:0.35rem 0.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:white;font-family:'Outfit';outline:none;min-width:0;">
+            <input class="br-cs" value="${cand.symbol}" placeholder="Sym" maxlength="4" oninput="brCategories[${ci}].candidates[${ki}].symbol=this.value" style="width:55px;padding:0.35rem 0.5rem;border-radius:6px;border:1px solid rgba(6,182,212,0.3);background:rgba(6,182,212,0.04);color:white;font-family:'Outfit';outline:none;text-align:center;">
+            ${ki > 1 ? `<button onclick="brSyncData();brRemoveCandidate(${ci},${ki})" style="padding:0.3rem 0.5rem;border-radius:6px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);color:#ef4444;cursor:pointer;flex-shrink:0;">✕</button>` : ''}
+          </div>
+        `).join('')}
+        ${cat.candidates.length < 2 ? '<div style="font-size:0.75rem;color:#f59e0b;padding:0.3rem 0;">⚠️ Need at least 2 candidates</div>' : ''}
+      </div>
+      <button onclick="brSyncData();brAddCandidate(${ci})" style="padding:0.35rem 0.8rem;border-radius:6px;border:1px solid rgba(34,197,94,0.3);background:rgba(34,197,94,0.08);color:#22c55e;cursor:pointer;font-size:0.82rem;">+ Add Candidate</button>
+    </div>
+  `).join('');
+}
+
+async function createBranchElection() {
+    brSyncData();
+    const nm = document.getElementById('br-elec-name').value.trim();
+    const startVal = document.getElementById('br-elec-start').value;
+    const endVal = document.getElementById('br-elec-end').value;
+    const resultVis = document.getElementById('br-elec-visibility') ? document.getElementById('br-elec-visibility').value : 'branch';
+    if (!nm) return toast('Election name required', false);
+    if (!startVal || !endVal) return toast('Start and end time required', false);
+
+    // Validate categories
+    if (brCategories.length === 0) return toast('Add at least 1 category', false);
+    const categories = [];
+    const allCandidates = [];
+    for (const cat of brCategories) {
+        if (!cat.name.trim()) return toast('All category names must be filled', false);
+        if (cat.candidates.length < 2) return toast(`Category "${cat.name}" needs at least 2 candidates`, false);
+        for (const c of cat.candidates) {
+            if (!c.name.trim()) return toast(`Candidate name required in "${cat.name}"`, false);
+            if (!c.regNum.trim()) return toast(`Student ID required for "${c.name || 'a candidate'}" in "${cat.name}"`, false);
+            if (!c.symbol.trim()) return toast(`Symbol required for "${c.name}" in "${cat.name}"`, false);
+        }
+        categories.push(cat.name.trim());
+        cat.candidates.forEach(c => allCandidates.push({ name: c.name, regNum: c.regNum, symbol: c.symbol || '⭐', category: cat.name.trim() }));
+    }
+
+    const scopeAll = document.getElementById('br-scope-all').checked;
+    let selectedClasses = [];
+    if (!scopeAll) {
+        document.querySelectorAll('.cb-class').forEach(cb => { if (cb.checked) selectedClasses.push(cb.getAttribute('data-class')); });
+    }
+    const scopeData = { branch: session.branch, classes: selectedClasses, resultVisibility: resultVis };
+
+    try {
+        toast('Creating election...');
+        await apiFetch('/elections', { method: 'POST', body: JSON.stringify({
+            institution: session.institution, name: nm, type: 'branch', scope: scopeData,
+            startTime: new Date(startVal).toISOString(),
+            endTime: new Date(endVal).toISOString(),
+            createdBy: session.regNum, createdByRole: 'admin',
+            categories, candidates: allCandidates
+        })});
+        toast('✅ Branch Election Created!');
+        brCategories = [];
+        loadBranchElection();
+    } catch(e) { toast(e.message, false); }
+}
+async function startBrElection(){if(branchElection&&confirm('Start branch election?')){await apiFetch(`/elections/${encodeURIComponent(branchElection.id)}`,{method:'PATCH',body:JSON.stringify({isActive:1,registrationOpen:0})});toast('Started');loadBranchElection();}}
+async function stopBrElection(){if(branchElection&&confirm('End branch election?')){await apiFetch(`/elections/${encodeURIComponent(branchElection.id)}`,{method:'PATCH',body:JSON.stringify({isActive:0,isCompleted:1})});toast('Ended');loadBranchElection();}}
+async function restartBrElection(){if(branchElection&&confirm('Restart this election? All votes will be reset.')){await apiFetch(`/elections/${encodeURIComponent(branchElection.id)}/reset`,{method:'POST'});toast('✅ Election restarted and votes reset!');loadBranchElection();}}
+async function deleteBrElection(){if(branchElection&&confirm('Delete branch election?')){await apiFetch(`/elections/${encodeURIComponent(branchElection.id)}`,{method:'DELETE'});toast('Deleted');loadBranchElection();}}
+function copyBrCode(){navigator.clipboard.writeText(branchElection.electionCode).then(()=>toast('Copied'));}
+
+// === COLLEGE HEAD ELECTION ===
+async function loadCollegeElection(){
+    try{
+        const elecs = await apiFetch(`/elections?institution=${encodeURIComponent(session.institution)}&type=college`);
+        const ce = elecs[0]||null;
+        const i = document.getElementById('col-elec-info');
+        const resCard = document.getElementById('col-elec-results-card');
+
+        if(ce){
+            setHTML('col-elec-info', `
+              <div style="display:flex; align-items:center; justify-content:center; gap:1.5rem; flex-wrap:wrap;">
+                <div style="text-align:left;">
+                  <div style="font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.2rem;">Live Institutional Election</div>
+                  <h3 style="color:var(--text);margin:0; font-size:1.4rem;">${ce.name}</h3>
+                </div>
+                <div style="display:flex; gap:0.8rem; align-items:center;">
+                  ${ce.isActive?'<span class="pill-active">🟢 Running</span>':'<span class="pill-pending">⏳ Pending</span>'}
+                  <div style="background:rgba(255,255,255,0.05); padding:0.4rem 0.8rem; border-radius:8px; border:1px solid rgba(255,255,255,0.1); font-family:monospace; font-size:1.1rem;">
+                    <span style="color:var(--muted); font-size:0.7rem; display:block; margin-bottom:0.1rem; text-transform:uppercase;">Code</span>
+                    ${ce.electionCode}
+                  </div>
+                </div>
+              </div>
+            `);
+            const iCard = document.getElementById('col-elec-info');
+            if(iCard) {
+                iCard.style.borderStyle = 'solid';
+                iCard.style.background = 'linear-gradient(135deg, rgba(6,182,212,0.08), transparent)';
+                iCard.style.borderColor = 'rgba(6,182,212,0.3)';
+            }
+
+            // Fetch Results
+            if(resCard) {
+                resCard.style.display = 'block';
+                const res = await apiFetch(`/elections/${ce.id}/results`);
+                const totalV = res.reduce((s, r) => s + r.votes, 0);
+                setHTML('col-elec-results-list', res.map((r, idx) => {
+                    const pct = totalV > 0 ? Math.round((r.votes / totalV) * 100) : 0;
+                    return `
+                        <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:12px; border:1px solid var(--border);">
+                            <div style="display:flex; align-items:center; gap:1rem;">
+                                <div style="flex:1;">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+                                        <span style="font-weight:700; font-size:0.9rem;">${r.name}</span>
+                                        <span style="color:var(--gold); font-weight:700;">${r.votes} Votes</span>
+                                    </div>
+                                    <div style="width:100%; background:rgba(255,255,255,0.05); height:8px; border-radius:4px; overflow:hidden;">
+                                        <div style="width:${pct}%; background:linear-gradient(90deg, var(--cyan), var(--blue)); height:100%; transition:width 0.5s ease;"></div>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; margin-top:0.4rem; font-size:0.7rem; color:var(--muted);">
+                                        <span>${r.category || 'Candidate'}</span>
+                                        <span>${pct}% of total</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join(''));
+            }
+        } else {
+            setHTML('col-elec-info', `
+              <div style="padding:1rem;">
+                <div style="font-size:2rem; margin-bottom:0.5rem;">📭</div>
+                <div style="color:var(--muted);">No institutional-level elections are currently active for ${session.institution}.</div>
+              </div>
+            `);
+            const iCard = document.getElementById('col-elec-info');
+            if(iCard) {
+                iCard.style.borderStyle = 'dashed';
+                iCard.style.background = 'rgba(255,255,255,0.02)';
+                iCard.style.borderColor = 'rgba(255,255,255,0.1)';
+            }
+            if(resCard) resCard.style.display = 'none';
+        }
+        
+        setText('col-br-total', branchStudents.length);
+    }catch(e){toast(e.message,false);}
+}
+
+tsParticles.load("tsparticles",{fpsLimit:60,particles:{number:{value:25},color:{value:["#ffffff","#06b6d4"]},shape:{type:"circle"},opacity:{value:0.15,random:true},size:{value:2,random:true},links:{enable:true,distance:150,color:"#ffffff",opacity:0.08,width:1},move:{enable:true,speed:0.5}},retina_detect:true,background:{color:"transparent"}});
+</script>
+</body>
+</html>

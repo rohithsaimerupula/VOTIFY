@@ -1,0 +1,32 @@
+{
+  "name": "Vanguard — Online Voting System",
+  "short_name": "Vanguard",
+  "description": "Secure Online Voting System with SQLite Backend",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#02000F",
+  "theme_color": "#06b6d4",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "prefer_related_applications": false
+}

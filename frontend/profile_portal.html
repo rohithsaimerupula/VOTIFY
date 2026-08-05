@@ -1,0 +1,410 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#06b6d4">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+    <title>Profile Portal - OVS</title>
+
+    <link rel="stylesheet" href="style.css?v=1781373415712">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Playfair+Display:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        (function() {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('ovs_theme', 'dark');
+        })();
+    </script>
+    <script src="storage.js?v=3"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+<script src="config.js"></script>
+</head>
+
+<body class="theme-register">
+    <nav>
+        <div class="brand" onclick="window.location.href='index.html'" style="font-family:'Playfair Display', serif; letter-spacing:-1px;">VANGUARD</div>
+        <div class="nav-links" style="display:flex; align-items:center;">
+            <button onclick="window.location.href='index.html'" class="btn-outline" style="margin-right:0.5rem; padding:0.5rem 1rem;">Home</button>
+            <button onclick="window.location.href='login.html'" class="submit-btn" style="width: auto;">Log In</button>
+        </div>
+    </nav>
+
+    <div class="container animate-fade-in" style="max-width: 500px;">
+        <!-- Login Section -->
+        <div id="login-section" class="glass-panel" style="padding: 2.5rem;">
+            <h2 class="text-center" style="margin-bottom: 2rem; font-family:'Playfair Display', serif; font-weight:700;">Profile Portal</h2>
+            
+            <!-- Role Selection Buttons -->
+            <div class="login-tabs" style="display: flex; gap:10px; margin-bottom: 2rem;">
+                <button id="btn-voter-mode" class="tab-btn active" onclick="switchLoginMode('voter')" style="flex:1; padding:0.8rem; background:rgba(6,182,212,0.1); border:1px solid var(--neon-cyan); border-radius:8px; color:var(--neon-cyan); cursor:pointer;">Voter Login</button>
+                <button id="btn-candidate-mode" class="tab-btn" onclick="switchLoginMode('candidate')" style="flex:1; padding:0.8rem; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); border-radius:8px; color:white; cursor:pointer;">Candidate Login</button>
+            </div>
+
+            <form id="portal-login-form">
+                <div class="form-group">
+                    <label id="login-id-label">Registration Number</label>
+                    <input type="text" id="login-id" required placeholder="Enter ID">
+                </div>
+                <div class="form-group" id="login-pass-group">
+                    <label>Password</label>
+                    <input type="password" id="login-pass" required placeholder="Enter Password">
+                    <div style="text-align:right; margin-top:0.5rem;">
+                        <a href="login.html" style="color:var(--neon-cyan); font-size:0.85rem; text-decoration:none;">Forgot Password?</a>
+                    </div>
+                </div>
+                <button type="submit" class="submit-btn" id="login-btn">Enter Portal</button>
+            </form>
+            <p id="login-error" class="text-danger text-center mt-3 hidden"></p>
+        </div>
+
+        <!-- Update Section -->
+        <div id="update-section" class="glass-panel hidden" style="padding: 2.5rem;">
+            <h2 class="text-center" style="margin-bottom: 2rem; font-family:'Playfair Display', serif; font-weight:700;">Update Details</h2>
+            <form id="profile-update-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="name" required maxlength="50">
+                </div>
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label>Year</label>
+                        <select id="year">
+                            <option value="1st">1st Year</option>
+                            <option value="2nd">2nd Year</option>
+                            <option value="3rd">3rd Year</option>
+                            <option value="4th">4th Year</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Branch</label>
+                        <select id="branch">
+                            <option>CSE</option><option>ECE</option><option>EEE</option><option>CSC</option>
+                            <option>MECH</option><option>IT</option><option>ECM</option><option>AIDS</option>
+                            <option>CSM</option><option>CIVIL</option><option>CAI</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Section</label>
+                        <input type="text" id="section" required maxlength="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Gmail Address</label>
+                    <input type="email" id="email" required>
+                </div>
+                
+                <div class="form-group hidden" id="password-group">
+                    <label id="password-label">New Password</label>
+                    <input type="password" id="new-password" placeholder="Leave blank to keep current">
+                    <small id="password-hint" class="text-muted"></small>
+                </div>
+
+                <div id="candidate-fields" class="hidden">
+                    <div class="form-group">
+                        <label>Election Symbol (Emoji)</label>
+                        <input type="text" id="symbol">
+                    </div>
+                    <div class="form-group">
+                        <label>Manifesto / Slogan</label>
+                        <textarea id="manifesto" maxlength="150" rows="3" style="width:100%; padding:0.8rem; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:8px; resize:none;"></textarea>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="button" class="btn-outline" onclick="location.reload()" style="flex:1;">Cancel</button>
+                    <button type="submit" id="save-btn" class="submit-btn" style="flex:2;">Update Details</button>
+                </div>
+            </form>
+
+            <!-- OTP Verification Section (Inline) -->
+            <div id="otp-verify-section" class="hidden mt-4 pt-4" style="border-top: 1px solid var(--glass-border);">
+                <h3 class="text-center" style="color: var(--gold-primary); margin-bottom: 1rem;">Verify via OTP</h3>
+                <p id="otp-hint" class="text-muted text-center" style="margin-bottom: 1rem;"></p>
+                <div class="form-group">
+                    <input type="text" id="update-otp-input" placeholder="Enter 6-digit Code" maxlength="6" style="text-align: center; font-size: 1.2rem; letter-spacing: 0.3rem;">
+                </div>
+                <button type="button" onclick="confirmUpdateWithOtp()" class="submit-btn" id="confirm-otp-btn">Confirm Changes</button>
+                <p id="otp-error" class="text-danger text-center mt-2 hidden"></p>
+            </div>
+
+            <div id="status-msg" class="hidden mt-3 text-center" style="padding: 1rem; border-radius: 8px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let sessionUser = null;
+
+        // Safe DOM Utilities
+        function setText(id, val) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        }
+        function setHTML(id, html) {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        }
+
+        let currentLoginMode = 'voter';
+
+        function switchLoginMode(mode) {
+            currentLoginMode = mode;
+            const bVoter = document.getElementById('btn-voter-mode');
+            const bCand = document.getElementById('btn-candidate-mode');
+            const passGroup = document.getElementById('login-pass-group');
+            const passInput = document.getElementById('login-pass');
+
+            if (mode === 'voter') {
+                if(bVoter) { bVoter.style.background = "rgba(6,182,212,0.1)"; bVoter.style.color = "var(--neon-cyan)"; bVoter.style.borderColor = "var(--neon-cyan)"; }
+                if(bCand) { bCand.style.background = "rgba(255,255,255,0.05)"; bCand.style.color = "white"; bCand.style.borderColor = "var(--glass-border)"; }
+                if(passGroup) passGroup.classList.remove('hidden');
+                if(passInput) passInput.required = true;
+            } else {
+                if(bCand) { bCand.style.background = "rgba(6,182,212,0.1)"; bCand.style.color = "var(--neon-cyan)"; bCand.style.borderColor = "var(--neon-cyan)"; }
+                if(bVoter) { bVoter.style.background = "rgba(255,255,255,0.05)"; bVoter.style.color = "white"; bVoter.style.borderColor = "var(--glass-border)"; }
+                if(passGroup) passGroup.classList.add('hidden');
+                if(passInput) passInput.required = false;
+            }
+        }
+
+        // Portal Login
+        document.getElementById('portal-login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('login-id').value.trim().toUpperCase();
+            const pass = document.getElementById('login-pass').value;
+            const btn = document.getElementById('login-btn');
+            const err = document.getElementById('login-error');
+
+            if(btn) {
+                btn.disabled = true;
+                btn.innerText = "Verifying...";
+            }
+            if(err) err.classList.add('hidden');
+
+            try {
+                let user;
+                if (currentLoginMode === 'voter') {
+                    // Voter: Auth with ID and Password via StorageManager
+                    user = await StorageManager.login(id, pass, true);
+                } else {
+                    // Candidate: Auth with regNum only â€” look up by ID and institution, no password needed
+                    const inst = localStorage.getItem('ovs_inst_name') || '';
+                    try {
+                        const data = await fetchApi(`/users/${id}?institution=${encodeURIComponent(inst)}`);
+                        if (data.role !== 'contestant') throw new Error('This ID is not a candidate account.');
+                        if (data.status === 'pending') throw new Error('Account pending approval. Please wait for admin activation.');
+                        if (data.isBanned === 1 || data.isBanned === true) throw new Error('This account has been banned.');
+                        user = data;
+                    } catch(fetchErr) {
+                        throw new Error(fetchErr.message || 'Candidate lookup failed.');
+                    }
+                }
+
+                if (!user) throw new Error('Invalid credentials.');
+                if (user.role === 'admin' || user.role === 'subadmin' || user.role === 'superadmin') {
+                    throw new Error('Staff accounts should use the Admin Dashboard.');
+                }
+
+                sessionUser = user;
+                showUpdateForm();
+            } catch (e) {
+                setText('login-error', e.message);
+                if(err) err.classList.remove('hidden');
+            } finally {
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerText = 'Enter Portal';
+                }
+            }
+        };
+
+        function showUpdateForm() {
+            document.getElementById('login-section').classList.add('hidden');
+            const updateSec = document.getElementById('update-section');
+            if(updateSec) updateSec.classList.remove('hidden');
+
+            // Populate
+            const nameEl = document.getElementById('name');
+            if(nameEl) nameEl.value = sessionUser.name || '';
+            const yearEl = document.getElementById('year');
+            if(yearEl) yearEl.value = sessionUser.year || '1st';
+            const brEl = document.getElementById('branch');
+            if(brEl) brEl.value = sessionUser.branch || 'CSE';
+            const secEl = document.getElementById('section');
+            if(secEl) secEl.value = sessionUser.section || '';
+            const emailEl = document.getElementById('email');
+            if(emailEl) emailEl.value = sessionUser.email || '';
+
+            if (sessionUser && sessionUser.role === 'contestant') {
+                const candF = document.getElementById('candidate-fields');
+                if(candF) candF.classList.remove('hidden');
+                const symEl = document.getElementById('symbol');
+                if(symEl) symEl.value = sessionUser.symbol || '';
+                const manEl = document.getElementById('manifesto');
+                if(manEl) manEl.value = sessionUser.manifesto || '';
+                const passG = document.getElementById('password-group');
+                if(passG) passG.classList.add('hidden');
+            } else {
+                const candF = document.getElementById('candidate-fields');
+                if(candF) candF.classList.add('hidden');
+                const pGroup = document.getElementById('password-group');
+                if(pGroup) pGroup.classList.remove('hidden');
+                setText('password-label', "New Password");
+                const newPass = document.getElementById('new-password');
+                if(newPass) newPass.placeholder = "Enter new password";
+                setText('password-hint', "6-10 chars Â· 3+ letters Â· 1+ special char Â· 1+ number. Leave blank to keep current.");
+            }
+        }
+
+        // Password policy validator
+        function validatePassword(pwd, minLen, maxLen) {
+            if (pwd.length < minLen || pwd.length > maxLen) return `Password must be ${minLen}-${maxLen} characters.`;
+            const alphaCount = (pwd.match(/[a-zA-Z]/g) || []).length;
+            if (alphaCount < 3) return 'Password must contain at least 3 letters.';
+            if (!/[0-9]/.test(pwd)) return 'Password must contain at least 1 number.';
+            if (!/[^a-zA-Z0-9]/.test(pwd)) return 'Password must contain at least 1 special character.';
+            return null; // valid
+        }
+
+        // Real-time validation for new password
+        document.getElementById('new-password').addEventListener('input', function() {
+            if (sessionUser && sessionUser.role === 'voter') {
+                if (this.value.length > 10) this.value = this.value.slice(0, 10);
+            }
+        });
+
+        let portalGeneratedOtp = null;
+        let pendingUpdates = null;
+
+        // Profile Update (Initially just triggers OTP)
+        document.getElementById('profile-update-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('save-btn');
+            
+            if(btn) {
+                btn.disabled = true;
+                btn.innerText = "Sending OTP...";
+            }
+
+            pendingUpdates = {
+                name: document.getElementById('name').value,
+                year: document.getElementById('year').value,
+                branch: document.getElementById('branch').value,
+                section: document.getElementById('section').value,
+                email: document.getElementById('email').value
+            };
+
+            const newPass = document.getElementById('new-password').value.trim();
+            if (newPass) {
+                if (sessionUser && sessionUser.role === 'voter') {
+                    const pwdError = validatePassword(newPass, 6, 10);
+                    if (pwdError) {
+                        btn.disabled = false;
+                        btn.innerText = "Update Details";
+                        return alert(pwdError);
+                    }
+                }
+                // Always hash (btoa) password before storing â€” consistent with login system
+                pendingUpdates.password = btoa(newPass);
+            }
+
+            if (sessionUser && sessionUser.role === 'contestant') {
+                pendingUpdates.symbol = document.getElementById('symbol').value;
+                pendingUpdates.manifesto = document.getElementById('manifesto').value;
+            }
+
+            try {
+                // Generate and send OTP
+                portalGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                await StorageManager.sendEmailOtp(sessionUser.email, sessionUser.name, portalGeneratedOtp, "Profile Update");
+                
+                setText('otp-hint', `Enter the code sent to ${sessionUser.email}`);
+                const osp = document.getElementById('otp-verify-section');
+                if(osp) osp.classList.remove('hidden');
+                if(btn) btn.innerText = "OTP Sent âœ“";
+            } catch (err) {
+                alert("Error sending OTP: " + err.message);
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerText = "Update Details";
+                }
+            }
+        };
+
+        async function confirmUpdateWithOtp() {
+            const input = document.getElementById('update-otp-input').value.trim();
+            const err = document.getElementById('otp-error');
+            const btn = document.getElementById('confirm-otp-btn');
+            const msg = document.getElementById('status-msg');
+
+            if (input !== portalGeneratedOtp) {
+                setText('otp-error', "Invalid OTP code");
+                if(err) err.classList.remove('hidden');
+                return;
+            }
+
+            if(err) err.classList.add('hidden');
+            if(btn) {
+                btn.disabled = true;
+                btn.innerText = "Saving Changes...";
+            }
+
+            try {
+                // Pass institution so PATCH is scoped correctly to this tenant
+                const updatesWithInst = {
+                    ...pendingUpdates,
+                    institution: sessionUser.institution || localStorage.getItem('ovs_inst_name') || 'Unknown'
+                };
+                await StorageManager.updateUserDetails(sessionUser.regNum, updatesWithInst);
+                setText('status-msg', "Profile updated successfully! âœ…");
+                if(msg) {
+                    msg.style.background = "rgba(16, 185, 129, 0.2)";
+                    msg.style.color = "#10b981";
+                    msg.classList.remove('hidden');
+                }
+                setTimeout(() => window.location.reload(), 2000);
+            } catch (err) {
+                setText('status-msg', "Update Failed: " + err.message);
+                if(msg) {
+                    msg.style.background = "rgba(239, 68, 68, 0.2)";
+                    msg.style.color = "#ef4444";
+                    msg.classList.remove('hidden');
+                }
+                if(btn) {
+                    btn.disabled = false;
+                    btn.innerText = "Confirm Changes";
+                }
+            }
+        }
+    </script>
+    <div id="tsparticles" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;"></div>
+    <script>
+        tsParticles.load("tsparticles", {
+            fpsLimit: 60,
+            particles: {
+                number: { value: 40, density: { enable: true, value_area: 800 } },
+                color: { value: ["#ffffff", "#ff2a4d"] },
+                shape: { type: "circle" },
+                opacity: { value: 0.2, random: true },
+                size: { value: 2, random: true },
+                links: { enable: true, distance: 150, color: "#ffffff", opacity: 0.1, width: 1 },
+                move: { enable: true, speed: 0.5, direction: "none", random: false, straight: false, outModes: { default: "out" } }
+            },
+            interactivity: {
+                detectsOn: "canvas",
+                events: {
+                    onHover: { enable: true, mode: "grab" },
+                    resize: true
+                },
+                modes: {
+                    grab: { distance: 150, links: { opacity: 0.3 } }
+                }
+            },
+            retina_detect: true,
+            background: { color: "transparent" }
+        });
+    </script>
+</body>
+</html>
+

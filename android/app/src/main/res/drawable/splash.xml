@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- OVS Vanguard Splash Screen — Deep space dark background with neon cyan brand color -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Deep dark background matching app theme -->
+    <item android:drawable="@color/splashBackground" />
+    <!-- Centered brand icon -->
+    <item
+        android:width="160dp"
+        android:height="160dp"
+        android:gravity="center">
+        <bitmap
+            android:gravity="center"
+            android:src="@mipmap/ic_launcher" />
+    </item>
+</layer-list>

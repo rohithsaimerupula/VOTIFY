@@ -1,0 +1,1406 @@
+﻿require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const { createClient } = require('@libsql/client');
+const nodemailer = require('nodemailer');
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// â”€â”€ CORS: allow localhost (dev) and Vercel production domain â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const allowedOrigins = [
+    'http://localhost:3001',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+    /\.vercel\.app$/,
+];
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // allow non-browser requests
+        const allowed = allowedOrigins.some(o =>
+            o instanceof RegExp ? o.test(origin) : o === origin
+        );
+        callback(allowed ? null : new Error('CORS blocked'), allowed);
+    },
+    credentials: true
+}));
+
+// â”€â”€ Content Security Policy header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+app.use((req, res, next) => {
+    res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; style-src 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com; font-src 'self' fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' *.turso.io;"
+    );
+    next();
+});
+
+app.use(express.json({ limit: '10mb' }));
+// Removed express.static as backend is now separate API only
+
+const turso = createClient({
+    url: process.env.TURSO_DATABASE_URL || "libsql://dummy",
+    authToken: process.env.TURSO_AUTH_TOKEN || "dummy",
+});
+
+
+
+// Basic Middleware for Request Scoping
+function authGuard(req, res, next) {
+    const regNum = req.headers['x-ovs-reg-num'];
+    const institution = decodeURIComponent(req.headers['x-ovs-institution'] || '');
+    
+    // For now, we just ensure these exist for sensitive operations
+    // In a full production app, this would verify a JWT token
+    if (!regNum || !institution) {
+        // Allow GET config without auth (except sensitive ones)
+        if (req.method === 'GET' && req.path.startsWith('/api/config')) return next();
+        return res.status(401).json({ error: "Unauthorized: Registration Number and Institution required in headers." });
+    }
+    next();
+}
+
+async function retryWithBackoff(fn, retries = 6, delayMs = 3000) {
+    let lastError = null;
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            return await Promise.race([
+                fn(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 25000))
+            ]);
+        } catch (e) {
+            lastError = e;
+            if (attempt < retries) await new Promise(r => setTimeout(r, delayMs));
+            else throw e;
+        }
+    }
+}
+
+const db = {
+    execute: (q) => retryWithBackoff(() => turso.execute(q)),
+    batch: (q, m) => retryWithBackoff(() => turso.batch(q, m)),
+};
+
+async function initDb() {
+    try {
+        await db.batch([
+            `CREATE TABLE IF NOT EXISTS users (regNum TEXT, institution TEXT, password TEXT, role TEXT, name TEXT, email TEXT, status TEXT, branch TEXT, class TEXT, year TEXT, section TEXT, managedBy TEXT, canVote INTEGER DEFAULT 0, hasVoted INTEGER DEFAULT 0, votedFor TEXT, votedAt TEXT, votePhoto TEXT, voteStatus TEXT, voteReceiptHash TEXT, voteFingerprint TEXT, isBanned INTEGER DEFAULT 0, portrait TEXT, webcamReg TEXT, deviceFingerprint TEXT, inviteCode TEXT, campaignPoints INTEGER DEFAULT 0, category TEXT, packId TEXT, faceDescriptor TEXT, PRIMARY KEY (regNum, institution))`,
+            `CREATE TABLE IF NOT EXISTS auditLogs (id INTEGER PRIMARY KEY AUTOINCREMENT, action TEXT, user TEXT, details TEXT, timestamp TEXT, institution TEXT)`,
+            `CREATE TABLE IF NOT EXISTS deviceFingerprints (fingerprint TEXT PRIMARY KEY, firstSeen TEXT, lastActive TEXT, counts JSON)`,
+            `CREATE TABLE IF NOT EXISTS config (key TEXT PRIMARY KEY, value JSON)`,
+            `CREATE TABLE IF NOT EXISTS publicLedger (receiptHash TEXT PRIMARY KEY, voterRegNum TEXT, electionCode TEXT, candidateStr TEXT, institution TEXT, timestamp TEXT, status TEXT)`,
+            `CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY AUTOINCREMENT, candidateId TEXT, voterName TEXT, question TEXT, answer TEXT, timestamp TEXT, institution TEXT)`,
+            `CREATE TABLE IF NOT EXISTS globalChat (id INTEGER PRIMARY KEY AUTOINCREMENT, voterName TEXT, text TEXT, timestamp TEXT, institution TEXT)`,
+            `CREATE TABLE IF NOT EXISTS system_alerts (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, message TEXT, details TEXT, timestamp TEXT, institution TEXT)`,
+            `CREATE TABLE IF NOT EXISTS elections (id TEXT PRIMARY KEY, institution TEXT, name TEXT, type TEXT, scope TEXT, electionCode TEXT, isActive INTEGER DEFAULT 0, isCompleted INTEGER DEFAULT 0, registrationOpen INTEGER DEFAULT 1, startTime TEXT, endTime TEXT, createdBy TEXT, createdByRole TEXT, createdAt TEXT)`,
+            `CREATE TABLE IF NOT EXISTS packs (id TEXT PRIMARY KEY, name TEXT, maxAdmins INTEGER DEFAULT 20, maxSubAdmins INTEGER DEFAULT 4, maxStudents INTEGER DEFAULT 1000, createdAt TEXT)`
+            // NOTE: Column additions are handled by runMigrations() below â€” no ALTER TABLE here.
+        ], "write");
+        console.log("Database initialized.");
+    } catch (err) { console.error("Error initializing DB:", err); }
+}
+initDb();
+
+// Migration: safely add new columns to existing tables
+async function runMigrations() {
+    const migrations = [
+        { sql: "ALTER TABLE users ADD COLUMN packId TEXT", label: "users.packId" },
+        { sql: "ALTER TABLE users ADD COLUMN packRequest TEXT", label: "users.packRequest" },
+        { sql: "ALTER TABLE users ADD COLUMN symbol TEXT", label: "users.symbol" },
+        { sql: "ALTER TABLE users ADD COLUMN year TEXT", label: "users.year" },
+        { sql: "ALTER TABLE users ADD COLUMN faceDescriptor TEXT", label: "users.faceDescriptor" },
+        { sql: "ALTER TABLE users ADD COLUMN section TEXT", label: "users.section" },
+        { sql: "ALTER TABLE users ADD COLUMN livenessSkipped INTEGER DEFAULT 0", label: "users.livenessSkipped" },
+        { sql: "ALTER TABLE users ADD COLUMN sessionToken TEXT", label: "users.sessionToken" },
+        { sql: "ALTER TABLE auditLogs ADD COLUMN institution TEXT", label: "auditLogs.institution" },
+        { sql: "ALTER TABLE publicLedger ADD COLUMN institution TEXT", label: "publicLedger.institution" },
+        { sql: "ALTER TABLE questions ADD COLUMN institution TEXT", label: "questions.institution" },
+        { sql: "ALTER TABLE system_alerts ADD COLUMN institution TEXT", label: "system_alerts.institution" }
+    ];
+    for (const m of migrations) {
+        try {
+            await db.execute({ sql: m.sql, args: [] });
+            console.log(`[Migration] Added column: ${m.label}`);
+        } catch (e) {
+            // "duplicate column name" means it already exists â€” safe to ignore
+            if (!e.message.includes('duplicate column') && !e.message.includes('already exists')) {
+                console.warn(`[Migration] Skipped ${m.label}:`, e.message);
+            }
+        }
+    }
+}
+runMigrations();
+
+
+function boolInt(val) { return val ? 1 : 0; }
+
+function euclideanDistance(arr1, arr2) {
+    if (arr1.length !== arr2.length) return Infinity;
+    let sum = 0;
+    for (let i = 0; i < arr1.length; i++) {
+        let diff = arr1[i] - arr2[i];
+        sum += diff * diff;
+    }
+    return Math.sqrt(sum);
+}
+
+app.get('/api/users', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        const result = await db.execute({ sql: "SELECT * FROM users WHERE institution = ?", args: [inst] });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/auditLogs', async (req, res) => {
+    try {
+        const { action, user, details, timestamp, institution } = req.body;
+        await db.execute({
+            sql: "INSERT INTO auditLogs (action, user, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
+            args: [action, user, details, timestamp, institution]
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/auditLogs', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        const result = await db.execute({ sql: "SELECT * FROM auditLogs WHERE institution = ? ORDER BY timestamp DESC LIMIT 100", args: [inst] });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/auditLogs', authGuard, async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        if (!inst) return res.status(400).json({ error: "Institution required" });
+        await db.execute({ sql: "DELETE FROM auditLogs WHERE institution = ?", args: [inst] });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// â”€â”€â”€ SINGLE DEVICE SESSION ENFORCEMENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Called on every login â€” generates a new token, invalidates all other sessions
+app.post('/api/session/login', async (req, res) => {
+    try {
+        const { regNum, institution, portal } = req.body;
+        if (!regNum || !institution) return res.status(400).json({ error: 'regNum and institution required' });
+        // Generate a unique session token
+        const token = require('crypto').randomUUID();
+        await db.execute({
+            sql: 'UPDATE users SET sessionToken = ? WHERE regNum = ? AND institution = ?',
+            args: [token, regNum, institution]
+        });
+        res.json({ sessionToken: token });
+    } catch (e) {
+        console.error('[Session/Login]', e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Called every 30s by dashboards â€” verifies this token is still the active one
+app.get('/api/session/verify', async (req, res) => {
+    try {
+        const regNum = req.headers['x-ovs-reg-num'];
+        const institution = decodeURIComponent(req.headers['x-ovs-institution'] || '');
+        const token = req.headers['x-ovs-session-token'];
+        if (!regNum || !institution || !token) return res.status(401).json({ valid: false, reason: 'missing_params' });
+        const result = await db.execute({
+            sql: 'SELECT sessionToken FROM users WHERE regNum = ? AND institution = ?',
+            args: [regNum, institution]
+        });
+        if (!result.rows.length) return res.status(401).json({ valid: false, reason: 'user_not_found' });
+        const storedToken = result.rows[0].sessionToken;
+        if (storedToken !== token) return res.status(401).json({ valid: false, reason: 'session_replaced' });
+        res.json({ valid: true });
+    } catch (e) {
+        console.error('[Session/Verify]', e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.post('/api/institutions/verify', async (req, res) => {
+    try {
+        const { code } = req.body;
+        if (!code) return res.status(400).json({ error: "Code required" });
+
+        let institution = null;
+
+        // Step 1: Check the dynamic config table (managed by Developer Portal)
+        try {
+            const configResult = await db.execute({ sql: "SELECT value FROM config WHERE key = 'institution_codes'", args: [] });
+            if (configResult.rows.length > 0) {
+                const codeMap = JSON.parse(configResult.rows[0].value);
+                if (codeMap && codeMap[code]) {
+                    institution = codeMap[code];
+                }
+            }
+        } catch(dbErr) {
+            console.warn('[OVS] DB code lookup failed:', dbErr.message);
+        }
+
+        // Step 2: Fallback to hardcoded codes if not found in DB
+        if (!institution) {
+            const fallbackMap = { 
+                "VIEW2026": "Vignan's Institute of Engineering for Women", 
+                "VIIT2026": "Vignan's Institute of Information Technology", 
+                "TEST2026": "Test University" 
+            };
+            institution = fallbackMap[code] || null;
+        }
+
+        if (!institution) return res.status(401).json({ error: "Invalid access code." });
+
+        // Step 3: Verify the institution still has an active Super Admin in the database
+        const saCheck = await db.execute({ 
+            sql: "SELECT regNum FROM users WHERE role = 'superadmin' AND institution = ? LIMIT 1", 
+            args: [institution] 
+        });
+        
+        if (saCheck.rows.length === 0) {
+            return res.status(401).json({ error: "This institution no longer exists or has been deactivated." });
+        }
+
+        res.json({ success: true, institution });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/institutions/validate', async (req, res) => {
+    try {
+        const name = req.query.name;
+        if (!name) return res.status(400).json({ error: "Name required" });
+        
+        // Step 1: Check if Super Admin exists
+        const saCheck = await db.execute({ 
+            sql: "SELECT regNum FROM users WHERE role = 'superadmin' AND institution = ? LIMIT 1", 
+            args: [name] 
+        });
+        if (saCheck.rows.length === 0) return res.status(401).json({ error: "Institution no longer active." });
+
+        // Step 2: Check if institution still has a mapping in codes config
+        const configResult = await db.execute({ sql: "SELECT value FROM config WHERE key = 'institution_codes'", args: [] });
+        if (configResult.rows.length > 0) {
+            const codeMap = JSON.parse(configResult.rows[0].value);
+            
+            // If code is provided, check if it matches the institution
+            const code = req.query.code;
+            if (code) {
+                if (codeMap[code] !== name) {
+                    return res.status(401).json({ error: "Institution access code has been changed." });
+                }
+            } else {
+                // Fallback: check if the institution has ANY code (legacy or general check)
+                const instsInMap = Object.values(codeMap).map(v => v.toLowerCase());
+                if (!instsInMap.includes(name.toLowerCase())) {
+                    return res.status(401).json({ error: "Institution access code has been removed." });
+                }
+            }
+        }
+        
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+
+// Dedicated institution codes endpoint (no authGuard - used by Developer Portal)
+app.get('/api/config/institution_codes', async (req, res) => {
+    try {
+        const result = await db.execute({ sql: "SELECT value FROM config WHERE key = 'institution_codes'", args: [] });
+        if (result.rows.length === 0) return res.json({});
+        res.json(JSON.parse(result.rows[0].value));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/config/institution_codes', authGuard, async (req, res) => {
+    try {
+        const { data } = req.body;
+        if (!data || typeof data !== 'object') return res.status(400).json({ error: 'Invalid data' });
+        await db.execute({ 
+            sql: "INSERT INTO config (key, value) VALUES ('institution_codes', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", 
+            args: [JSON.stringify(data)] 
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+
+app.post('/api/users/add', async (req, res) => {
+    try {
+        const u = req.body;
+        const inst = u.institution || 'Unknown';
+
+        // --- PACK LIMIT ENFORCEMENT ---
+        const rolesToCheck = ['admin', 'subadmin', 'voter', 'contestant'];
+        if (rolesToCheck.includes(u.role)) {
+            // Find the super admin of this institution to get their packId
+            const saRes = await db.execute({ sql: "SELECT packId FROM users WHERE institution = ? AND role = 'superadmin' LIMIT 1", args: [inst] });
+            const packId = saRes.rows.length > 0 ? saRes.rows[0].packId : null;
+            if (packId) {
+                const packRes = await db.execute({ sql: "SELECT * FROM packs WHERE id = ?", args: [packId] });
+                if (packRes.rows.length > 0) {
+                    const pack = packRes.rows[0];
+                    if (u.role === 'admin') {
+                        const cnt = await db.execute({ sql: "SELECT COUNT(*) as c FROM users WHERE institution = ? AND role = 'admin'", args: [inst] });
+                        if (cnt.rows[0].c >= pack.maxAdmins) return res.status(403).json({ error: `Admin limit reached for your plan "${pack.name}" (${cnt.rows[0].c}/${pack.maxAdmins}). Upgrade your pack to add more admins.` });
+                    } else if (u.role === 'subadmin') {
+                        const cnt = await db.execute({ sql: "SELECT COUNT(*) as c FROM users WHERE institution = ? AND role = 'subadmin'", args: [inst] });
+                        if (cnt.rows[0].c >= pack.maxSubAdmins) return res.status(403).json({ error: `Sub-Admin limit reached for your plan "${pack.name}" (${cnt.rows[0].c}/${pack.maxSubAdmins}). Upgrade your pack to add more sub-admins.` });
+                    } else if (u.role === 'voter') {
+                        const cnt = await db.execute({ sql: "SELECT COUNT(*) as c FROM users WHERE institution = ? AND role = 'voter'", args: [inst] });
+                        if (cnt.rows[0].c >= pack.maxStudents) return res.status(403).json({ error: `Student capacity full for your plan "${pack.name}" (${cnt.rows[0].c}/${pack.maxStudents}). Registration is closed until capacity is upgraded.` });
+                    }
+                    // contestants are a free candidate pool â€” no pack limit applied
+                }
+            }
+        }
+
+        // --- UNIQUENESS CHECKS ---
+        // 1. Check if ID (regNum) is already used
+        // For Super Admins, we enforce GLOBAL uniqueness to prevent session/identity overlap across institutions
+        let idCheckSql = "SELECT role, institution FROM users WHERE regNum = ? AND institution = ?";
+        let idCheckArgs = [u.regNum, inst];
+        
+        if (u.role === 'superadmin') {
+            idCheckSql = "SELECT role, institution FROM users WHERE regNum = ?";
+            idCheckArgs = [u.regNum];
+        }
+
+        const idCheck = await db.execute({ sql: idCheckSql, args: idCheckArgs });
+        if (idCheck.rows.length > 0) {
+            const existing = idCheck.rows[0];
+            const existingRole = existing.role;
+            let displayRole = existingRole === 'admin' ? 'Branch Admin' : existingRole === 'subadmin' ? 'Class Admin' : existingRole;
+            
+            if (u.role === 'superadmin' && existing.institution !== inst) {
+                return res.status(409).json({ error: `The ID "${u.regNum}" is already assigned to a ${displayRole} in another institution ("${existing.institution}"). Super Admin IDs must be globally unique.` });
+            }
+            return res.status(409).json({ error: `The ID "${u.regNum}" is already used by a ${displayRole} in this institution. Please choose a unique ID.` });
+        }
+
+        // 2. Check if Branch already has an Admin
+        if (u.role === 'admin') {
+            const branchCheck = await db.execute({ sql: "SELECT regNum FROM users WHERE institution = ? AND role = 'admin' AND branch = ?", args: [inst, u.branch] });
+            if (branchCheck.rows.length > 0) {
+                return res.status(409).json({ error: `The branch "${u.branch}" already has a Branch Admin assigned (${branchCheck.rows[0].regNum}). Each branch can only have one Admin.` });
+            }
+        }
+
+        // 3. Check if Sub-Admin (Class Admin) for this specific class already exists
+        if (u.role === 'subadmin') {
+            const subCheck = await db.execute({ 
+                sql: "SELECT regNum FROM users WHERE institution = ? AND role = 'subadmin' AND branch = ? AND year = ? AND class = ?", 
+                args: [inst, u.branch, u.year, u.class] 
+            });
+            if (subCheck.rows.length > 0) {
+                return res.status(409).json({ error: `A Class Admin (${subCheck.rows[0].regNum}) is already assigned to ${u.year} year, ${u.branch}, ${u.class}. You cannot have multiple admins for the exact same class.` });
+            }
+        }
+
+        // 4. Check if Email is unique
+        if (u.email) {
+            let emailCheckSql = "SELECT regNum, institution FROM users WHERE email = ? AND institution = ?";
+            let emailCheckArgs = [u.email, inst];
+            
+            if (u.role === 'superadmin') {
+                emailCheckSql = "SELECT regNum, institution, role FROM users WHERE email = ? AND role != 'developer'";
+                emailCheckArgs = [u.email];
+            }
+
+            const emailCheck = await db.execute({ sql: emailCheckSql, args: emailCheckArgs });
+            if (emailCheck.rows.length > 0) {
+                const existing = emailCheck.rows[0];
+                if (u.role === 'superadmin' && existing.institution !== inst) {
+                    return res.status(409).json({ error: `The Email Address "${u.email}" is already registered to an account in another institution ("${existing.institution}").` });
+                }
+                return res.status(409).json({ error: `The Email Address "${u.email}" is already registered to another account in this institution.` });
+            }
+        }
+
+        // 5. Check if Face is unique
+        if (u.faceDescriptor) {
+            const allFaces = await db.execute({ sql: "SELECT regNum, faceDescriptor FROM users WHERE institution = ? AND faceDescriptor IS NOT NULL", args: [inst] });
+            let liveDescriptor;
+            try {
+                liveDescriptor = JSON.parse(u.faceDescriptor);
+            } catch(e) {}
+            
+            if (liveDescriptor && Array.isArray(liveDescriptor)) {
+                for (const row of allFaces.rows) {
+                    try {
+                        const existingDescriptor = JSON.parse(row.faceDescriptor);
+                        if (existingDescriptor && Array.isArray(existingDescriptor)) {
+                            const dist = euclideanDistance(liveDescriptor, existingDescriptor);
+                            if (dist < 0.45) { // Threshold for identical face
+                                return res.status(409).json({ error: `Face mismatch: This face is already registered under Registration ID "${row.regNum}". Each student must register their own face.` });
+                            }
+                        }
+                    } catch(err) { continue; }
+                }
+            }
+        }
+
+        await db.execute({
+            sql: `INSERT INTO users (regNum, institution, password, role, name, email, status, hasVoted, isBanned, portrait, webcamReg, deviceFingerprint, branch, class, year, section, managedBy, canVote, category, packId, faceDescriptor, livenessSkipped) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            args: [
+                u.regNum, inst, u.password, u.role, u.name || '', u.email || '', u.status || 'pending', 
+                boolInt(u.hasVoted), boolInt(u.isBanned), 
+                u.portrait || null, u.webcamReg || null, u.deviceFingerprint || null, 
+                u.branch || null, u.class || null, u.year || null, u.section || null, u.managedBy || null, 
+                boolInt(u.canVote), u.category || null, u.packId || null,
+                u.faceDescriptor || null,
+                boolInt(u.livenessSkipped)
+            ]
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- PACKS CRUD ---
+app.get('/api/packs', async (req, res) => {
+    try {
+        const result = await db.execute({ sql: "SELECT * FROM packs ORDER BY createdAt DESC", args: [] });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/packs', async (req, res) => {
+    try {
+        const { name, maxAdmins, maxSubAdmins, maxStudents } = req.body;
+        if (!name) return res.status(400).json({ error: "Pack name is required" });
+        const id = `PACK-${Date.now()}`;
+        await db.execute({
+            sql: "INSERT INTO packs (id, name, maxAdmins, maxSubAdmins, maxStudents, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
+            args: [id, name, maxAdmins || 20, maxSubAdmins || 4, maxStudents || 1000, new Date().toISOString()]
+        });
+        res.json({ success: true, id });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.patch('/api/packs/:id', async (req, res) => {
+    try {
+        const { name, maxAdmins, maxSubAdmins, maxStudents } = req.body;
+        await db.execute({
+            sql: "UPDATE packs SET name = ?, maxAdmins = ?, maxSubAdmins = ?, maxStudents = ? WHERE id = ?",
+            args: [name, maxAdmins, maxSubAdmins, maxStudents, req.params.id]
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/packs/:id', async (req, res) => {
+    try {
+        const inUse = await db.execute({ sql: "SELECT COUNT(*) as c FROM users WHERE packId = ? AND role = 'superadmin'", args: [req.params.id] });
+        if (inUse.rows[0].c > 0) return res.status(400).json({ error: "This pack is assigned to an active institution. Reassign it before deleting." });
+        await db.execute({ sql: "DELETE FROM packs WHERE id = ?", args: [req.params.id] });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Pack usage for an institution
+app.get('/api/institutions/pack-usage', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        if (!inst) return res.status(400).json({ error: 'institution required' });
+        const saRes = await db.execute({ sql: "SELECT packId FROM users WHERE institution = ? AND role = 'superadmin' LIMIT 1", args: [inst] });
+        if (!saRes.rows.length || !saRes.rows[0].packId) return res.json({ pack: null, usage: null });
+        const packId = saRes.rows[0].packId;
+        const [packRes, adminCnt, subCnt, stuCnt] = await Promise.all([
+            db.execute({ sql: "SELECT * FROM packs WHERE id = ?", args: [packId] }),
+            db.execute({ sql: "SELECT COUNT(*) as c FROM users WHERE institution = ? AND role = 'admin'", args: [inst] }),
+            db.execute({ sql: "SELECT COUNT(*) as c FROM users WHERE institution = ? AND role = 'subadmin'", args: [inst] }),
+            db.execute({ sql: "SELECT COUNT(*) as c FROM users WHERE institution = ? AND role = 'voter'", args: [inst] })
+        ]);
+        const pack = packRes.rows[0];
+        res.json({
+            pack,
+            usage: {
+                admins: { current: adminCnt.rows[0].c, max: pack.maxAdmins },
+                subAdmins: { current: subCnt.rows[0].c, max: pack.maxSubAdmins },
+                students: { current: stuCnt.rows[0].c, max: pack.maxStudents }
+            }
+        });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Assign (or remove) a pack from a Super Admin
+app.patch('/api/superadmins/:id/assign-pack', async (req, res) => {
+    try {
+        const { packId, institution } = req.body;
+        const inst = institution || '';
+        // Verify this user is a super admin of the right institution
+        const check = await db.execute({ sql: "SELECT regNum FROM users WHERE regNum = ? AND institution = ? AND role = 'superadmin'", args: [req.params.id, inst] });
+        if (!check.rows.length) return res.status(404).json({ error: 'Super Admin not found' });
+        await db.execute({ sql: "UPDATE users SET packId = ? WHERE regNum = ? AND institution = ? AND role = 'superadmin'", args: [packId || null, req.params.id, inst] });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+
+app.get('/api/users/:id', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        let result = await db.execute({ sql: "SELECT * FROM users WHERE regNum = ? AND institution = ?", args: [req.params.id, inst] });
+        
+        // Developer global fallback â€” works for any developer account regardless of institution
+        if (result.rows.length === 0 && !inst) {
+            result = await db.execute({ sql: "SELECT * FROM users WHERE regNum = ? AND role = 'developer'", args: [req.params.id] });
+        }
+        
+        if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
+        res.json(result.rows[0]);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/dev/stats', async (req, res) => {
+    try {
+        const [saRes, instRes, allUsersRes] = await Promise.all([
+            db.execute({ sql: "SELECT regNum, name, institution, email, status, packId, packRequest FROM users WHERE role = 'superadmin'", args: [] }),
+            db.execute({ sql: "SELECT DISTINCT institution FROM users WHERE role = 'superadmin' AND institution NOT IN ('Unknown', 'Global', '')", args: [] }),
+            db.execute({ sql: "SELECT institution, role, COUNT(*) as count FROM users WHERE role != 'developer' GROUP BY institution, role", args: [] })
+        ]);
+
+        const superAdmins = saRes.rows || [];
+        const instNames = (instRes.rows || []).map(r => r.institution);
+        
+        // Build detailed institutions list
+        const detailedInstitutions = instNames.map(name => {
+            const admin = superAdmins.find(sa => sa.institution === name);
+            const userCounts = allUsersRes.rows.filter(r => r.institution === name);
+            const stats = {
+                admins: userCounts.find(r => r.role === 'admin')?.count || 0,
+                subadmins: userCounts.find(r => r.role === 'subadmin')?.count || 0,
+                voters: (userCounts.find(r => r.role === 'voter')?.count || 0)
+            };
+            return {
+                name,
+                superAdmin: admin ? { name: admin.name, email: admin.email, packId: admin.packId } : null,
+                stats
+            };
+        });
+
+        const totalUsers = allUsersRes.rows.reduce((sum, r) => sum + r.count, 0);
+        
+        res.json({
+            counts: { 
+                saCount: superAdmins.length, 
+                instCount: detailedInstitutions.length, 
+                studentCount: totalUsers 
+            },
+            superAdmins,
+            institutions: detailedInstitutions
+        });
+    } catch (e) { 
+        console.error("[DEV_STATS_ERR]", e);
+        res.status(500).json({ error: e.message || "Internal Database Error" }); 
+    }
+});
+
+app.delete('/api/users/orphans', authGuard, async (req, res) => {
+    try {
+        const validInstsResult = await db.execute({ sql: "SELECT DISTINCT institution FROM users WHERE role = 'superadmin'" });
+        const validInsts = validInstsResult.rows.map(r => r.institution);
+        
+        if (validInsts.length === 0) {
+            return res.json({ rowsAffected: 0, message: "No valid institutions found to anchor data." });
+        }
+        
+        const placeholders = validInsts.map(() => '?').join(',');
+        const result = await db.execute({ 
+            sql: `DELETE FROM users WHERE institution NOT IN (${placeholders}) AND role != 'developer'`, 
+            args: validInsts 
+        });
+        
+        res.json({ success: true, rowsAffected: result.rowsAffected });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+    try {
+        const inst = req.query.institution || '';
+        const targetId = req.params.id;
+        
+        console.log(`[OVS] Attempting deletion of user ${targetId} for institution: "${inst}"`);
+
+        // Fetch the user to perform cascading deletes
+        const userCheck = await db.execute({ sql: "SELECT role, branch, class, year FROM users WHERE regNum = ? AND institution = ?", args: [targetId, inst] });
+        if (userCheck.rows.length > 0) {
+            const { role, branch, class: cls, year } = userCheck.rows[0];
+            
+            if (role === 'superadmin') {
+                console.log(`[OVS] Cascading deletion for Super Admin: ${targetId} of ${inst}`);
+                // Helper to safely delete from auxiliary tables (ignores missing columns/tables)
+                const safeDelete = async (table) => {
+                    try {
+                        await db.execute({ sql: `DELETE FROM ${table} WHERE institution = ?`, args: [inst] });
+                    } catch (e) {
+                        console.warn(`[OVS] Skipped deleting from ${table}:`, e.message);
+                    }
+                };
+
+                // DELETE ALL DATA FOR THIS INSTITUTION (Complete Wipe - Fault Tolerant)
+                await safeDelete('auditLogs');
+                await safeDelete('publicLedger');
+                await safeDelete('questions');
+                await safeDelete('globalChat');
+                await safeDelete('system_alerts');
+                await safeDelete('elections');
+                
+                // Delete all institution-specific config entries
+                try {
+                    const allKeysRes = await db.execute({ sql: "SELECT key FROM config", args: [] });
+                    const keysToDelete = allKeysRes.rows
+                        .map(r => r.key)
+                        .filter(k => k.endsWith(`_${inst}`));
+                    
+                    if (keysToDelete.length > 0) {
+                        for (const k of keysToDelete) {
+                            await db.execute({ sql: "DELETE FROM config WHERE key = ?", args: [k] });
+                        }
+                        console.log(`[OVS] Cleaned up ${keysToDelete.length} config entries.`);
+                    }
+                } catch(cfgErr) { console.error('[OVS] Config cleanup error:', cfgErr.message); }
+
+                // Automatic Cleanup of Gateway Access Codes
+                try {
+                    const codesResult = await db.execute({ sql: "SELECT value FROM config WHERE key = 'institution_codes'", args: [] });
+                    if (codesResult.rows.length > 0) {
+                        const codeMap = JSON.parse(codesResult.rows[0].value);
+                        let changed = false;
+                        for (const code in codeMap) {
+                            if (codeMap[code] === inst) {
+                                delete codeMap[code];
+                                changed = true;
+                            }
+                        }
+                        if (changed) {
+                            await db.execute({ 
+                                sql: "UPDATE config SET value = ? WHERE key = 'institution_codes'", 
+                                args: [JSON.stringify(codeMap)] 
+                            });
+                            console.log(`[OVS] Removed gateway code for: ${inst}`);
+                        }
+                    }
+                } catch(codeErr) { console.error('[OVS] Gateway cleanup error:', codeErr.message); }
+
+                // Delete all other users of this institution
+                await db.execute({ sql: "DELETE FROM users WHERE institution = ? AND regNum != ?", args: [inst, targetId] });
+            } else {
+                // Determine all user IDs to delete
+                let usersToDelete = [targetId];
+
+                if (role === 'admin') {
+                    if (branch) {
+                        const branchUsersRes = await db.execute({ sql: "SELECT regNum FROM users WHERE branch = ? AND institution = ? AND regNum != ?", args: [branch, inst, targetId] });
+                        usersToDelete.push(...branchUsersRes.rows.map(r => r.regNum));
+                    }
+                    // Fallback for legacy explicit managedBy references
+                    const legacyRes1 = await db.execute({ sql: "SELECT regNum FROM users WHERE managedBy IN (SELECT regNum FROM users WHERE managedBy = ? AND institution = ?) AND institution = ?", args: [targetId, inst, inst] });
+                    const legacyRes2 = await db.execute({ sql: "SELECT regNum FROM users WHERE managedBy = ? AND institution = ?", args: [targetId, inst] });
+                    usersToDelete.push(...legacyRes1.rows.map(r => r.regNum));
+                    usersToDelete.push(...legacyRes2.rows.map(r => r.regNum));
+                } else if (role === 'subadmin') {
+                    if (branch && cls && year) {
+                        const classUsersRes = await db.execute({ sql: "SELECT regNum FROM users WHERE role IN ('voter', 'contestant') AND branch = ? AND class = ? AND year = ? AND institution = ?", args: [branch, cls, year, inst] });
+                        usersToDelete.push(...classUsersRes.rows.map(r => r.regNum));
+                    }
+                    // Fallback for legacy explicit managedBy references
+                    const legacyRes = await db.execute({ sql: "SELECT regNum FROM users WHERE managedBy = ? AND institution = ?", args: [targetId, inst] });
+                    usersToDelete.push(...legacyRes.rows.map(r => r.regNum));
+                }
+
+                // Make array unique
+                usersToDelete = [...new Set(usersToDelete)];
+
+                if (usersToDelete.length > 0) {
+                    const chunkSize = 500;
+                    for (let i = 0; i < usersToDelete.length; i += chunkSize) {
+                        const chunk = usersToDelete.slice(i, i + chunkSize);
+                        const placeholders = chunk.map(() => '?').join(',');
+                        
+                        await db.execute({ sql: `DELETE FROM publicLedger WHERE institution = ? AND voterRegNum IN (${placeholders})`, args: [inst, ...chunk] });
+                        await db.execute({ sql: `DELETE FROM questions WHERE institution = ? AND candidateId IN (${placeholders})`, args: [inst, ...chunk] });
+                        await db.execute({ sql: `DELETE FROM auditLogs WHERE institution = ? AND user IN (${placeholders})`, args: [inst, ...chunk] });
+                        
+                        // Also delete elections created by any of these users, and related ledger entries
+                        const elecRes = await db.execute({ sql: `SELECT id, electionCode FROM elections WHERE institution = ? AND createdBy IN (${placeholders})`, args: [inst, ...chunk] });
+                        if (elecRes.rows.length > 0) {
+                            const elecIds = elecRes.rows.map(r => r.id);
+                            const elecCodes = elecRes.rows.map(r => r.electionCode);
+                            const allElec = [...elecIds, ...elecCodes];
+                            
+                            const elecChunkSize = 500;
+                            for (let j = 0; j < allElec.length; j += elecChunkSize) {
+                                const eChunk = allElec.slice(j, j + elecChunkSize);
+                                const ePlaceholders = eChunk.map(() => '?').join(',');
+                                await db.execute({ sql: `DELETE FROM publicLedger WHERE institution = ? AND electionCode IN (${ePlaceholders})`, args: [inst, ...eChunk] });
+                            }
+                            
+                            const idPlaceholders = elecIds.map(() => '?').join(',');
+                            await db.execute({ sql: `DELETE FROM elections WHERE institution = ? AND id IN (${idPlaceholders})`, args: [inst, ...elecIds] });
+                        }
+
+                        // Delete the actual users
+                        await db.execute({ sql: `DELETE FROM users WHERE institution = ? AND regNum IN (${placeholders})`, args: [inst, ...chunk] });
+                    }
+                }
+            }
+        }
+
+        // Finally delete the target user itself (in case it wasn't caught above, though it should be)
+        const delResult = await db.execute({ sql: "DELETE FROM users WHERE regNum = ? AND institution = ?", args: [targetId, inst] });
+        console.log(`[OVS] Primary user deletion result:`, delResult.rowsAffected);
+        
+        res.json({ success: true });
+    } catch (e) { 
+        console.error("[OVS_DELETE_ERR]", e);
+        res.status(500).json({ error: e.message }); 
+    }
+});
+
+app.delete('/api/users/role/:role', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        const role = req.params.role;
+        
+        // Find users to be deleted
+        const usersRes = await db.execute({ sql: "SELECT regNum FROM users WHERE role = ? AND institution = ?", args: [role, inst] });
+        const usersToDelete = usersRes.rows.map(r => r.regNum);
+        
+        if (usersToDelete.length > 0) {
+            const chunkSize = 500;
+            for (let i = 0; i < usersToDelete.length; i += chunkSize) {
+                const chunk = usersToDelete.slice(i, i + chunkSize);
+                const placeholders = chunk.map(() => '?').join(',');
+                
+                await db.execute({ sql: `DELETE FROM publicLedger WHERE institution = ? AND voterRegNum IN (${placeholders})`, args: [inst, ...chunk] });
+                await db.execute({ sql: `DELETE FROM questions WHERE institution = ? AND candidateId IN (${placeholders})`, args: [inst, ...chunk] });
+                await db.execute({ sql: `DELETE FROM auditLogs WHERE institution = ? AND user IN (${placeholders})`, args: [inst, ...chunk] });
+                
+                // If the role can create elections, delete those too
+                if (role === 'admin' || role === 'subadmin') {
+                    const elecRes = await db.execute({ sql: `SELECT id, electionCode FROM elections WHERE institution = ? AND createdBy IN (${placeholders})`, args: [inst, ...chunk] });
+                    if (elecRes.rows.length > 0) {
+                        const elecIds = elecRes.rows.map(r => r.id);
+                        const elecCodes = elecRes.rows.map(r => r.electionCode);
+                        const allElec = [...elecIds, ...elecCodes];
+                        
+                        const elecChunkSize = 500;
+                        for (let j = 0; j < allElec.length; j += elecChunkSize) {
+                            const eChunk = allElec.slice(j, j + elecChunkSize);
+                            const ePlaceholders = eChunk.map(() => '?').join(',');
+                            await db.execute({ sql: `DELETE FROM publicLedger WHERE institution = ? AND electionCode IN (${ePlaceholders})`, args: [inst, ...eChunk] });
+                        }
+                        
+                        const idPlaceholders = elecIds.map(() => '?').join(',');
+                        await db.execute({ sql: `DELETE FROM elections WHERE institution = ? AND id IN (${idPlaceholders})`, args: [inst, ...elecIds] });
+                    }
+                }
+                
+                await db.execute({ sql: `DELETE FROM users WHERE institution = ? AND regNum IN (${placeholders})`, args: [inst, ...chunk] });
+            }
+        }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Columns that are safe to update via PATCH /api/users/:id
+const ALLOWED_USER_UPDATE_COLS = new Set([
+    'name', 'email', 'password', 'role', 'status', 'branch', 'class', 'year', 'section',
+    'managedBy', 'canVote', 'hasVoted', 'votedFor', 'votedAt', 'votePhoto', 'voteStatus',
+    'voteReceiptHash', 'voteFingerprint', 'isBanned', 'portrait', 'webcamReg',
+    'deviceFingerprint', 'inviteCode', 'campaignPoints', 'category', 'packId',
+    'faceDescriptor', 'packRequest', 'symbol', 'sessionToken', 'livenessSkipped'
+]);
+
+app.patch('/api/users/:id', async (req, res) => {
+    try {
+        const updates = req.body || {};
+        const inst = decodeURIComponent(req.query.institution || '');
+        const callerRegNum = req.headers['x-ovs-reg-num'];
+        const headerInst = decodeURIComponent(req.headers['x-ovs-institution'] || '');
+        const finalInst = (inst || headerInst || '').trim();
+
+        // â”€â”€ Column Whitelist Guard (prevent SQL column injection) â”€â”€
+        const unknownCols = Object.keys(updates).filter(k => !ALLOWED_USER_UPDATE_COLS.has(k));
+        if (unknownCols.length > 0) {
+            return res.status(400).json({ error: `Unknown or disallowed fields: ${unknownCols.join(', ')}` });
+        }
+
+        if (finalInst && callerRegNum) {
+            // Robust role lookup: use COLLATE NOCASE for regNum to be case-insensitive
+            let callerRes = await db.execute({ 
+                sql: "SELECT role, institution FROM users WHERE regNum = ? COLLATE NOCASE AND (institution = ? OR institution = 'Unknown' OR ? = '')", 
+                args: [callerRegNum, finalInst, finalInst] 
+            });
+            
+            if (callerRes.rows.length === 0) {
+                callerRes = await db.execute({ sql: "SELECT role, institution FROM users WHERE regNum = ? COLLATE NOCASE", args: [callerRegNum] });
+            }
+
+            const callerRoleRaw = callerRes.rows.length > 0 ? callerRes.rows[0].role : null;
+            const callerRole = callerRoleRaw ? callerRoleRaw.trim().toLowerCase() : null;
+            const callerActualInst = callerRes.rows.length > 0 ? callerRes.rows[0].institution : null;
+
+            // Log for debugging
+            console.log(`[OVS Auth] Caller: ${callerRegNum}, Role: ${callerRole}, CallerInst: ${callerActualInst}, RequestInst: ${finalInst}`);
+
+            // 1. If caller is NOT an admin/developer, prevent them from changing sensitive fields
+            const ADMIN_ROLES = ['superadmin', 'admin', 'subadmin', 'developer'];
+            if (!callerRole || !ADMIN_ROLES.includes(callerRole)) {
+                const SENSITIVE_FIELDS = ['role', 'status', 'canVote', 'hasVoted', 'votedFor', 'votedAt', 'isBanned', 'institution', 'regNum', 'packId', 'packRequest', 'branch', 'year', 'section', 'class'];
+                const forbidden = Object.keys(updates).filter(k => SENSITIVE_FIELDS.includes(k));
+                if (forbidden.length > 0) {
+                    return res.status(403).json({ error: `You are not authorized to modify these sensitive fields: ${forbidden.join(', ')}` });
+                }
+            }
+
+            // 2. Protect student personal data from admin edits (admins can only change status/permissions)
+            if (callerRegNum !== req.params.id && ADMIN_ROLES.includes(callerRole)) {
+                const targetRes = await db.execute({ sql: "SELECT role FROM users WHERE regNum = ? AND institution = ?", args: [req.params.id, finalInst] });
+                const targetRole = targetRes.rows.length > 0 ? targetRes.rows[0].role : null;
+
+                if (['voter', 'contestant'].includes(targetRole) && callerRole !== 'developer') {
+                    const PROTECTED_STUDENT_FIELDS = ['name', 'email', 'password', 'portrait', 'webcamReg', 'faceDescriptor', 'branch', 'class', 'year', 'regNum', 'deviceFingerprint'];
+                    const forbidden = Object.keys(updates).filter(k => PROTECTED_STUDENT_FIELDS.includes(k));
+                    if (forbidden.length > 0) {
+                        return res.status(403).json({ error: `Admins cannot modify student personal details (${forbidden.join(', ')}). Only status and voting permissions may be changed.` });
+                    }
+                }
+            }
+        }
+
+        const keys = Object.keys(updates);
+        if (keys.length === 0) return res.json({ success: true, message: "No updates provided." });
+        
+        const setClause = keys.map(k => `"${k}" = ?`).join(', ');
+        const values = keys.map(k => typeof updates[k] === 'boolean' ? boolInt(updates[k]) : updates[k]);
+        
+        if (!inst) {
+            values.push(req.params.id);
+            await db.execute({ sql: `UPDATE users SET ${setClause} WHERE regNum = ? AND role = 'developer'`, args: values });
+        } else {
+            values.push(req.params.id, inst);
+            await db.execute({ sql: `UPDATE users SET ${setClause} WHERE regNum = ? AND institution = ?`, args: values });
+        }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+
+app.get('/api/deviceFingerprints/:fp', async (req, res) => {
+    try {
+        const result = await db.execute({ sql: "SELECT * FROM deviceFingerprints WHERE fingerprint = ?", args: [req.params.fp] });
+        if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
+        const row = result.rows[0];
+        res.json({ ...row, counts: JSON.parse(row.counts || '{}') });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/deviceFingerprints', async (req, res) => {
+    try {
+        const { fingerprint, firstSeen, lastActive, counts } = req.body;
+        await db.execute({
+            sql: "INSERT INTO deviceFingerprints (fingerprint, firstSeen, lastActive, counts) VALUES (?, ?, ?, ?) ON CONFLICT(fingerprint) DO UPDATE SET lastActive = excluded.lastActive, counts = excluded.counts",
+            args: [fingerprint, firstSeen, lastActive, JSON.stringify(counts)]
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+const otpRateLimit = new Map();
+
+app.post('/api/auth/send-otp', async (req, res) => {
+    try {
+        const { email, name, otp, context } = req.body;
+        if (!email || !otp) return res.status(400).json({ error: "Email and OTP required" });
+
+        // Simple Rate Limiting
+        const now = Date.now();
+        if (otpRateLimit.has(email) && (now - otpRateLimit.get(email)) < 60000) {
+            return res.status(429).json({ error: "Please wait 60 seconds before requesting another OTP." });
+        }
+        otpRateLimit.set(email, now);
+
+        // --- GMAIL SMTP DELIVERY ---
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.SMTP_FROM,
+                pass: process.env.GMAIL_APP_PASSWORD
+            }
+        });
+
+        const mailOptions = {
+            from: `"Vanguard Security" <${process.env.SMTP_FROM}>`,
+            to: email,
+            subject: `${context || 'Verification Code'} â€” OVS`,
+            html: `<div style="font-family:sans-serif;max-width:500px;margin:auto;padding:20px;border:1px solid #eee;border-radius:10px;"><h2>Vanguard Voting</h2><p>Hello <strong>${name || 'User'}</strong>,</p><p>Your verification code for <strong>${context || 'Secure Activity'}</strong> is:</p><div style="background:#f4f4f4;padding:20px;text-align:center;font-size:32px;font-weight:bold;letter-spacing:5px;border-radius:5px;">${otp}</div><p style="color:#666;font-size:12px;">This code expires in 10 minutes.</p></div>`
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.json({ success: true });
+    } catch (e) {
+        console.error("[NODEMAILER_FAIL]", e);
+        res.status(500).json({ error: `SMTP Error: ${e.message}` });
+    }
+});
+
+app.get('/api/admin/system-health', authGuard, async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        const alerts = await db.execute({ sql: "SELECT * FROM system_alerts WHERE (institution = ? OR institution = 'Global') AND type != 'OTP_GENERATED' ORDER BY timestamp DESC LIMIT 20", args: [inst] });
+        res.json({ alerts: alerts.rows, smtpStatus: !!process.env.GMAIL_APP_PASSWORD });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Get elections visible to a specific voter (lobby view)
+app.get('/api/voters/my-elections', authGuard, async (req, res) => {
+    try {
+        const { regNum, institution } = req.query;
+        const inst = decodeURIComponent(institution || '');
+        if (!inst) return res.status(400).json({ error: 'institution required' });
+
+        // Get voter info to check scope eligibility
+        const userRes = await db.execute({ sql: "SELECT * FROM users WHERE regNum = ? AND institution = ?", args: [regNum, inst] });
+        const voter = userRes.rows[0];
+
+        // Fetch all active or completed elections for this institution
+        // Exclude 'class_registration' type â€” those are admin-only registration windows, not actual elections
+        const elecRes = await db.execute({
+            sql: "SELECT * FROM elections WHERE institution = ? AND (isActive = 1 OR isCompleted = 1) AND type != 'class_registration' ORDER BY createdAt DESC",
+            args: [inst]
+        });
+
+        const elections = [];
+        for (const e of elecRes.rows) {
+            let scope = {};
+            try { scope = JSON.parse(e.scope || '{}'); } catch(err) {}
+            const visibility = scope.resultVisibility || 'voters_only';
+            
+            // Check if user is in the ORIGINAL scope of the election
+            let inScope = true;
+            if (e.type === 'branch' && voter && scope.branch && scope.branch !== voter.branch) inScope = false;
+            if (e.type === 'class' && voter) {
+                if (scope.classes && scope.classes.length > 0) {
+                    if (!scope.classes.includes(voter.class)) inScope = false;
+                } else if (scope.class) {
+                    if (scope.class !== voter.class) inScope = false;
+                }
+            }
+
+            // If the election is completed
+            if (e.isCompleted == 1) {
+                let canSeeResults = false;
+                if (visibility === 'all') canSeeResults = true;
+                else if (visibility === 'branch' && voter && voter.branch === scope.branch) canSeeResults = true;
+                else if (visibility === 'class' && voter) {
+                    if (scope.classes && scope.classes.includes(voter.class)) canSeeResults = true;
+                    else if (scope.class && scope.class === voter.class) canSeeResults = true;
+                }
+                else if (visibility === 'voters_only' && inScope) canSeeResults = true;
+
+                if (!canSeeResults) continue;
+            } else {
+                // If it's NOT completed, it's for voting. Only return if inScope.
+                if (!inScope) continue;
+            }
+
+            // Check if this voter already voted in this election
+            const ledgerCheck = await db.execute({
+                sql: "SELECT receiptHash FROM publicLedger WHERE voterRegNum = ? AND institution = ? AND electionCode = ?",
+                args: [regNum || '', inst, e.id]
+            });
+            const ledgerCheck2 = await db.execute({
+                sql: "SELECT receiptHash FROM publicLedger WHERE voterRegNum = ? AND institution = ? AND electionCode = ?",
+                args: [regNum || '', inst, e.electionCode]
+            });
+            
+            elections.push({ ...e, scope, hasVoted: (ledgerCheck.rows.length > 0 || ledgerCheck2.rows.length > 0) });
+        }
+
+        res.json(elections);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/vote', authGuard, async (req, res) => {
+    try {
+        const { voterRegNum, candidateRegNum, votePhoto, secureHash, fp, timestamp, institution, electionCode } = req.body;
+        
+        // Server-side validation: Check if user already voted, is banned, or lacks canVote permission
+        const userCheck = await db.execute({ sql: "SELECT isBanned, status, canVote FROM users WHERE regNum = ? AND institution = ?", args: [voterRegNum, institution] });
+        if (userCheck.rows.length === 0) return res.status(404).json({ error: "Voter not found" });
+        const user = userCheck.rows[0];
+        
+        if (user.isBanned) return res.status(403).json({ error: "You are banned from voting." });
+        if (user.status !== 'active') return res.status(403).json({ error: "You are not authorized to vote yet. Please wait for admin approval." });
+        if (!user.canVote) return res.status(403).json({ error: "You have not been granted voting permission for this election." });
+
+        // Require a valid electionCode â€” prevent generic 'global' fallback abuse
+        if (!electionCode) return res.status(400).json({ error: "Election code is required." });
+        const ledgerCheck = await db.execute({ sql: "SELECT 1 FROM publicLedger WHERE voterRegNum = ? AND institution = ? AND electionCode = ?", args: [voterRegNum, institution, electionCode] });
+        if (ledgerCheck.rows.length > 0) return res.status(400).json({ error: "You have already cast your vote in this election." });
+
+        await db.execute({
+            sql: "INSERT INTO publicLedger (receiptHash, voterRegNum, electionCode, candidateStr, institution, timestamp, status) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            args: [secureHash, voterRegNum, electionCode || 'global', typeof candidateRegNum === 'object' ? JSON.stringify(candidateRegNum) : candidateRegNum, institution, timestamp, 'verified']
+        });
+        await db.execute({
+            sql: "UPDATE users SET hasVoted = 1, votedFor = ?, votePhoto = ?, voteStatus = 'verified', voteReceiptHash = ? WHERE regNum = ? AND institution = ?",
+            args: [typeof candidateRegNum === 'object' ? JSON.stringify(candidateRegNum) : candidateRegNum, votePhoto, secureHash, voterRegNum, institution]
+        });
+        res.json({ success: true, receipt: secureHash });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/questions', async (req, res) => {
+    try {
+        const { candidateId, voterName, question, timestamp, institution } = req.body;
+        await db.execute({
+            sql: "INSERT INTO questions (candidateId, voterName, question, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
+            args: [candidateId, voterName, question, timestamp, institution]
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/questions/:candidateId', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        const result = await db.execute({ sql: "SELECT * FROM questions WHERE candidateId = ? AND institution = ?", args: [req.params.candidateId, inst] });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.patch('/api/questions/:id', async (req, res) => {
+    try {
+        const { answer } = req.body;
+        const inst = decodeURIComponent(req.query.institution || '');
+        await db.execute({ sql: "UPDATE questions SET answer = ? WHERE id = ? AND institution = ?", args: [answer, req.params.id, inst] });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/globalChat', async (req, res) => {
+    try {
+        const { voterName, text, timestamp, institution } = req.body;
+        await db.execute({
+            sql: "INSERT INTO globalChat (voterName, text, timestamp, institution) VALUES (?, ?, ?, ?)",
+            args: [voterName, text, timestamp, institution]
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/globalChat', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        const result = await db.execute({ sql: "SELECT * FROM globalChat WHERE institution = ? ORDER BY id DESC LIMIT 50", args: [inst] });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/election/reset', authGuard, async (req, res) => {
+    try {
+        const { institution } = req.body;
+        await db.batch([
+            { sql: "DELETE FROM publicLedger WHERE institution = ?", args: [institution] },
+            { sql: "UPDATE users SET hasVoted = 0, votedFor = NULL, votePhoto = NULL, voteStatus = NULL, voteReceiptHash = NULL WHERE institution = ?", args: [institution] }
+        ], "write");
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/elections/:id/reset', authGuard, async (req, res) => {
+    try {
+        const elec = await db.execute({ sql: 'SELECT electionCode FROM elections WHERE id = ?', args: [req.params.id] });
+        if (elec.rows.length === 0) return res.status(404).json({ error: 'Election not found' });
+        const eCode = elec.rows[0].electionCode;
+
+        await db.batch([
+            { sql: "DELETE FROM publicLedger WHERE electionCode = ? OR electionCode = ?", args: [req.params.id, eCode] },
+            { sql: "UPDATE elections SET isActive = 1, isCompleted = 0 WHERE id = ?", args: [req.params.id] }
+        ], "write");
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/voters/eligible', async (req, res) => {
+    try {
+        const elections = await db.execute({ sql: "SELECT * FROM elections WHERE institution = ? AND isActive = 1", args: [req.query.institution] });
+        res.json(elections.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/config/:key', async (req, res) => {
+    try {
+        const result = await db.execute({ sql: "SELECT value FROM config WHERE key = ?", args: [req.params.key] });
+        if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
+        res.json(JSON.parse(result.rows[0].value));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/config/:key', authGuard, async (req, res) => {
+    try {
+        const { data, merge } = req.body;
+        let finalData = data;
+        if (merge) {
+            // Read existing value and merge new data into it
+            const existing = await db.execute({ sql: "SELECT value FROM config WHERE key = ?", args: [req.params.key] });
+            if (existing.rows.length > 0) {
+                try {
+                    const existingData = JSON.parse(existing.rows[0].value);
+                    finalData = { ...existingData, ...data };
+                } catch { /* existing value not JSON - overwrite */ }
+            }
+        }
+        await db.execute({ sql: "INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", args: [req.params.key, JSON.stringify(finalData)] });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.get('/api/elections', async (req, res) => {
+    try {
+        let sql = 'SELECT * FROM elections WHERE institution = ?';
+        const args = [req.query.institution];
+        if (req.query.type) { sql += ' AND type = ?'; args.push(req.query.type); }
+        if (req.query.createdBy) { sql += ' AND createdBy = ?'; args.push(req.query.createdBy); }
+        const result = await db.execute({ sql, args });
+        res.json(result.rows.map(r => {
+            let parsedScope = {};
+            try { parsedScope = JSON.parse(r.scope || '{}'); } catch(e) {}
+            return { ...r, scope: parsedScope };
+        }));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/elections', authGuard, async (req, res) => {
+    try {
+        const { institution, name, type, scope, createdBy, createdByRole, startTime, endTime, categories, candidates } = req.body;
+        
+        // Step 1: Enforce "One Active Election per Creator" policy
+        const activeCheck = await db.execute({
+            sql: "SELECT id FROM elections WHERE createdBy = ? AND institution = ? AND (isCompleted = 0 OR isCompleted IS NULL) AND type = ?",
+            args: [createdBy, institution, type]
+        });
+        if (activeCheck.rows.length > 0) {
+            return res.status(400).json({ error: "You already have an active or pending election. You must complete or delete it before starting a new one." });
+        }
+
+        const id = `ELC-${Date.now()}`;
+        const electionCode = Math.random().toString(36).substr(2, 6).toUpperCase();
+        
+        // Step 2: Create Election Record
+        const now = new Date();
+        const electionStart = startTime ? new Date(startTime) : now;
+        const autoActive = (electionStart <= now) ? 1 : 0;
+
+        const electionScope = { ...(scope || {}), categories: categories || [] };
+        await db.execute({
+            sql: `INSERT INTO elections (id, institution, name, type, scope, electionCode, createdAt, createdBy, createdByRole, startTime, endTime, isActive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+            args: [id, institution, name, type, JSON.stringify(electionScope), electionCode, now.toISOString(), createdBy, createdByRole || null, startTime || null, endTime || null, autoActive]
+        });
+
+        // Step 3: Register Candidates as Contestants (if provided)
+        if (candidates && candidates.length > 0) {
+            for (const cand of candidates) {
+                // Ensure candidate exists or create a basic record
+                // We'll use a transaction/batch for this usually, but here we'll just insert/ignore
+                await db.execute({
+                    sql: `INSERT INTO users (regNum, institution, role, name, status, category, symbol, portrait) VALUES (?, ?, 'contestant', ?, 'active', ?, ?, ?)
+                          ON CONFLICT(regNum, institution) DO UPDATE SET role='contestant', category=EXCLUDED.category, symbol=EXCLUDED.symbol, portrait=EXCLUDED.portrait`,
+                    args: [cand.regNum, institution, cand.name, cand.category, cand.symbol || null, cand.portrait || null]
+                });
+            }
+        }
+
+        res.json({ success: true, id, electionCode });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Columns that are safe to update via PATCH /api/elections/:id
+const ALLOWED_ELECTION_UPDATE_COLS = new Set([
+    'name', 'type', 'scope', 'electionCode', 'isActive', 'isCompleted',
+    'registrationOpen', 'startTime', 'endTime', 'createdBy', 'createdByRole'
+]);
+
+app.patch('/api/elections/:id', authGuard, async (req, res) => {
+    try {
+        const updates = req.body || {};
+
+        // â”€â”€ Column Whitelist Guard (prevent SQL column injection) â”€â”€
+        const unknownCols = Object.keys(updates).filter(k => !ALLOWED_ELECTION_UPDATE_COLS.has(k));
+        if (unknownCols.length > 0) {
+            return res.status(400).json({ error: `Unknown or disallowed fields: ${unknownCols.join(', ')}` });
+        }
+
+        const keys = Object.keys(updates);
+        if (keys.length === 0) return res.json({ success: true });
+
+        // Serialize scope to JSON string if it's an object
+        if (updates.scope !== undefined && typeof updates.scope === 'object') {
+            updates.scope = JSON.stringify(updates.scope);
+        }
+
+        const setClause = keys.map(k => `"${k}" = ?`).join(', ');
+        const values = keys.map(k => typeof updates[k] === 'boolean' ? boolInt(updates[k]) : updates[k]);
+        values.push(req.params.id);
+        await db.execute({ sql: `UPDATE elections SET ${setClause} WHERE id = ?`, args: values });
+
+        // If election is being marked as completed, clean up contestants
+        if (updates.isCompleted == 1 || updates.isCompleted === true) {
+            try {
+                const elec = await db.execute({ sql: 'SELECT institution FROM elections WHERE id = ?', args: [req.params.id] });
+                if (elec.rows.length > 0) {
+                    const inst = elec.rows[0].institution;
+                    // 1) Revert registered students (who have a password) back to 'voter'
+                    await db.execute({
+                        sql: `UPDATE users SET role = 'voter', category = NULL, symbol = NULL
+                              WHERE institution = ? AND role = 'contestant'
+                              AND password IS NOT NULL AND password != ''`,
+                        args: [inst]
+                    });
+                    // 2) Delete non-registered contestants (no password â€” entered manually as candidate pool)
+                    await db.execute({
+                        sql: `DELETE FROM users WHERE institution = ? AND role = 'contestant'
+                              AND (password IS NULL OR password = '')`,
+                        args: [inst]
+                    });
+                    console.log(`[OVS] Post-election cleanup done for ${inst}: registered contestants reverted to voter, non-registered deleted.`);
+                }
+            } catch (purgeErr) { console.warn('[OVS] Post-election cleanup skipped:', purgeErr.message); }
+        }
+
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/elections/:id', authGuard, async (req, res) => {
+    try {
+        const elec = await db.execute({ sql: 'SELECT electionCode, institution FROM elections WHERE id = ?', args: [req.params.id] });
+        if (elec.rows.length > 0) {
+            const eCode = elec.rows[0].electionCode;
+            const inst = elec.rows[0].institution;
+            await db.execute({ sql: 'DELETE FROM publicLedger WHERE electionCode = ? OR electionCode = ?', args: [req.params.id, eCode] });
+            // Post-election contestant cleanup
+            try {
+                // 1) Revert registered students (have a password) back to 'voter'
+                await db.execute({
+                    sql: `UPDATE users SET role = 'voter', category = NULL, symbol = NULL
+                          WHERE institution = ? AND role = 'contestant'
+                          AND password IS NOT NULL AND password != ''`,
+                    args: [inst]
+                });
+                // 2) Delete non-registered contestants (no password â€” added manually as candidate pool)
+                await db.execute({
+                    sql: `DELETE FROM users WHERE institution = ? AND role = 'contestant'
+                          AND (password IS NULL OR password = '')`,
+                    args: [inst]
+                });
+                console.log(`[OVS] Post-delete cleanup done for ${inst}: registered contestants reverted to voter, non-registered deleted.`);
+            } catch (purgeErr) { console.warn('[OVS] Post-delete cleanup skipped:', purgeErr.message); }
+        }
+        await db.execute({ sql: 'DELETE FROM elections WHERE id = ?', args: [req.params.id] });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Election analytics: total eligible, allowed, voted for a given election scope
+app.get('/api/elections/:id/analytics', authGuard, async (req, res) => {
+    try {
+        const elec = await db.execute({ sql: 'SELECT * FROM elections WHERE id = ?', args: [req.params.id] });
+        if (!elec.rows.length) return res.status(404).json({ error: 'Election not found' });
+        const e = elec.rows[0];
+        const scope = JSON.parse(e.scope || '{}');
+        let sql = `SELECT * FROM users WHERE institution = ? AND role IN ('voter','contestant') AND status = 'active'`;
+        const args = [e.institution];
+        if (scope.branch) { sql += ' AND branch = ?'; args.push(scope.branch); }
+        if (scope.classes && scope.classes.length) {
+            sql += ` AND "class" IN (${scope.classes.map(() => '?').join(',')})`;  
+            args.push(...scope.classes);
+        }
+        const users = await db.execute({ sql, args });
+        const total = users.rows.length;
+        const allowed = users.rows.filter(u => u.canVote == 1).length;
+        const voted = users.rows.filter(u => u.hasVoted == 1).length;
+        res.json({ total, allowed, voted, turnoutPct: allowed > 0 ? Math.round((voted / allowed) * 100) : 0 });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Election results: vote counts per candidate for a given election
+app.get('/api/elections/:id/results', async (req, res) => {
+    try {
+        const elec = await db.execute({ sql: 'SELECT * FROM elections WHERE id = ?', args: [req.params.id] });
+        if (!elec.rows.length) return res.status(404).json({ error: 'Election not found' });
+        const e = elec.rows[0];
+        // Get all ledger entries for this election
+        const ledger = await db.execute({ sql: `SELECT candidateStr FROM publicLedger WHERE institution = ? AND (electionCode = ? OR electionCode = ?)`, args: [e.institution, e.id, e.electionCode] });
+        const voteCounts = {};
+        ledger.rows.forEach(row => {
+            try {
+                const c = JSON.parse(row.candidateStr);
+                if (typeof c === 'object') {
+                    Object.values(c).forEach(v => { voteCounts[v] = (voteCounts[v] || 0) + 1; });
+                } else { voteCounts[row.candidateStr] = (voteCounts[row.candidateStr] || 0) + 1; }
+            } catch { voteCounts[row.candidateStr] = (voteCounts[row.candidateStr] || 0) + 1; }
+        });
+        // Get candidate details
+        const contestants = await db.execute({ sql: `SELECT regNum, name, institution FROM users WHERE institution = ? AND role = 'contestant'`, args: [e.institution] });
+        const results = contestants.rows.map(c => ({ regNum: c.regNum, name: c.name, votes: voteCounts[c.regNum] || 0 }));
+        results.sort((a, b) => b.votes - a.votes);
+        res.json(results);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// Get students by branch (for Branch Admin dashboard)
+app.get('/api/voters/by-branch/:branch', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        const result = await db.execute({
+            sql: `SELECT * FROM users WHERE institution = ? AND branch = ? AND role IN ('voter','contestant')`,
+            args: [inst, req.params.branch]
+        });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Get students by class (for Sub-Admin / Class Admin dashboard)
+app.get('/api/voters/by-class/:class', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        const year = req.query.year || '';
+        let sql = `SELECT * FROM users WHERE institution = ? AND "class" = ? AND role IN ('voter','contestant')`;
+        const args = [inst, req.params.class];
+        if (year) { sql += ` AND year = ?`; args.push(year); }
+        const result = await db.execute({ sql, args });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Get staff (subadmins) for a branch
+app.get('/api/staff/branch/:branch', async (req, res) => {
+    try {
+        const inst = decodeURIComponent(req.query.institution || '');
+        const result = await db.execute({
+            sql: `SELECT * FROM users WHERE institution = ? AND branch = ? AND role = 'subadmin'`,
+            args: [inst, req.params.branch]
+        });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Endpoints removed - Voting is now tied exclusively to 'Accepted' status.
+
+app.get('/api/candidates', async (req, res) => {
+    try {
+        const result = await db.execute({ sql: "SELECT * FROM users WHERE role = 'contestant' AND status = 'active' AND institution = ?", args: [req.query.institution] });
+        res.json(result.rows);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+if (process.env.VERCEL !== '1') {
+    app.listen(PORT, '0.0.0.0', () => console.log(`[VANGUARD] Running on port ${PORT}`));
+}
+
+module.exports = app;
+

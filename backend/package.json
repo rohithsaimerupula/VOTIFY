@@ -1,0 +1,23 @@
+{
+    "name": "online-voting-system",
+    "version": "1.0.0",
+    "description": "Secure Online Voting System with SQLite Backend",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "build": "node build-www.js && npx cap sync android",
+        "cap:sync": "npx cap sync android",
+        "cap:open": "npx cap open android"
+    },
+    "dependencies": {
+        "@capacitor/android": "^8.4.0",
+        "@capacitor/cli": "^8.4.0",
+        "@capacitor/core": "^8.4.0",
+        "@capacitor/splash-screen": "^8.0.1",
+        "@libsql/client": "^0.14.0",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.18.2",
+        "nodemailer": "^8.0.6"
+    }
+}
