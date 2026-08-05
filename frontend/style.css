@@ -297,3 +297,47 @@ input:focus, select:focus {
     border-radius: var(--radius-md);
     pointer-events: none;
 }
+
+/* ============================================================
+   ROLE CARDS (HOMEPAGE)
+   ============================================================ */
+.path-cards {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-top: 3.5rem;
+}
+
+.role-card {
+    padding: 2.8rem 2.2rem;
+    border-radius: var(--radius-lg);
+    width: 290px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+    color: var(--text-main);
+}
+.role-card h3 {
+    margin-bottom: 0.5rem;
+    color: var(--primary);
+}
+.role-card p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+    .path-cards {
+        gap: 1.2rem;
+    }
+    .role-card {
+        width: 100%;
+        max-width: 320px;
+        padding: 2rem 1.5rem;
+    }
+}
