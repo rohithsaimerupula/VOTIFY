@@ -573,7 +573,7 @@ tr:hover td { background: rgba(65, 91, 6, 0.04); }
     margin-bottom: 0.6rem;
     font-size: 1.3rem;
     font-weight: 700;
-    color: white;
+    color: var(--text-main);
     position: relative; z-index: 1;
 }
 
@@ -582,6 +582,25 @@ tr:hover td { background: rgba(65, 91, 6, 0.04); }
     font-size: 0.9rem;
     line-height: 1.55;
     position: relative; z-index: 1;
+}
+
+/* Distinct card colors */
+.card-register {
+    background: rgba(65, 91, 6, 0.03);
+    border: 1px solid rgba(65, 91, 6, 0.1);
+}
+.card-register:hover {
+    background: rgba(65, 91, 6, 0.06);
+    border-color: rgba(65, 91, 6, 0.3);
+}
+
+.card-vote {
+    background: rgba(183, 121, 31, 0.03); /* subtle warm warning/gold tint */
+    border: 1px solid rgba(183, 121, 31, 0.1);
+}
+.card-vote:hover {
+    background: rgba(183, 121, 31, 0.06);
+    border-color: rgba(183, 121, 31, 0.3);
 }
 
 /* ============================================================
