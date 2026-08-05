@@ -299,6 +299,23 @@ input:focus, select:focus {
 }
 
 /* ============================================================
+   GATEWAY ICON (3D IMAGE)
+   ============================================================ */
+.gateway-icon {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 1.2rem;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.5);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+/* ============================================================
    ROLE CARDS (HOMEPAGE)
    ============================================================ */
 .path-cards {
