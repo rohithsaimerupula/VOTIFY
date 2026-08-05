@@ -200,17 +200,17 @@
 <!-- NO EMBEDDED LOGIN: Auth is handled by login.html -->
 <div class="layout" id="main-layout">
   <div class="sidebar">
-    <div class="brand">ðŸ§‘â€ðŸ’¼ OVS</div>
+    <div class="brand">ðŸ§‘â€💼 OVS</div>
     <div class="role-tag" id="branch-label">Branch Authority</div>
-    <div class="nav-item active" id="nav-overview" onclick="showPage('overview',this)"><span class="nav-icon">ðŸ“Š</span> Overview</div>
-    <div class="nav-item" id="nav-students" onclick="showPage('students',this)"><span class="nav-icon">ðŸŽ“</span> My Branch Students</div>
+    <div class="nav-item active" id="nav-overview" onclick="showPage('overview',this)"><span class="nav-icon">📊</span> Overview</div>
+    <div class="nav-item" id="nav-students" onclick="showPage('students',this)"><span class="nav-icon">🎓</span> My Branch Students</div>
     <div class="nav-item" id="nav-ca-approvals" onclick="showPage('ca-approvals',this)"><span class="nav-icon">âœ…</span> Class Admin Approvals</div>
-    <div class="nav-item" id="nav-subadmins" onclick="showPage('subadmins',this)"><span class="nav-icon">ðŸ‘¥</span> Manage Sub-Admins</div>
+    <div class="nav-item" id="nav-subadmins" onclick="showPage('subadmins',this)"><span class="nav-icon">👥</span> Manage Sub-Admins</div>
     <div class="nav-group-label">ðŸ—³ï¸ Voting</div>
     <div class="nav-sub-item" id="nav-voting-my" onclick="showPage('voting-my',this)"><span class="nav-icon">ðŸ¢</span> My Election</div>
-    <div class="nav-sub-item" id="nav-voting-college" onclick="showPage('voting-college',this)"><span class="nav-icon">ðŸŽ“</span> College Head Election</div>
+    <div class="nav-sub-item" id="nav-voting-college" onclick="showPage('voting-college',this)"><span class="nav-icon">🎓</span> College Head Election</div>
       <div class="sidebar-footer" style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);">
-        <div class="nav-item" onclick="refreshAll()" style="color:var(--cyan)"><span class="nav-icon">ðŸ”„</span> Refresh Data</div>
+        <div class="nav-item" onclick="refreshAll()" style="color:var(--cyan)"><span class="nav-icon">🔄</span> Refresh Data</div>
         <div class="nav-item" onclick="adminLogout()" style="color:var(--red)"><span class="nav-icon">ðŸšª</span> Logout</div>
       </div>
     </div>
@@ -226,7 +226,7 @@
 
     <!-- OVERVIEW -->
     <div class="page active" id="page-overview">
-      <div class="page-title">ðŸ“Š Branch Overview</div>
+      <div class="page-title">📊 Branch Overview</div>
       <div class="page-sub" id="branch-sub">Loading...</div>
       <div class="stats-grid">
         <div class="stat" style="border-bottom: 4px solid var(--cyan);">
@@ -252,7 +252,7 @@
 
     <!-- STUDENTS -->
     <div class="page" id="page-students">
-      <div class="page-title">ðŸŽ“ My Branch Students</div>
+      <div class="page-title">🎓 My Branch Students</div>
       <div class="page-sub">Manage student details and viewing permissions</div>
       <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input style="flex:1;min-width:200px;" id="search-students" placeholder="ðŸ” Search students..." oninput="filterStudents()">
@@ -272,7 +272,7 @@
 
     <!-- SUBADMINS -->
     <div class="page" id="page-subadmins">
-      <div class="page-title">ðŸ‘¥ Manage Sub-Admins</div>
+      <div class="page-title">👥 Manage Sub-Admins</div>
       <div class="page-sub">Create and manage class-level administrators for your branch</div>
       <div class="card">
         <h3>âž• Create Sub-Admin</h3>
@@ -287,7 +287,7 @@
         <button class="btn btn-cyan" style="margin-top:1rem" onclick="createSubadmin()">Create Sub-Admin</button>
       </div>
       <div class="card">
-        <h3>ðŸ“‹ Sub-Admins in My Branch</h3>
+        <h3>📋 Sub-Admins in My Branch</h3>
         <table><thead><tr><th>ID</th><th>Name</th><th>Year</th><th>Class</th><th>Email</th><th>Actions</th></tr></thead>
         <tbody id="sa-table"></tbody></table>
       </div>
@@ -326,7 +326,7 @@
            </div>
         </div>
 
-        <button class="btn btn-cyan" onclick="createBranchElection()">ðŸš€ Create Branch Election</button>
+        <button class="btn btn-cyan" onclick="createBranchElection()">🚀 Create Branch Election</button>
 
         <!-- Categories & Candidates Builder -->
         <div style="border-top:1px solid var(--border); padding-top:1.5rem; margin-top:1.5rem;">
@@ -339,19 +339,19 @@
               <p style="color:var(--muted);font-size:0.85rem;">No categories yet. Click <strong style="color:var(--cyan);">+ Add Category</strong> to add your first.</p>
             </div>
           </div>
-          <div style="margin-top:0.5rem; font-size:0.75rem; color:var(--muted);">â„¹ï¸ Min 1 category Â· Min 2 candidates per category. Enter a Student ID to auto-fill from registered students, or type any name for non-registered candidates.</div>
+          <div style="margin-top:0.5rem; font-size:0.75rem; color:var(--muted);">â„¹ï¸ Min 1 category · Min 2 candidates per category. Enter a Student ID to auto-fill from registered students, or type any name for non-registered candidates.</div>
         </div>
       </div>
 
       <!-- Active Election -->
       <div id="br-election-active" style="display:none;">
         <div class="election-code-box">
-          <div style="font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem;">ðŸ”‘ Branch Election Code</div>
+          <div style="font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem;">🔑 Branch Election Code</div>
           <div class="code" id="br-elec-code">------</div>
           <div style="margin-top:0.8rem; display:flex; justify-content:center; gap:0.75rem;">
-            <button class="btn-sm btn-e" onclick="copyBrCode()">ðŸ“‹ Copy</button>
+            <button class="btn-sm btn-e" onclick="copyBrCode()">📋 Copy</button>
             <button class="btn-sm btn-g" id="br-elec-start-btn" onclick="startBrElection()">â–¶ Start</button>
-            <button class="btn-sm btn-g" id="br-elec-restart-btn" onclick="restartBrElection()" style="display:none;">ðŸ”„ Restart</button>
+            <button class="btn-sm btn-g" id="br-elec-restart-btn" onclick="restartBrElection()" style="display:none;">🔄 Restart</button>
             <button class="btn-sm btn-d" id="br-elec-stop-btn" onclick="stopBrElection()" style="display:none;">â¹ End</button>
             <button class="btn-sm btn-d" style="background:rgba(239,68,68,0.1);" onclick="deleteBrElection()">ðŸ—‘ Delete</button>
           </div>
@@ -370,7 +370,7 @@
 
     <!-- COLLEGE HEAD ELECTION -->
     <div class="page" id="page-voting-college">
-      <div class="page-title">ðŸŽ“ College Head Election</div>
+      <div class="page-title">🎓 College Head Election</div>
       <div class="page-sub">Monitor participation of your branch in institutional-level elections</div>
       
       <div id="col-elec-info-box">
@@ -387,7 +387,7 @@
       </div>
 
       <div class="card" id="col-stats-card">
-        <h3>ðŸ“Š Branch Students in College Election</h3>
+        <h3>📊 Branch Students in College Election</h3>
         <div class="stats-grid" style="grid-template-columns:1fr; gap:1.5rem;">
           <div class="stat" style="border-top:3px solid var(--cyan);">
             <div class="num" id="col-br-total" style="color:var(--cyan)">-</div>
@@ -528,7 +528,7 @@ function showPage(id,el){
   if(id==='voting-my')loadBranchElection();
   if(id==='voting-college')loadCollegeElection();
 }
-async function refreshAll(){ toast('ðŸ”„ Refreshing Page...'); setTimeout(() => location.reload(), 500); }
+async function refreshAll(){ toast('🔄 Refreshing Page...'); setTimeout(() => location.reload(), 500); }
 
 async function loadAll(){
     try {
@@ -617,8 +617,8 @@ async function loadClassAdminApprovals() {
             <div class="card" style="padding:0;overflow:hidden;margin-bottom:1.5rem;">
               <div style="padding:1rem 1.5rem;background:rgba(168,85,247,0.07);border-bottom:1px solid rgba(168,85,247,0.2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
                 <div>
-                  <div style="font-weight:700;color:#c084fc;font-size:1rem;">ðŸ‘¤ ${saName}</div>
-                  <div style="font-size:0.8rem;color:var(--muted);">Class Admin Â· ${saClass} Â· ID: ${saRegNum}</div>
+                  <div style="font-weight:700;color:#c084fc;font-size:1rem;">👤 ${saName}</div>
+                  <div style="font-size:0.8rem;color:var(--muted);">Class Admin · ${saClass} · ID: ${saRegNum}</div>
                 </div>
                 <div style="display:flex;gap:0.6rem;align-items:center;">
                   <span style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.3);border-radius:8px;padding:0.2rem 0.7rem;font-size:0.8rem;font-weight:700;">${students.length} Approved</span>
@@ -837,7 +837,7 @@ function brRemoveCategory(idx) {
   brRenderCategories();
 }
 function brAddCandidate(catIdx) {
-  const syms = ['ðŸ’Ž','ðŸŽ¯','ðŸŒˆ','âš¡','ðŸ€','ðŸ†','ðŸš€','ðŸ‘‘'];
+  const syms = ['ðŸ’Ž','🎯','ðŸŒˆ','⚡','ðŸ€','ðŸ†','🚀','ðŸ‘‘'];
   brCategories[catIdx].candidates.push({ name: '', regNum: '', symbol: syms[brCategories[catIdx].candidates.length % syms.length] });
   brRenderCategories();
 }

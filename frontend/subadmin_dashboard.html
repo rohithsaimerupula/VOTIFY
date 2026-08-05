@@ -623,20 +623,20 @@
   <!-- NO EMBEDDED LOGIN: Auth is handled by login.html -->
   <div class="layout" id="main-layout">
     <div class="sidebar">
-      <div class="brand">ðŸ‘¥ OVS</div>
+      <div class="brand">👥 OVS</div>
       <div class="role-tag" id="class-label">Class Admin</div>
       <div class="nav-item active" id="nav-overview" onclick="showPage('overview',this)"><span
-          class="nav-icon">ðŸ“Š</span> Overview</div>
-      <div class="nav-item" id="nav-registrations" onclick="showPage('registrations',this)"><span class="nav-icon">ðŸŽ“</span> Class Students & Registrations</div>
+          class="nav-icon">📊</span> Overview</div>
+      <div class="nav-item" id="nav-registrations" onclick="showPage('registrations',this)"><span class="nav-icon">🎓</span> Class Students & Registrations</div>
       <div class="nav-group-label">ðŸ—³ï¸ Voting</div>
       <div class="nav-sub-item" id="nav-voting-my" onclick="showPage('voting-my',this)"><span
           class="nav-icon">ðŸ›ï¸</span> My Election</div>
       <div class="nav-sub-item" id="nav-voting-branch" onclick="showPage('voting-branch',this)"><span
           class="nav-icon">ðŸ¢</span> Branch Head Election</div>
       <div class="nav-sub-item" id="nav-voting-college" onclick="showPage('voting-college',this)"><span
-          class="nav-icon">ðŸŽ“</span> College Head Election</div>
+          class="nav-icon">🎓</span> College Head Election</div>
       <div class="sidebar-footer" style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);">
-        <div class="nav-item" onclick="refreshAll()" style="color:var(--purple)"><span class="nav-icon">ðŸ”„</span> Refresh Data</div>
+        <div class="nav-item" onclick="refreshAll()" style="color:var(--purple)"><span class="nav-icon">🔄</span> Refresh Data</div>
         <div class="nav-item" onclick="saLogout()" style="color:var(--red)"><span class="nav-icon">ðŸšª</span> Logout</div>
       </div>
     </div>
@@ -652,7 +652,7 @@
 
       <!-- OVERVIEW -->
       <div class="page active" id="page-overview">
-        <div class="page-title">ðŸ“Š Class Overview</div>
+        <div class="page-title">📊 Class Overview</div>
         <div class="page-sub" id="class-sub">Your assigned class</div>
         <div class="stats-grid">
           <div class="stat" style="border-bottom: 4px solid var(--purple);">
@@ -678,14 +678,14 @@
             <div class="form-field"><label>Registration End</label><input type="datetime-local" id="class-reg-end-time">
             </div>
           </div>
-          <button class="btn btn-purple" style="width:100%;" onclick="startClassRegistrationWindow()">ðŸš€ Generate Link &
+          <button class="btn btn-purple" style="width:100%;" onclick="startClassRegistrationWindow()">🚀 Generate Link &
             Open Registration</button>
         </div>
 
         <!-- Active Registration Card -->
         <div id="active-registration-card" style="display:none;">
           <div class="election-code-box">
-            <div class="code-label">ðŸ”‘ Class Registration Code</div>
+            <div class="code-label">🔑 Class Registration Code</div>
             <!-- Status Badge -->
             <div id="class-reg-status-badge"
               style="display:inline-block; margin:0.6rem auto 1rem; padding:0.3rem 1rem; border-radius:99px; font-size:0.82rem; font-weight:700; border:1px solid rgba(34,197,94,0.3); background:rgba(34,197,94,0.08); color:#22c55e;">
@@ -695,7 +695,7 @@
               id="class-reg-link"></div>
             <div style="margin-top:0.8rem;display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;">
               <button class="btn-sm btn-e" onclick="copyClassRegLink()">ðŸ”— Copy Link</button>
-              <button class="btn-sm btn-e" onclick="copyClassRegCode()">ðŸ“‹ Copy Code</button>
+              <button class="btn-sm btn-e" onclick="copyClassRegCode()">📋 Copy Code</button>
             </div>
             <div style="margin-top:1.2rem;display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;">
               <button id="class-reg-stop-btn" class="btn-sm btn-d" onclick="stopClassRegistrationWindow()">â¹ Stop
@@ -794,7 +794,7 @@
 
       <!-- MY CLASS STUDENTS -->
       <div class="page" id="page-students">
-        <div class="page-title">ðŸŽ“ My Class Students</div>
+        <div class="page-title">🎓 My Class Students</div>
         <div class="page-sub" id="class-students-sub">Students you are responsible for</div>
 
         <!-- Tab Bar -->
@@ -915,25 +915,25 @@
               âš ï¸ Minimum 1 category with 2+ candidates required to create the election.
             </div>
           </div>
-          <button class="btn btn-purple" style="margin-top:1.5rem;width:100%;" onclick="createMyElection()">ðŸš€ Create
+          <button class="btn btn-purple" style="margin-top:1.5rem;width:100%;" onclick="createMyElection()">🚀 Create
             Election &amp; Generate Code</button>
         </div>
 
         <!-- Active Election Card -->
         <div id="my-election-active" style="display:none;">
           <div class="election-code-box">
-            <div class="code-label">ðŸ”‘ Class Access Code</div>
+            <div class="code-label">🔑 Class Access Code</div>
             <div class="code" id="my-elec-code">------</div>
             <div style="margin-top:0.5rem; font-size:0.85rem; color:var(--cyan); word-break:break-all;"
               id="my-elec-link"></div>
             <div style="margin-top:0.8rem;display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;">
               <button class="btn-sm btn-e" onclick="copyElectionLink()">ðŸ”— Copy Link</button>
-              <button class="btn-sm btn-e" onclick="copyElectionCode()">ðŸ“‹ Copy Code</button>
+              <button class="btn-sm btn-e" onclick="copyElectionCode()">📋 Copy Code</button>
             </div>
             <div style="margin-top:1.5rem;display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;">
 
               <button class="btn-sm btn-g" onclick="startMyElection()" id="my-elec-start-btn">â–¶ Start Election</button>
-              <button class="btn-sm btn-g" onclick="restartMyElection()" id="my-elec-restart-btn" style="display:none;">ðŸ”„ Restart Election</button>
+              <button class="btn-sm btn-g" onclick="restartMyElection()" id="my-elec-restart-btn" style="display:none;">🔄 Restart Election</button>
               <button class="btn-sm btn-d" onclick="stopMyElection()" id="my-elec-stop-btn" style="display:none;">â¹ End Election</button>
               <button class="btn-sm"
                 style="background:rgba(255,42,77,0.1);color:var(--red);border:1px solid rgba(255,42,77,0.2);"
@@ -972,7 +972,7 @@
           <!-- Class Students Election Access -->
           <div class="card" id="my-elec-students-card" style="margin-top:1.5rem; padding:0; overflow:hidden;">
             <div style="padding:1rem 1.5rem; background:rgba(168,85,247,0.05); border-bottom:1px solid rgba(168,85,247,0.2); display:flex; justify-content:space-between; align-items:center;">
-              <h3 style="margin:0; color:var(--purple);">ðŸŽ“ Eligible Voters</h3>
+              <h3 style="margin:0; color:var(--purple);">🎓 Eligible Voters</h3>
               <span id="my-elec-voter-count" style="font-size:0.8rem; color:var(--muted);">0 students</span>
             </div>
             <div style="overflow-x:auto;">
@@ -1013,7 +1013,7 @@
           <!-- Not In Scope Warning -->
           <div id="branch-not-in-scope" class="card"
             style="display:none; background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2); text-align:center; padding:2rem;">
-            <div style="font-size:2rem; margin-bottom:0.5rem;">ðŸš«</div>
+            <div style="font-size:2rem; margin-bottom:0.5rem;">🚫</div>
             <h3 style="color:#f59e0b; margin-bottom:0.5rem;">Your class is not included in this election</h3>
             <p style="color:var(--muted); font-size:0.85rem;">The Branch Admin has not included your class in this
               election's scope.</p>
@@ -1036,7 +1036,7 @@
 
       <!-- COLLEGE HEAD ELECTION -->
       <div class="page" id="page-voting-college">
-        <div class="page-title">ðŸŽ“ College Head Election</div>
+        <div class="page-title">🎓 College Head Election</div>
         <div class="page-sub">Monitor the institutional election and see results</div>
         <div style="display:flex; flex-direction:column; gap:1.5rem;">
 
@@ -1046,7 +1046,7 @@
           <!-- Not In Scope Warning -->
           <div id="college-not-in-scope" class="card"
             style="display:none; background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2); text-align:center; padding:2rem;">
-            <div style="font-size:2rem; margin-bottom:0.5rem;">ðŸš«</div>
+            <div style="font-size:2rem; margin-bottom:0.5rem;">🚫</div>
             <h3 style="color:#f59e0b; margin-bottom:0.5rem;">Your class is not included in this election</h3>
             <p style="color:var(--muted); font-size:0.85rem;">The Super Admin has not included your class in this
               election's scope.</p>
@@ -1074,7 +1074,7 @@
   <div class="modal-overlay" id="edit-modal">
     <div class="modal">
       <button class="modal-close" onclick="closeEdit()">âœ•</button>
-      <h3>ðŸ‘¤ Student Details</h3>
+      <h3>👤 Student Details</h3>
       <p style="color:var(--muted);font-size:0.8rem;margin-bottom:1rem;">ID: <strong id="edit-regnum-display" style="color:var(--purple);"></strong></p>
       <input type="hidden" id="edit-regnum">
       <div style="background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.3);border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.85rem;color:#f59e0b;">
@@ -1205,7 +1205,7 @@
     }
 
     async function refreshAll() { 
-      toast('ðŸ”„ Refreshing Page...'); 
+      toast('🔄 Refreshing Page...'); 
       setTimeout(() => location.reload(), 500);
     }
 
@@ -1997,7 +1997,7 @@
           const inScope = !scopeClasses || scopeClasses.includes(session.class);
 
           setHTML('college-elec-info', `<div style="display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;">
-            <div><h3 style="margin:0;">ðŸŽ“ ${collegeElec.name}</h3>
+            <div><h3 style="margin:0;">🎓 ${collegeElec.name}</h3>
             <p style="color:var(--muted);margin-top:0.4rem;font-size:0.9rem;">Status: ${collegeElec.isActive ? '<span class="pill-active">ðŸŸ¢ Running</span>' : collegeElec.isCompleted ? '<span class="pill-completed">âœ… Completed</span>' : '<span class="pill-pending">â³ Pending</span>'} &nbsp;|&nbsp; Code: <strong>${collegeElec.electionCode}</strong></p></div>
           </div>`);
 

@@ -253,7 +253,7 @@
                 setText('password-label', "New Password");
                 const newPass = document.getElementById('new-password');
                 if(newPass) newPass.placeholder = "Enter new password";
-                setText('password-hint', "6-10 chars Â· 3+ letters Â· 1+ special char Â· 1+ number. Leave blank to keep current.");
+                setText('password-hint', "6-10 chars · 3+ letters · 1+ special char · 1+ number. Leave blank to keep current.");
             }
         }
 
@@ -322,7 +322,7 @@
                 setText('otp-hint', `Enter the code sent to ${sessionUser.email}`);
                 const osp = document.getElementById('otp-verify-section');
                 if(osp) osp.classList.remove('hidden');
-                if(btn) btn.innerText = "OTP Sent âœ“";
+                if(btn) btn.innerText = "OTP Sent ✓";
             } catch (err) {
                 alert("Error sending OTP: " + err.message);
                 if(btn) {

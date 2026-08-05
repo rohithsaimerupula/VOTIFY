@@ -565,7 +565,7 @@
           <small style="color:rgba(255,255,255,0.25); font-weight:400; text-transform:none;">(9 chars)</small>
         </label>
         <div style="position:relative;">
-          <span style="position:absolute; left:1.2rem; top:50%; transform:translateY(-50%); opacity:0.4;">ðŸ‘¤</span>
+          <span style="position:absolute; left:1.2rem; top:50%; transform:translateY(-50%); opacity:0.4;">👤</span>
           <input type="text" id="auth-id" placeholder="SADMIN001" maxlength="9" autocomplete="off" class="auth-input"
             style="padding-left:3rem; padding-right:1rem; height:50px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.06); font-size:1.05rem; letter-spacing:1px; border-radius:12px;">
         </div>
@@ -587,7 +587,7 @@
       <button class="btn btn-gold" id="auth-btn-step1"
         style="width:100%; height:54px; font-size:1.05rem; border-radius:12px; font-weight:700; letter-spacing:0.5px; display:flex; justify-content:center; align-items:center; gap:0.6rem; box-shadow:0 12px 24px -10px rgba(245,158,11,0.4); border:1px solid rgba(245,158,11,0.5); margin-bottom:1rem;"
         onclick="saStep1()">
-        ðŸ“§ Send OTP &amp; Continue
+        📧 Send OTP &amp; Continue
       </button>
 
       <!-- Step 2: OTP Section (hidden initially) -->
@@ -633,7 +633,7 @@
       <button onclick="closeSAForgotModal()"
         style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:#64748b; font-size:1.4rem; cursor:pointer;">âœ•</button>
       <div style="text-align:center; margin-bottom:1.5rem;">
-        <div style="font-size:2rem; margin-bottom:0.5rem;">ðŸ”‘</div>
+        <div style="font-size:2rem; margin-bottom:0.5rem;">🔑</div>
         <h3 style="font-size:1.2rem; font-weight:800; color:white; margin-bottom:0.25rem;">Forgot Master Password</h3>
         <p style="font-size:0.85rem; color:#64748b;">Recover access to your Super Admin account</p>
       </div>
@@ -650,7 +650,7 @@
         </div>
         <button onclick="saForgotSendOtp()" id="sa-forgot-btn1"
           style="width:100%; height:48px; border-radius:10px; border:1px solid rgba(245,158,11,0.5); background:linear-gradient(135deg,#f59e0b,#d97706); color:#000; font-weight:700; font-size:1rem; cursor:pointer; font-family:'Outfit',sans-serif;">
-          ðŸ“§ Send Recovery OTP
+          📧 Send Recovery OTP
         </button>
       </div>
 
@@ -692,15 +692,15 @@
       <div class="sidebar-brand">SOVEREIGN CONTROL</div>
       <div class="sidebar-role" id="sa-inst-label" style="color: var(--gold); font-weight: 700;">Global Super-Portal
       </div>
-      <div class="nav-item active" id="nav-overview" onclick="showPage('overview', event)"><span class="nav-icon">ðŸ“Š</span> Overview</div>
-      <div class="nav-item" id="nav-admins" onclick="showPage('admins', event)"><span class="nav-icon">ðŸ§‘â€ðŸ’¼</span> Manage Admins</div>
-      <div class="nav-item" id="nav-subadmins" onclick="showPage('subadmins', event)"><span class="nav-icon">ðŸ‘¥</span> Sub-Admins</div>
-      <div class="nav-item" id="nav-students" onclick="showPage('students', event)"><span class="nav-icon">ðŸŽ“</span> All Students</div>
+      <div class="nav-item active" id="nav-overview" onclick="showPage('overview', event)"><span class="nav-icon">📊</span> Overview</div>
+      <div class="nav-item" id="nav-admins" onclick="showPage('admins', event)"><span class="nav-icon">ðŸ§‘â€💼</span> Manage Admins</div>
+      <div class="nav-item" id="nav-subadmins" onclick="showPage('subadmins', event)"><span class="nav-icon">👥</span> Sub-Admins</div>
+      <div class="nav-item" id="nav-students" onclick="showPage('students', event)"><span class="nav-icon">🎓</span> All Students</div>
       <div class="nav-item" id="nav-voting" onclick="showPage('voting', event)"><span class="nav-icon">ðŸ—³ï¸</span> Voting Control</div>
       <div class="nav-item" id="nav-health" onclick="showPage('health', event)"><span class="nav-icon">ðŸ›¡ï¸</span> System Health</div>
-      <div class="nav-item" id="nav-audit" onclick="showPage('audit', event)"><span class="nav-icon">ðŸ“œ</span> Audit Log</div>
+      <div class="nav-item" id="nav-audit" onclick="showPage('audit', event)"><span class="nav-icon">📜</span> Audit Log</div>
       <div class="sidebar-footer" style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);">
-        <div class="nav-item" onclick="refreshAll()" style="color:var(--gold)"><span class="nav-icon">ðŸ”„</span> Refresh Data</div>
+        <div class="nav-item" onclick="refreshAll()" style="color:var(--gold)"><span class="nav-icon">🔄</span> Refresh Data</div>
         <div class="nav-item" onclick="saLogout()" style="color:var(--red)"><span class="nav-icon">ðŸšª</span> Logout</div>
       </div>
     </div>
@@ -710,7 +710,7 @@
 
       <!-- OVERVIEW -->
       <div class="page active" id="page-overview">
-        <div class="page-title">ðŸ“Š Overview</div>
+        <div class="page-title">📊 Overview</div>
         <div class="page-sub" id="inst-name-sub">Your Institution Dashboard</div>
         <div class="stats-grid">
           <div class="stat" style="border-bottom: 4px solid var(--cyan);">
@@ -743,7 +743,7 @@
         </div>
 
         <div class="card" id="pack-request-card" style="background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2);">
-          <h3 style="color:var(--gold);">ðŸš€ Update Your Pack</h3>
+          <h3 style="color:var(--gold);">🚀 Update Your Pack</h3>
           <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;">Request a plan upgrade to increase your institution's capacity for admins, sub-admins, and students.</p>
           <div style="display:flex; gap:1rem; align-items:center;">
              <select id="request-pack-id" style="max-width:250px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:white;"></select>
@@ -765,13 +765,13 @@
 
       <!-- ADMINS -->
       <div class="page" id="page-admins">
-        <div class="page-title">ðŸ§‘â€ðŸ’¼ Manage Admins</div>
+        <div class="page-title">ðŸ§‘â€💼 Manage Admins</div>
         <div class="page-sub">Create and manage branch admins for your institution</div>
 
         <div class="card">
           <h3>âž• Create Admin</h3>
           <div class="form-grid">
-            <div class="form-field"><label>Admin ID <small style="color:var(--muted)">(7 chars Â· A-Z &
+            <div class="form-field"><label>Admin ID <small style="color:var(--muted)">(7 chars · A-Z &
                   0-9)</small></label><input type="text" id="a-id" placeholder="ADMCSE01" maxlength="7"></div>
             <div class="form-field"><label>Full Name <small style="color:var(--muted)">(max 30)</small></label><input
                 type="text" id="a-name" placeholder="Mr. Ramesh"></div>
@@ -793,14 +793,14 @@
               </select>
             </div>
             <div class="form-field"><label>Password <small style="color:var(--muted);text-transform:none">(Exactly 8
-                  chars Â· 3 letters Â· 1 special Â· 1 number)</small></label><input type="password" id="a-pass"
+                  chars · 3 letters · 1 special · 1 number)</small></label><input type="password" id="a-pass"
                 placeholder="e.g. Adm@in12" maxlength="8"></div>
           </div>
           <button class="btn btn-gold" style="margin-top:1rem" onclick="createAdmin()">Create Admin</button>
         </div>
 
         <div class="card">
-          <h3>ðŸ“‹ Branch Admins</h3>
+          <h3>📋 Branch Admins</h3>
           <table>
             <thead>
               <tr>
@@ -819,12 +819,12 @@
 
       <!-- SUBADMINS -->
       <div class="page" id="page-subadmins">
-        <div class="page-title">ðŸ‘¥ Sub-Admins</div>
+        <div class="page-title">👥 Sub-Admins</div>
         <div class="page-sub">View, manage, and create sub-admins across all branches</div>
         <div class="card">
           <h3>âž• Create Sub-Admin</h3>
           <div class="form-grid">
-            <div class="form-field"><label>Sub-Admin ID <small style="color:var(--muted)">(9 chars Â· A-Z &
+            <div class="form-field"><label>Sub-Admin ID <small style="color:var(--muted)">(9 chars · A-Z &
                   0-9)</small></label><input type="text" id="sa-id" placeholder="SADMIN101" maxlength="9"></div>
             <div class="form-field"><label>Full Name <small style="color:var(--muted)">(max 30)</small></label><input
                 type="text" id="sa-name" placeholder="Mr. Suresh"></div>
@@ -856,13 +856,13 @@
               </select>
             </div>
             <div class="form-field"><label>Password <small style="color:var(--muted);text-transform:none">(Exactly 6
-                  chars Â· 3 letters Â· 1 special Â· 1 number)</small></label><input type="password" id="sa-pass"
+                  chars · 3 letters · 1 special · 1 number)</small></label><input type="password" id="sa-pass"
                 placeholder="e.g. Sa@ab1" maxlength="6"></div>
           </div>
           <button class="btn btn-purple" style="margin-top:1rem" onclick="createSubAdminSA()">Create Sub-Admin</button>
         </div>
         <div class="card">
-          <h3>ðŸ“‹ All Sub-Admins</h3>
+          <h3>📋 All Sub-Admins</h3>
           <div style="display:flex;gap:1rem;margin-bottom:1rem;align-items:center;flex-wrap:wrap;">
             <label style="margin:0;white-space:nowrap;">Filter by Branch:</label>
             <select id="sa-filter-branch" onchange="applySubAdminFilter()" style="max-width:160px;margin:0">
@@ -906,7 +906,7 @@
 
       <!-- STUDENTS -->
       <div class="page" id="page-students">
-        <div class="page-title">ðŸŽ“ All Students</div>
+        <div class="page-title">🎓 All Students</div>
         <div class="page-sub">Full student list for your institution</div>
         <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
           <input class="search-bar" style="flex:1;min-width:200px;margin:0" placeholder="ðŸ” Search by name, ID..."
@@ -936,7 +936,7 @@
             <option value="4th">4th Year</option>
           </select>
           <button class="btn btn-purple" onclick="promoteSemester()"
-            style="min-width:140px;margin:0;padding:0.6rem 1rem;font-size:0.85rem;border-radius:10px;font-weight:700;">ðŸ“ˆ
+            style="min-width:140px;margin:0;padding:0.6rem 1rem;font-size:0.85rem;border-radius:10px;font-weight:700;">📈
             Promote Semester</button>
         </div>
         <div class="card" style="padding:0.5rem">
@@ -1023,7 +1023,7 @@
                 <button class="btn-sm" id="v-stop-btn" style="flex:1; padding:0.55rem 0; background:rgba(255,42,77,0.15); color:var(--red); border:1px solid rgba(255,42,77,0.3); border-radius:8px; font-size:0.85rem; cursor:pointer;"
                   onclick="stopElection()">â¹ End Election</button>
                 <button class="btn-sm" id="v-restart-btn" style="flex:1; display:none; padding:0.55rem 0; background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); border-radius:8px; font-size:0.85rem; cursor:pointer;"
-                  onclick="restartElection()">ðŸ”„ Restart Election</button>
+                  onclick="restartElection()">🔄 Restart Election</button>
                 <button class="btn-sm" id="v-delete-btn" style="flex:0.5; padding:0.55rem 0; background:rgba(255,42,77,0.1); color:var(--red); border:1px solid rgba(255,42,77,0.2); border-radius:8px; font-size:0.85rem; cursor:pointer;"
                   onclick="deleteElection()">ðŸ—‘ï¸</button>
               </div>
@@ -1055,7 +1055,7 @@
 
               <!-- â”€â”€ WHO CAN VOTE? (Scope Selector) â”€â”€ -->
               <div id="v-scope-section">
-                <h4 style="margin: 0.5rem 0 0.8rem; color:var(--text); font-size: 0.95rem;">ðŸ‘¥ Who Can Vote?</h4>
+                <h4 style="margin: 0.5rem 0 0.8rem; color:var(--text); font-size: 0.95rem;">👥 Who Can Vote?</h4>
                 <div style="display:flex; flex-direction:column; gap:0.6rem;">
 
                   <!-- Option 1: Everyone -->
@@ -1071,7 +1071,7 @@
                   <label style="display:flex; align-items:center; gap:0.75rem; padding:0.85rem 1rem; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; cursor:pointer; transition:all 0.2s;" id="scope-specific-label">
                     <input type="radio" name="v-scope-mode" id="sa-scope-specific" value="specific" onchange="onScopeModeChange()" style="width:16px;height:16px;accent-color:var(--gold);margin:0;">
                     <div>
-                      <div style="font-weight:700; color:var(--text); font-size:0.92rem;">ðŸŽ¯ Specific Classes Only</div>
+                      <div style="font-weight:700; color:var(--text); font-size:0.92rem;">🎯 Specific Classes Only</div>
                       <div style="font-size:0.78rem; color:var(--muted); margin-top:0.15rem;">Restrict voting to selected branches or sections</div>
                     </div>
                   </label>
@@ -1080,7 +1080,7 @@
                   <div id="sa-scope-class-picker" style="display:none; margin-top:0.3rem;">
                     <div id="sa-scope-hierarchy" style="max-height:280px; overflow-y:auto; padding:1rem; background:rgba(0,0,0,0.25); border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
                       <div id="sa-scope-empty-msg" style="color:var(--muted); font-size:0.85rem; text-align:center; padding:1.5rem;">
-                        <div style="font-size:1.8rem; margin-bottom:0.5rem;">ðŸ“‹</div>
+                        <div style="font-size:1.8rem; margin-bottom:0.5rem;">📋</div>
                         <strong style="color:var(--text);">No class data found</strong><br>
                         <small style="opacity:0.7;">Students need Year, Branch &amp; Class filled in to appear here.<br>Go to <strong>Students</strong> tab to check student data, or choose <strong>All Students</strong> above.</small>
                       </div>
@@ -1110,7 +1110,7 @@
 
               <!-- Action Buttons -->
               <div style="display:flex; gap:0.5rem;">
-                <button class="btn btn-green" style="flex:2" id="v-start-btn" onclick="startNewElection()">ðŸš€ Create &amp; Start Election</button>
+                <button class="btn btn-green" style="flex:2" id="v-start-btn" onclick="startNewElection()">🚀 Create &amp; Start Election</button>
                 <button class="btn-sm" id="v-cancel-edit"
                   style="flex:1; display:none; background:rgba(255,255,255,0.05); color:white; border:1px solid var(--border); border-radius:8px; padding:0.5rem;"
                   onclick="toggleScheduleMode(false)">âœ• Cancel</button>
@@ -1134,7 +1134,7 @@
         <div class="card" id="results-chart-card" style="display:none;">
           <h3>ðŸ† Live Vote Results</h3>
           <button class="btn btn-gold" onclick="loadVoting()"
-            style="margin-bottom:1.5rem; padding:0.5rem 1.4rem; font-size:0.9rem;">ðŸ”„ Refresh Results</button>
+            style="margin-bottom:1.5rem; padding:0.5rem 1.4rem; font-size:0.9rem;">🔄 Refresh Results</button>
           <div style="position:relative; height:280px;">
             <canvas id="results-chart"></canvas>
           </div>
@@ -1160,15 +1160,15 @@
       </div>
 
       <div class="card">
-        <h3>ðŸ“§ SMTP & OTP Configuration</h3>
+        <h3>📧 SMTP & OTP Configuration</h3>
         <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1.5rem;">
           Your current SMTP service is used to deliver voter OTPs and admin 2FA codes.
           If you see "OFFLINE", please check your Vercel Environment Variables.
         </p>
         <div style="display:flex; gap:1rem;">
-          <button class="btn btn-gold" onclick="testSmtpConnection()">ðŸ“§ Send Test Email</button>
+          <button class="btn btn-gold" onclick="testSmtpConnection()">📧 Send Test Email</button>
           <button class="btn-sm" style="border:1px solid var(--border); background:rgba(255,255,255,0.05); color:white;"
-            onclick="loadSystemHealth()">ðŸ”„ Refresh Status</button>
+            onclick="loadSystemHealth()">🔄 Refresh Status</button>
         </div>
       </div>
 
@@ -1199,7 +1199,7 @@
 
     <!-- AUDIT LOG -->
     <div class="page" id="page-audit">
-      <div class="page-title">ðŸ“œ Audit Log</div>
+      <div class="page-title">📜 Audit Log</div>
       <div class="page-sub" style="display:flex; justify-content:space-between; align-items:center; gap:1.5rem;">
         <span>All activity log across the institution</span>
         <button class="btn btn-red-outline" style="padding:0.4rem 1rem; font-size:0.85rem;"
@@ -1575,12 +1575,12 @@
             document.getElementById('auth-otp').focus();
             setText('auth-err', `âœ… OTP sent to your email! Enter it below.`);
           } catch (emailErr) {
-            setText('auth-btn-step1', 'ðŸ“§ Send OTP & Continue');
+            setText('auth-btn-step1', '📧 Send OTP & Continue');
             btn.disabled = false;
             setText('auth-err', 'Failed to send OTP: ' + (emailErr.text || emailErr.message || 'Email error'));
           }
         } catch (e) {
-          setText('auth-btn-step1', 'ðŸ“§ Send OTP & Continue');
+          setText('auth-btn-step1', '📧 Send OTP & Continue');
           btn.disabled = false;
           setText('auth-err', e.message);
         }
@@ -1661,7 +1661,7 @@
           setText('sa-forgot-err', 'âœ… OTP sent! Check your email inbox.');
         } catch (e) {
           setText('sa-forgot-err', e.message || 'Failed to send OTP');
-          setText('sa-forgot-btn1', 'ðŸ“§ Send Recovery OTP');
+          setText('sa-forgot-btn1', '📧 Send Recovery OTP');
           btn.disabled = false;
         }
       }
@@ -1722,7 +1722,7 @@
       }
 
       async function refreshAll() { 
-        toast('ðŸ”„ Refreshing Page...'); 
+        toast('🔄 Refreshing Page...'); 
         setTimeout(() => location.reload(), 500); 
       }
 
@@ -2256,7 +2256,7 @@
       }
 
       window.addCreationCategory = function() {
-        creationCategories.push({ name: '', candidates: [{ name: '', regNum: '', symbol: 'â­' }, { name: '', regNum: '', symbol: 'ðŸš€' }] });
+        creationCategories.push({ name: '', candidates: [{ name: '', regNum: '', symbol: 'â­' }, { name: '', regNum: '', symbol: '🚀' }] });
         renderCreationCategories();
       };
       window.removeCreationCategory = function(idx) {
@@ -2264,7 +2264,7 @@
         renderCreationCategories();
       };
       window.addCreationCandidate = function(catIdx) {
-        const symbols = ['ðŸ’Ž', 'ðŸŽ¯', 'ðŸŒˆ', 'âš¡', 'ðŸ€', 'ðŸŽ', 'âš½', 'ðŸŽ¸'];
+        const symbols = ['ðŸ’Ž', '🎯', 'ðŸŒˆ', '⚡', 'ðŸ€', 'ðŸŽ', 'âš½', 'ðŸŽ¸'];
         const sym = symbols[creationCategories[catIdx].candidates.length % symbols.length];
         creationCategories[catIdx].candidates.push({ name: '', regNum: '', symbol: sym });
         renderCreationCategories();
@@ -2362,7 +2362,7 @@
               scope
             })
           });
-          toast('ðŸš€ Election started successfully!');
+          toast('🚀 Election started successfully!');
           loadVoting();
           loadAll();
         } catch (e) { toast(e.message, false); }
@@ -2492,7 +2492,7 @@
             if (catSection)   catSection.style.display   = '';
 
             setText('schedule-card-title', 'â±ï¸ Create Election');
-            setText('v-start-btn', 'ðŸš€ Create & Start Election');
+            setText('v-start-btn', '🚀 Create & Start Election');
             renderCreationCategories();
           }
         } catch (e) { toast(e.message, false); }
@@ -2840,7 +2840,7 @@
               footer.style.alignItems = 'center';
               footer.innerHTML = `
 
-                    <button class="btn-sm btn-e" style="font-size:0.65rem;" onclick="viewFullResults('${elec.id}')">Full Report ðŸ“Š</button>
+                    <button class="btn-sm btn-e" style="font-size:0.65rem;" onclick="viewFullResults('${elec.id}')">Full Report 📊</button>
                 `;
               card.appendChild(footer);
             } catch (e) { console.error(e); }

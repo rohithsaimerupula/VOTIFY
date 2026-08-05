@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#06b6d4">
+    <meta name="theme-color" content="var(--secondary)">
     <link rel="apple-touch-icon" href="assets/icon-192.png">
     <title>Vanguard - Student Portal</title>
     
@@ -16,7 +16,7 @@
     
     <style>
         :root {
-            --neon-cyan: #06b6d4;
+            --neon-cyan: var(--secondary);
             --neon-blue: #3b82f6;
             --gold: #f59e0b;
             --danger: #ef4444;
@@ -143,9 +143,9 @@
         }
 
         .vd-nav-btn.active {
-            background: rgba(6,182,212,0.1);
+            background: rgba(65, 91, 6,0.1);
             color: var(--neon-cyan);
-            border: 1px solid rgba(6,182,212,0.2);
+            border: 1px solid rgba(65, 91, 6,0.2);
         }
 
         .vd-nav-icon { font-size: 1.2rem; width: 24px; text-align: center; }
@@ -199,7 +199,7 @@
             border: 1px solid var(--glass-border);
             transition: var(--transition);
         }
-        .vd-profile-trigger:hover { background: rgba(6,182,212,0.1); border-color: var(--neon-cyan); }
+        .vd-profile-trigger:hover { background: rgba(65, 91, 6,0.1); border-color: var(--neon-cyan); }
         .vd-profile-trigger img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
         .vd-profile-trigger span { font-weight: 600; font-size: 0.9rem; }
 
@@ -214,12 +214,12 @@
         .vd-sidebar-toggle {
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            background: linear-gradient(135deg, var(--secondary), #0891b2);
             border: none;
             border-radius: 50%;
             color: white;
             cursor: pointer;
-            box-shadow: 0 0 20px rgba(6,182,212,0.5);
+            box-shadow: 0 0 20px rgba(65, 91, 6,0.5);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -255,7 +255,7 @@
         .vd-sidebar-toggle.active .vd-hamburger::before { transform: rotate(45deg); top: 0; }
         .vd-sidebar-toggle.active .vd-hamburger::after { transform: rotate(-45deg); bottom: 0; }
 
-        .vd-sidebar-toggle:hover { transform: scale(1.1); box-shadow: 0 0 30px rgba(6,182,212,0.8); }
+        .vd-sidebar-toggle:hover { transform: scale(1.1); box-shadow: 0 0 30px rgba(65, 91, 6,0.8); }
         .vd-sidebar-toggle:hover .vd-hamburger { background: rgba(255,255,255,0.8); }
         .vd-sidebar-toggle.active:hover .vd-hamburger { background: transparent; }
 
@@ -286,7 +286,7 @@
             transition: var(--transition);
         }
 
-        .vd-stat-card:hover { transform: translateY(-5px); border-color: rgba(6,182,212,0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        .vd-stat-card:hover { transform: translateY(-5px); border-color: rgba(65, 91, 6,0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
 
         .vd-stat-icon {
             width: 60px;
@@ -376,7 +376,7 @@
             max-width: 500px;
             padding: 2.5rem;
             position: relative;
-            box-shadow: 0 0 50px rgba(6,182,212,0.2);
+            box-shadow: 0 0 50px rgba(65, 91, 6,0.2);
         }
 
         /* Utils */
@@ -412,16 +412,16 @@
             
             <nav class="vd-nav">
                 <button class="vd-nav-btn active" onclick="switchTab('dashboard', this)">
-                    <span class="vd-nav-icon">ðŸ“Š</span> Dashboard
+                    <span class="vd-nav-icon">📊</span> Dashboard
                 </button>
                 <button class="vd-nav-btn" onclick="switchTab('voting', this)">
                     <span class="vd-nav-icon">ðŸ—³ï¸</span> Voting Center
                 </button>
                 <button class="vd-nav-btn" onclick="switchTab('results', this)">
-                    <span class="vd-nav-icon">ðŸ“ˆ</span> Live Results
+                    <span class="vd-nav-icon">📈</span> Live Results
                 </button>
                 <button class="vd-nav-btn" onclick="switchTab('profile', this)">
-                    <span class="vd-nav-icon">ðŸ‘¤</span> My Profile
+                    <span class="vd-nav-icon">👤</span> My Profile
                 </button>
                 
                 <button class="vd-nav-btn vd-logout-btn" onclick="logout()">
@@ -451,7 +451,7 @@
                             </div>
                         </div>
                         <div class="vd-stat-card">
-                            <div class="vd-stat-icon" style="background:rgba(6,182,212,0.1); color:#06b6d4;">ðŸ—³ï¸</div>
+                            <div class="vd-stat-icon" style="background:rgba(65, 91, 6,0.1); color:var(--secondary);">ðŸ—³ï¸</div>
                             <div>
                                 <div class="vd-stat-value" id="stat-active">0</div>
                                 <div class="vd-stat-label">Active Elections</div>
@@ -604,7 +604,7 @@
                     fpsLimit: 60,
                     particles: {
                         number: { value: 30, density: { enable: true, value_area: 800 } },
-                        color: { value: "#06b6d4" },
+                        color: { value: "var(--secondary)" },
                         links: { enable: true, opacity: 0.1, color: "#fff" },
                         move: { enable: true, speed: 0.5 }
                     }
@@ -673,8 +673,8 @@
                         <span class="vd-status-pill vd-pill-ended">Official Results</span>
                         <h3 class="vd-election-name">${e.name}</h3>
                         <p class="vd-election-info">View the verified digital tally for this concluded election.</p>
-                        <button class="vd-action-btn" style="background:rgba(6,182,212,0.1); color:#06b6d4; border:1px solid rgba(6,182,212,0.3);" onclick="viewResults('${e.id}', '${e.name}')">
-                            View Verified Tally ðŸ“ˆ
+                        <button class="vd-action-btn" style="background:rgba(65, 91, 6,0.1); color:var(--secondary); border:1px solid rgba(65, 91, 6,0.3);" onclick="viewResults('${e.id}', '${e.name}')">
+                            View Verified Tally 📈
                         </button>
                     </div>
                 `).join('') : '<div style="grid-column:1/-1; text-align:center; padding:3rem; color:#94a3b8;">No official results published yet.</div>';
