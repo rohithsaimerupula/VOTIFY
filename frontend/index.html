@@ -189,7 +189,7 @@
         #inst-btn {
             width: 100%;
             padding: 1rem;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+            background: #000000;
             border: none;
             border-radius: 14px;
             color: white;
@@ -519,7 +519,7 @@
             const err  = document.getElementById('gateway-err');
             const btn  = document.getElementById('inst-btn');
 
-            if (!code) { err.textContent = 'âš  Please enter your access code.'; return; }
+            if (!code) { err.textContent = '\u26A0\uFE0F Please enter your access code.'; return; }
 
             err.textContent = '';
             btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin-slow 0.7s linear infinite;vertical-align:middle;margin-right:6px;"></span> Verifying...';
