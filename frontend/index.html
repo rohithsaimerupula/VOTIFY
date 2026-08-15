@@ -390,11 +390,158 @@
             align-items: center;
             gap: 0.4rem;
         }
+
+        /* ============================================================
+           VOTIFY INTRO — Netflix / Hotstar Style
+        ============================================================ */
+        #votify-intro {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: #05080D;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #votify-intro.vi-exit {
+            animation: vi-fadeout 0.7s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+
+        @keyframes vi-fadeout {
+            0%   { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Background ambient orbs */
+        .vi-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            pointer-events: none;
+            animation: vi-orb-in 1.2s ease 0.4s both;
+        }
+        .vi-orb-1 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(217,119,6,0.18) 0%, transparent 70%);
+            top: -150px; left: -150px;
+        }
+        .vi-orb-2 {
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(37,99,235,0.14) 0%, transparent 70%);
+            bottom: -120px; right: -100px;
+        }
+        @keyframes vi-orb-in {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* Center content */
+        .vi-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Main wordmark */
+        .vi-wordmark {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            font-size: clamp(4rem, 14vw, 10rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            color: #FFFFFF;
+            line-height: 1;
+            animation: vi-wordmark-reveal 1.0s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+            user-select: none;
+        }
+
+        .vi-wordmark .vi-v {
+            color: #F59E0B;
+            display: inline-block;
+            animation: vi-v-drop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+        }
+
+        @keyframes vi-v-drop {
+            from {
+                opacity: 0;
+                transform: translateY(-60px) scale(1.4);
+                filter: blur(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes vi-wordmark-reveal {
+            from {
+                opacity: 0;
+                transform: scale(1.6) translateY(8px);
+                filter: blur(20px);
+                letter-spacing: 0.25em;
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0);
+                letter-spacing: -0.04em;
+            }
+        }
+
+        /* Gold accent line */
+        .vi-line {
+            height: 3px;
+            width: 0;
+            background: linear-gradient(90deg, transparent, #F59E0B, #FCD34D, #F59E0B, transparent);
+            border-radius: 2px;
+            margin-top: 0.6rem;
+            animation: vi-line-draw 0.55s cubic-bezier(0.25, 1, 0.5, 1) 1.15s forwards;
+        }
+
+        @keyframes vi-line-draw {
+            from { width: 0; opacity: 0; }
+            to   { width: 100%; opacity: 1; }
+        }
+
+        /* Tagline */
+        .vi-tagline {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 1rem;
+            animation: vi-tagline-in 0.6s ease 1.55s both;
+        }
+
+        @keyframes vi-tagline-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
     </style>
 <script src="config.js"></script>
 </head>
 
 <body class="theme-home">
+
+    <!-- ── VOTIFY INTRO ANIMATION ── -->
+    <div id="votify-intro" aria-hidden="true" role="presentation">
+        <div class="vi-orb vi-orb-1"></div>
+        <div class="vi-orb vi-orb-2"></div>
+        <div class="vi-content">
+            <div class="vi-wordmark"><span class="vi-v">V</span>OTIFY</div>
+            <div class="vi-line"></div>
+            <div class="vi-tagline">Your Voice &nbsp;·&nbsp; Your Vote</div>
+        </div>
+    </div>
+
     <!-- tsParticles Background -->
     <div id="tsparticles" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;"></div>
 
@@ -526,7 +673,34 @@
                 });
             }
         }
-        checkGatePersistence();
+        // ── VOTIFY INTRO CONTROLLER ───────────────────────────────────────
+        //  Always shows the intro animation on every page load.
+        //  Logic:
+        //   • New user     → intro → gateway → home
+        //   • Returning    → intro (gateway silently hidden behind) → home
+        //   • Switch user  → (localStorage cleared) → intro → gateway → home
+        // ─────────────────────────────────────────────────────────────────
+        function initVotifyIntro() {
+            const intro = document.getElementById('votify-intro');
+
+            // Run gate check immediately in the background.
+            // For returning users this silently hides the gateway DURING the intro.
+            checkGatePersistence();
+
+            // Total visible duration: 2.8s, then exit animation plays for 0.7s
+            const HOLD_MS   = 2800;
+            const EXIT_MS   =  700;
+
+            setTimeout(() => {
+                intro.classList.add('vi-exit');
+                setTimeout(() => {
+                    intro.style.display = 'none';
+                    intro.remove();          // clean up DOM
+                }, EXIT_MS);
+            }, HOLD_MS);
+        }
+
+        initVotifyIntro();
 
         function resetGateway() {
             localStorage.removeItem('ovs_inst_name');
