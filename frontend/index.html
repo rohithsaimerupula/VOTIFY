@@ -17,7 +17,6 @@
         // Oat + Olive theme — no forced dark override
     </script>
     <script src="storage.js?v=4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
     <style>
         /* ── Page-level design tokens matching gateway + intro ── */
         :root {
@@ -559,8 +558,7 @@
         </div>
     </div>
 
-    <!-- tsParticles Background -->
-    <div id="tsparticles" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;"></div>
+    <!-- tsparticles removed — clean background -->
 
     <!-- â”€â”€ GATEWAY OVERLAY â”€â”€ -->
     <div id="gateway-overlay">
@@ -994,30 +992,6 @@
         });
 
         // Initialize tsParticles Cyber Mesh Effect
-        tsParticles.load("tsparticles", {
-            fpsLimit: 60,
-            particles: {
-                number: { value: 35, density: { enable: true, value_area: 900 } },
-                color: { value: ["#415b06", "#5c7a0a", "#8a9e40"] },
-                shape: { type: "circle" },
-                opacity: { value: 0.25, random: true },
-                size: { value: 2, random: true },
-                links: { enable: true, distance: 140, color: "#415b06", opacity: 0.10, width: 1 },
-                move: { enable: true, speed: 0.5, direction: "none", random: true, straight: false, outModes: { default: "out" } }
-            },
-            interactivity: {
-                detectsOn: "canvas",
-                events: {
-                    onHover: { enable: true, mode: "grab" },
-                    resize: true
-                },
-                modes: {
-                    grab: { distance: 140, links: { opacity: 0.25 } }
-                }
-            },
-            retina_detect: true,
-            background: { color: "transparent" }
-        });
     </script>
 </body>
 </html>
