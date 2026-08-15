@@ -1,49 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap');
 
 /* ============================================================
-   ROOT DESIGN TOKENS — VISIONOS MINIMAL LIGHT
+   ROOT DESIGN TOKENS — VOTIFY WARM OLIVE THEME
    ============================================================ */
 :root {
-    --bg-deep: #F2F2F7;       /* Apple System Gray 6 */
-    --bg-surface: #FFFFFF;
-    
-    --primary: #000000;       /* Pitch Black for sharp contrast */
-    --secondary: #86868B;     /* Apple System Gray 3 */
+    /* ── Backgrounds ── */
+    --bg-deep:    #F0E6DA;   /* Warm cream — matches gateway & intro */
+    --bg-surface: #FFFDF9;   /* Warm white for cards */
+    --bg-card:    rgba(255, 253, 249, 0.88);
 
-    --danger: #FF3B30;
-    --success: #34C759;
-    --warning: #FF9500;
-    --info: #007AFF;
+    /* ── Brand ── */
+    --olive:      #415b06;   /* Primary olive green accent */
+    --olive-mid:  #5c7a0a;
+    --olive-light:rgba(65, 91, 6, 0.08);
+    --olive-border:rgba(65, 91, 6, 0.18);
 
-    --text-main: #1D1D1F;
-    --text-muted: #86868B;
-    --text-dim: #D1D1D6;
+    /* ── Semantic ── */
+    --primary:   #1D1D1F;
+    --secondary: #6b7280;
 
-    /* Frosted Glassmorphism - VisionOS Light Style */
-    --glass-bg: rgba(255, 255, 255, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.8);
-    --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 1);
-    
-    --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --danger:  #DC2626;
+    --success: #16A34A;
+    --warning: #D97706;
+    --info:    #2563EB;
 
-    --radius-sm: 10px;
-    --radius-md: 18px;
-    --radius-lg: 32px;
+    /* ── Text ── */
+    --text-main:  #1D1D1F;
+    --text-muted: #6b7280;
+    --text-dim:   #9ca3af;
+
+    /* ── Glass / Cards ── */
+    --glass-bg:     rgba(255, 253, 249, 0.82);
+    --glass-border: rgba(65, 91, 6, 0.14);
+    --glass-shadow: 0 12px 40px rgba(65, 91, 6, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+    /* ── Typography ── */
+    --font-heading: 'Playfair Display', 'Outfit', serif;
+    --font-body:    'Outfit', 'Inter', -apple-system, sans-serif;
+
+    /* ── Radii ── */
+    --radius-sm:   10px;
+    --radius-md:   18px;
+    --radius-lg:   28px;
     --radius-pill: 9999px;
 
-    --transition-fast: 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    /* ── Transitions ── */
+    --transition-fast:   0.2s cubic-bezier(0.25, 1, 0.5, 1);
     --transition-smooth: 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+/* ── Theme override — keep warm on both light/dark pref ── */
 [data-theme="light"], [data-theme="dark"] {
-    /* Forcing light theme tokens globally for this specific Minimal Luxury look */
-    --bg-deep: #F2F2F7;
-    --bg-surface: #FFFFFF;
-    --text-main: #1D1D1F;
-    --text-muted: #86868B;
-    --glass-bg: rgba(255, 255, 255, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.8);
+    --bg-deep:      #F0E6DA;
+    --bg-surface:   #FFFDF9;
+    --text-main:    #1D1D1F;
+    --text-muted:   #6b7280;
+    --glass-bg:     rgba(255, 253, 249, 0.82);
+    --glass-border: rgba(65, 91, 6, 0.14);
 }
 
 /* ============================================================
@@ -65,7 +78,7 @@ body {
     min-height: 100vh;
     font-family: var(--font-body);
     font-weight: 400;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.012em;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -77,14 +90,14 @@ a, button, .btn, .submit-btn, select, input, .card {
 /* Hide old decorative layers */
 #stars, #stars2, #stars3, body::before { display: none !important; }
 
-/* Subtle light mesh background */
+/* Subtle warm olive dot mesh background */
 body::after {
     content: '';
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
     z-index: -1;
     pointer-events: none;
-    background-image: radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(65, 91, 6, 0.055) 1px, transparent 1px);
     background-size: 24px 24px;
 }
 
@@ -95,25 +108,26 @@ h1, h2, h3, h4, .brand {
     font-family: var(--font-heading);
     color: var(--text-main);
     line-height: 1.1;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.035em;
 }
 
-h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 800; }
-h2 { font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700; }
-h3 { font-size: 1.4rem; font-weight: 600; }
-h4 { font-size: 1.1rem; font-weight: 500; }
+h1 { font-size: clamp(2.2rem, 5vw, 4.5rem); font-weight: 900; }
+h2 { font-size: clamp(1.6rem, 4vw, 2.5rem); font-weight: 800; }
+h3 { font-size: clamp(1.1rem, 3vw, 1.4rem); font-weight: 700; }
+h4 { font-size: 1.05rem; font-weight: 600; }
 
+/* Warm olive gradient text highlight */
 .highlight {
-    background: linear-gradient(135deg, #1D1D1F 0%, #86868B 100%);
+    background: linear-gradient(135deg, #1D1D1F 0%, #415b06 80%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.text-muted  { color: var(--text-muted) !important; }
-.text-danger { color: var(--danger) !important; }
-.text-success{ color: var(--success) !important; }
-.text-center { text-align: center; }
+.text-muted   { color: var(--text-muted) !important; }
+.text-danger  { color: var(--danger)  !important; }
+.text-success { color: var(--success) !important; }
+.text-center  { text-align: center; }
 
 /* ============================================================
    LAYOUT
@@ -126,38 +140,45 @@ h4 { font-size: 1.1rem; font-weight: 500; }
     z-index: 10;
 }
 
+/* ── NAV ── */
 nav {
     position: fixed;
     top: 0;
     width: 100%;
-    padding: 1rem 5%;
+    padding: 0.9rem 5%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(242, 242, 247, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: rgba(240, 230, 218, 0.88);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(65, 91, 6, 0.10);
     z-index: 100;
 }
 
 .brand {
-    font-size: 1.3rem;
+    font-family: var(--font-body);
+    font-size: clamp(0.78rem, 2vw, 1.1rem);
     font-weight: 800;
-    color: #1D1D1F;
+    color: var(--text-main);
     cursor: pointer;
-    letter-spacing: -0.05em;
+    letter-spacing: -0.02em;
     text-transform: uppercase;
+    max-width: 60vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nav-links {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    flex-shrink: 0;
 }
 
 /* ============================================================
-   GLASS COMPONENTS (VisionOS Style)
+   GLASS COMPONENTS — Warm Olive Variant
    ============================================================ */
 .glass-panel {
     background: var(--glass-bg);
@@ -167,22 +188,23 @@ nav {
     box-shadow: var(--glass-shadow);
     color: var(--text-main);
     transition: all var(--transition-smooth);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(160%);
+    -webkit-backdrop-filter: blur(40px) saturate(160%);
 }
 
 .glass-card {
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid var(--glass-border);
+    background: rgba(255, 253, 249, 0.72);
+    border: 1px solid rgba(65, 91, 6, 0.13);
     border-radius: var(--radius-md);
     padding: 1.5rem;
     transition: all var(--transition-smooth);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 4px 20px rgba(65, 91, 6, 0.05);
 }
 .glass-card:hover {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
-    background: rgba(255, 255, 255, 0.8);
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 16px 40px rgba(65, 91, 6, 0.10);
+    background: rgba(255, 253, 249, 0.95);
+    border-color: rgba(65, 91, 6, 0.25);
 }
 
 /* ============================================================
@@ -195,68 +217,82 @@ nav {
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-main);
 }
-input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="datetime-local"], select {
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="datetime-local"],
+select {
     width: 100%;
-    padding: 1rem 1.2rem;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 0.9rem 1.1rem;
+    background: rgba(255, 253, 249, 0.9);
+    border: 1px solid rgba(65, 91, 6, 0.16);
     border-radius: var(--radius-sm);
     color: var(--text-main);
     font-size: 1rem;
     font-family: var(--font-body);
     transition: all var(--transition-fast);
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: inset 0 2px 4px rgba(65, 91, 6, 0.03);
 }
 input:focus, select:focus {
     outline: none;
-    border-color: var(--info);
-    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+    border-color: var(--olive);
+    box-shadow: 0 0 0 3px rgba(65, 91, 6, 0.12);
     background: #FFFFFF;
 }
 
 /* ============================================================
-   BUTTONS (Pill Shaped)
+   BUTTONS — Warm Olive System
    ============================================================ */
 .submit-btn, .btn-outline {
     width: 100%;
     padding: 0.9rem 1.5rem;
     border-radius: var(--radius-pill);
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
     font-family: var(--font-body);
     transition: all var(--transition-fast);
     text-align: center;
     border: none;
+    letter-spacing: 0.01em;
 }
+
 .submit-btn {
     background: var(--text-main);
     color: #FFFFFF;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
 }
 .submit-btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-    background: #000000;
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 8px 24px rgba(65, 91, 6, 0.22);
+    background: var(--olive);
 }
+
 .btn-outline {
     background: transparent;
     color: var(--text-main);
-    border: 1px solid rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(65, 91, 6, 0.22);
+    width: auto;
+    padding: 0.55rem 1.2rem;
+    font-size: 0.875rem;
 }
 .btn-outline:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(65, 91, 6, 0.07);
+    border-color: rgba(65, 91, 6, 0.4);
+    color: var(--olive);
 }
 
 /* ============================================================
-   SPECIFIC OVERRIDES & UTILITIES
+   UTILITIES
    ============================================================ */
 .hidden { display: none !important; }
 
-/* Toast Notifications */
+/* ── Toast Notifications ── */
 .toast-container {
     position: fixed;
     bottom: 2rem;
@@ -267,22 +303,23 @@ input:focus, select:focus {
     gap: 0.8rem;
 }
 .toast {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 253, 249, 0.95);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(0,0,0,0.05);
+    border: 1px solid rgba(65, 91, 6, 0.12);
     color: var(--text-main);
-    padding: 1rem 1.5rem;
+    padding: 0.9rem 1.4rem;
     border-radius: var(--radius-pill);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(65, 91, 6, 0.12);
     font-weight: 500;
+    font-size: 0.9rem;
     animation: toastSlide 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 @keyframes toastSlide {
     from { opacity: 0; transform: translateX(50px) scale(0.9); }
-    to { opacity: 1; transform: translateX(0) scale(1); }
+    to   { opacity: 1; transform: translateX(0)   scale(1);   }
 }
 
-/* Video Feed for Face Capture */
+/* ── Video Feed ── */
 #video-feed {
     width: 100%;
     border-radius: var(--radius-md);
@@ -290,7 +327,7 @@ input:focus, select:focus {
     background: #000;
 }
 
-/* Canvas overlay for face matching */
+/* ── Canvas Overlay ── */
 #overlay {
     position: absolute;
     top: 0; left: 0;
@@ -299,7 +336,7 @@ input:focus, select:focus {
 }
 
 /* ============================================================
-   GATEWAY ICON (3D IMAGE)
+   GATEWAY ICON
    ============================================================ */
 .gateway-icon {
     width: 140px;
@@ -316,40 +353,87 @@ input:focus, select:focus {
 .path-cards {
     display: flex;
     justify-content: center;
-    gap: 2rem;
+    gap: 1.5rem;
     flex-wrap: wrap;
-    margin-top: 3.5rem;
+    margin-top: 3rem;
 }
 
 .role-card {
-    padding: 2.8rem 2.2rem;
+    padding: 2.5rem 2rem;
     border-radius: var(--radius-lg);
-    width: 290px;
+    width: 280px;
     text-decoration: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 1rem;
+    gap: 0.75rem;
     color: var(--text-main);
+    position: relative;
+    overflow: hidden;
 }
+
+.role-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(65,91,6,0.4), transparent);
+    opacity: 0;
+    transition: opacity var(--transition-smooth);
+}
+.role-card:hover::before { opacity: 1; }
+
 .role-card h3 {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
     color: var(--primary);
+    font-family: var(--font-heading);
 }
 .role-card p {
     color: var(--text-muted);
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: 0.9rem;
+    line-height: 1.6;
 }
 
-@media (max-width: 480px) {
-    .path-cards {
-        gap: 1.2rem;
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   ============================================================ */
+
+/* Tablet */
+@media (max-width: 768px) {
+    .container { margin-top: 5rem; }
+
+    nav { padding: 0.8rem 4%; }
+
+    .brand { font-size: 0.72rem; max-width: 55vw; }
+
+    .path-cards { gap: 1rem; }
+
+    .role-card {
+        width: calc(50% - 0.5rem);
+        min-width: 180px;
+        padding: 1.8rem 1.2rem;
     }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    nav { padding: 0.75rem 4%; }
+
+    .brand { font-size: 0.68rem; max-width: 52vw; }
+
+    .btn-outline { font-size: 0.78rem; padding: 0.5rem 0.85rem; }
+
+    .path-cards { gap: 0.9rem; }
+
     .role-card {
         width: 100%;
-        max-width: 320px;
-        padding: 2rem 1.5rem;
+        max-width: 340px;
+        padding: 2rem 1.4rem;
     }
+
+    .glass-panel { padding: 1.8rem 1.4rem; }
+
+    .toast-container { bottom: 1rem; right: 1rem; left: 1rem; }
+    .toast { width: 100%; }
 }

@@ -14,13 +14,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;600;700;800;900&family=Playfair+Display:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
-        // Oat + Olive theme â€” no forced dark override
+        // Oat + Olive theme — no forced dark override
     </script>
     <script src="storage.js?v=4"></script>
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
     <style>
+        /* ── Page-level design tokens matching gateway + intro ── */
+        :root {
+            --olive: #415b06;
+            --neon-cyan: #415b06;     /* fix broken references */
+            --neon-purple: #5c7a0a;   /* fix broken references */
+        }
+
         /* Starfield removed in favor of Kunai drift in style.css */
-        /* â”€â”€â”€ HERO â”€â”€â”€ */
+        /* ─── HERO ─── */
         .hero {
             min-height: 100vh;
             display: flex;
@@ -41,7 +48,7 @@
             border-radius: 999px;
             border: 1px solid rgba(65, 91, 6, 0.25);
             background: rgba(65, 91, 6, 0.07);
-            color: var(--neon-cyan);
+            color: #415b06;
             font-size: 0.78rem;
             font-weight: 700;
             letter-spacing: 0.12em;
@@ -54,8 +61,8 @@
             content: '';
             width: 6px; height: 6px;
             border-radius: 50%;
-            background: var(--neon-cyan);
-            box-shadow: 0 0 8px var(--neon-cyan);
+            background: #415b06;
+            box-shadow: 0 0 8px rgba(65,91,6,0.5);
             animation: pulse-dot 2s ease-in-out infinite;
         }
 
@@ -109,13 +116,13 @@
             box-shadow: 0 20px 60px rgba(65, 91, 6, 0.12), 0 0 0 1px rgba(65, 91, 6, 0.08) inset;
         }
 
-        /* Top glow band */
+        /* Top glow band — olive */
         .gateway-card::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-purple), transparent);
+            background: linear-gradient(90deg, transparent, rgba(65,91,6,0.6), rgba(92,122,10,0.8), rgba(65,91,6,0.6), transparent);
         }
 
         /* Radial orb inside card */
@@ -216,7 +223,7 @@
 
         #inst-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 16px 40px rgba(6,182,212,0.35);
+            box-shadow: 0 16px 40px rgba(65, 91, 6, 0.30);
         }
 
         #inst-btn:active { transform: translateY(-1px); }
@@ -294,9 +301,18 @@
         }
 
         @media (max-width: 640px) {
-            .hero { padding-top: 5rem; }
-            .gateway-card { padding: 2.5rem 1.5rem; }
-            .features-strip { gap: 1.2rem; }
+            .hero { padding: 5rem 1.2rem 5rem; }
+            .gateway-card { padding: 2.2rem 1.4rem; max-width: calc(100vw - 2.4rem); }
+            .features-strip { gap: 1rem; }
+            .feature-pill { font-size: 0.78rem; }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: clamp(2.2rem, 10vw, 3.5rem); margin-bottom: 1rem; }
+            .hero p.subtitle { font-size: 0.95rem; margin-bottom: 2.5rem; }
+            .hero-eyebrow { font-size: 0.7rem; letter-spacing: 0.08em; }
+            .footer-strip { flex-direction: column; gap: 0.3rem; padding: 0.6rem 4%; font-size: 0.7rem; }
+            .features-strip { gap: 0.8rem; }
         }
 
         /* â”€â”€â”€ REGISTRATION TIMER â”€â”€â”€ */
@@ -329,7 +345,7 @@
 
         .timer-label p {
             font-size: 0.95rem;
-            color: white;
+            color: var(--text-main);
             font-weight: 600;
         }
 
@@ -346,7 +362,7 @@
         .time-value {
             font-size: 1.8rem;
             font-weight: 900;
-            color: white;
+            color: var(--text-main);
             font-family: var(--font-heading);
             line-height: 1;
         }
@@ -981,13 +997,13 @@
         tsParticles.load("tsparticles", {
             fpsLimit: 60,
             particles: {
-                number: { value: 50, density: { enable: true, value_area: 800 } },
-                color: { value: ["#ffffff", "#ff2a4d"] },
+                number: { value: 35, density: { enable: true, value_area: 900 } },
+                color: { value: ["#415b06", "#5c7a0a", "#8a9e40"] },
                 shape: { type: "circle" },
-                opacity: { value: 0.4, random: true },
+                opacity: { value: 0.25, random: true },
                 size: { value: 2, random: true },
-                links: { enable: true, distance: 150, color: "#ffffff", opacity: 0.15, width: 1 },
-                move: { enable: true, speed: 0.8, direction: "none", random: false, straight: false, outModes: { default: "out" } }
+                links: { enable: true, distance: 140, color: "#415b06", opacity: 0.10, width: 1 },
+                move: { enable: true, speed: 0.5, direction: "none", random: true, straight: false, outModes: { default: "out" } }
             },
             interactivity: {
                 detectsOn: "canvas",
@@ -996,7 +1012,7 @@
                     resize: true
                 },
                 modes: {
-                    grab: { distance: 150, links: { opacity: 0.4 } }
+                    grab: { distance: 140, links: { opacity: 0.25 } }
                 }
             },
             retina_detect: true,
