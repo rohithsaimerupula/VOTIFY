@@ -368,6 +368,28 @@
             }
             .timer-label { text-align: center; }
         }
+
+        /* --- SUCCESS PULSE ANIMATION --- */
+        @keyframes pulse-success {
+            0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(22,163,74,0.5); }
+            40%  { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(22,163,74,0.15); }
+            70%  { transform: scale(0.98); box-shadow: 0 0 0 16px rgba(22,163,74,0.05); }
+            100% { transform: scale(1);    box-shadow: 0 0 0 20px rgba(22,163,74,0); }
+        }
+
+        @keyframes spin-slow {
+            to { transform: rotate(360deg); }
+        }
+
+        #gateway-err {
+            min-height: 1.4rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
     </style>
 <script src="config.js"></script>
 </head>
@@ -393,7 +415,7 @@
                 oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')">
 
             <button id="inst-btn" onclick="verifyGateway()">
-                Verify Access &nbsp;→
+                Verify Access &#8594;
             </button>
             <div id="gateway-err"></div>
         </div>
@@ -519,10 +541,13 @@
             const err  = document.getElementById('gateway-err');
             const btn  = document.getElementById('inst-btn');
 
-            if (!code) { err.textContent = '\u26A0\uFE0F Please enter your access code.'; return; }
+            if (!code) {
+                err.innerHTML = '<span style="color:#f59e0b;">&#9888;</span> Please enter your institution access code.';
+                return;
+            }
 
             err.textContent = '';
-            btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin-slow 0.7s linear infinite;vertical-align:middle;margin-right:6px;"></span> Verifying...';
+            btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin-slow 0.7s linear infinite;vertical-align:middle;margin-right:8px;"></span> Verifying...';
             btn.disabled = true;
 
             try {
@@ -534,24 +559,39 @@
                 // Persistence: Unlock the gateway for this device
                 localStorage.setItem('ovs_gate_unlocked', 'true');
                 localStorage.setItem('ovs_inst_name', data.institution);
-                localStorage.setItem('ovs_inst_code', code); // Store the code used
-                
-                unlockGateway(data.institution);
+                localStorage.setItem('ovs_inst_code', code);
+
+                // --- Success Animation ---
+                btn.style.background = '#16a34a';
+                btn.style.boxShadow = '0 0 0 0 rgba(22,163,74,0.5)';
+                btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.2);vertical-align:middle;margin-right:8px;line-height:18px;font-size:13px;">&#10003;</span> Access Granted!';
+                btn.style.animation = 'pulse-success 0.6s ease';
+
+                // Pulse ring on card
+                const card = document.querySelector('.gateway-card');
+                card.style.transition = 'box-shadow 0.4s ease, border-color 0.4s ease';
+                card.style.borderColor = 'rgba(22,163,74,0.5)';
+                card.style.boxShadow = '0 0 0 4px rgba(22,163,74,0.15), 0 20px 60px rgba(22,163,74,0.12)';
+
+                setTimeout(() => unlockGateway(data.institution), 1000);
+
             } catch (e) {
-                err.textContent = (!navigator.onLine || e.message === 'Failed to fetch')
-                    ? 'âœ— Server unreachable. Please check your internet connection.'
-                    : 'âœ— ' + (e.message || 'Invalid access code.');
-                btn.textContent = 'Verify Access â†’';
+                const isOffline = !navigator.onLine || e.message === 'Failed to fetch';
+                err.innerHTML = isOffline
+                    ? '<span style="color:#dc2626;">&#10007;</span> Cannot reach server. Check your internet connection.'
+                    : '<span style="color:#dc2626;">&#10007;</span> ' + (e.message || 'Invalid access code. Please try again.');
+
+                btn.innerHTML = 'Verify Access &#8594;';
                 btn.disabled = false;
 
-                // Shake animation -- properly reset afterwards
+                // Shake animation
                 const card = document.querySelector('.gateway-card');
                 card.style.transition = 'transform 0.08s ease';
                 card.style.transform = 'translateX(-10px)';
                 setTimeout(() => { card.style.transform = 'translateX(10px)'; }, 80);
                 setTimeout(() => { card.style.transform = 'translateX(-6px)'; }, 160);
                 setTimeout(() => { card.style.transform = 'translateX(0)'; }, 240);
-                setTimeout(() => { card.style.transition = ''; }, 340); // restore original transition
+                setTimeout(() => { card.style.transition = ''; }, 340);
             }
         }
 
