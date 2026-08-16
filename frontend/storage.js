@@ -345,6 +345,57 @@ const StorageManager = {
         }
     },
 
+    // --- CLASS ADMIN STUDENT ENROLLMENT ---
+    async enrollClassStudent(studentData) {
+        try {
+            const inst = localStorage.getItem('ovs_inst_name');
+            return await fetchApi('/subadmin/enroll-student', {
+                method: 'POST',
+                body: JSON.stringify({ ...studentData, institution: inst })
+            });
+        } catch (error) {
+            console.error("Enroll Student Error:", error);
+            throw new Error(error.message || "Failed to enroll student.");
+        }
+    },
+
+    // --- VOTER LOOKUP FOR FACE LOGIN ---
+    async lookupStudentForLogin(regNum) {
+        try {
+            const inst = localStorage.getItem('ovs_inst_name');
+            const res = await fetchApi('/auth/voter-lookup', {
+                method: 'POST',
+                body: JSON.stringify({ regNum, institution: inst })
+            });
+            return res.student;
+        } catch (error) {
+            console.error("Voter Lookup Error:", error);
+            throw new Error(error.message || "Student lookup failed.");
+        }
+    },
+
+    // --- STUDENT PROFILE UPDATE (EMAIL, PHONE, PASSWORD) ---
+    async updateStudentProfile(profileData) {
+        try {
+            const inst = localStorage.getItem('ovs_inst_name');
+            const res = await fetchApi('/student/update-profile', {
+                method: 'POST',
+                body: JSON.stringify({ ...profileData, institution: inst })
+            });
+            // Update session cache if current logged in user
+            const current = this.getCurrentUser();
+            if (current && current.regNum === profileData.regNum) {
+                if (profileData.email) current.email = profileData.email;
+                if (profileData.phone) current.phone = profileData.phone;
+                this.saveSession(current);
+            }
+            return res;
+        } catch (error) {
+            console.error("Profile Update Error:", error);
+            throw new Error(error.message || "Failed to update profile.");
+        }
+    },
+
     async resetPassword(regNum, newPassword, institution) {
         const inst = institution || localStorage.getItem('ovs_inst_name') || 'Unknown';
         const hashedPwd = await this.hashPassword(newPassword);

@@ -683,38 +683,53 @@
                     }
                 } catch(e) { }
             }
-            const sectionLabel = displaySection || 'Not Assigned';
+            const sectionLabel = displaySection || currentUser.class || 'Section 1';
 
             area.innerHTML = `
-                <div style="margin-bottom:1.3rem;">
-                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">Full Name</label>
-                    <input type="text" id="edit-name" value="${currentUser.name}" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; font-weight:600; outline:none;">
-                </div>
-                <div style="margin-bottom:1.3rem;">
-                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">Email Address</label>
-                    <input type="email" id="edit-email" value="${currentUser.email || ''}" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; font-weight:600; outline:none;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.3rem;">
+                    <div>
+                        <label style="display:block; color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:0.4rem; text-transform:uppercase;">Full Name (Enrolled)</label>
+                        <div style="padding:0.8rem; background:rgba(65,91,6,0.05); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-weight:700;">${currentUser.name}</div>
+                    </div>
+                    <div>
+                        <label style="display:block; color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:0.4rem; text-transform:uppercase;">Reg No (Locked)</label>
+                        <div style="padding:0.8rem; background:rgba(65,91,6,0.05); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-weight:700;">${currentUser.regNum}</div>
+                    </div>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.3rem;">
                     <div>
-                        <label style="display:block; color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:0.4rem; text-transform:uppercase;">Branch (Locked)</label>
-                        <div style="padding:0.8rem; background:rgba(65,91,6,0.05); border:1px solid var(--glass-border); border-radius:12px; color:var(--text-muted); font-weight:600;">${currentUser.branch}</div>
+                        <label style="display:block; color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:0.4rem; text-transform:uppercase;">Branch & Year</label>
+                        <div style="padding:0.8rem; background:rgba(65,91,6,0.05); border:1px solid var(--glass-border); border-radius:12px; color:var(--text-muted); font-weight:600;">${currentUser.branch || 'General'} (${currentUser.year || '1st'} Year)</div>
                     </div>
                     <div>
-                        <label style="display:block; color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:0.4rem; text-transform:uppercase;">Year (Locked)</label>
-                        <div style="padding:0.8rem; background:rgba(65,91,6,0.05); border:1px solid var(--glass-border); border-radius:12px; color:var(--text-muted); font-weight:600;">${currentUser.year}</div>
+                        <label style="display:block; color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:0.4rem; text-transform:uppercase;">Class Section</label>
+                        <div style="padding:0.8rem; background:rgba(65,91,6,0.05); border:1px solid var(--glass-border); border-radius:12px; color:var(--text-muted); font-weight:600;">${sectionLabel}</div>
                     </div>
                 </div>
-                <div style="margin-bottom:1.3rem;">
-                    <label style="display:block; color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:0.4rem; text-transform:uppercase;">Section (Locked)</label>
-                    <div style="padding:0.8rem; background:rgba(65,91,6,0.05); border:1px solid var(--glass-border); border-radius:12px; color:var(--text-muted); font-weight:600;">${sectionLabel}</div>
+
+                <div style="margin-top:1.5rem; border-top:1px solid var(--glass-border); padding-top:1.2rem;">
+                    <h3 style="font-size:1.1rem; color:var(--forest-green); font-family:var(--font-heading); margin-bottom:0.8rem;">📱 Contact & Security Details</h3>
                 </div>
+
                 <div style="margin-bottom:1.3rem;">
-                    <label style="display:block; color:var(--text-muted); font-size:0.75rem; font-weight:600; margin-bottom:0.4rem; text-transform:uppercase;">Registration Number (Locked)</label>
-                    <div style="font-size:1rem; font-weight:800; color:var(--forest-green); padding:0.8rem; background:rgba(65,91,6,0.06); border-radius:12px;">${currentUser.regNum}</div>
+                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">Email Address</label>
+                    <input type="email" id="edit-email" value="${currentUser.email || ''}" placeholder="student@example.com" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; font-weight:600; outline:none;">
                 </div>
-                <div style="margin-bottom:1.3rem; border-top:1px solid var(--glass-border); padding-top:1.3rem;">
-                    <label style="display:block; color:var(--olive); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase;">Change Password</label>
-                    <input type="password" id="edit-pass" placeholder="Enter new password to change" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; outline:none;">
+
+                <div style="margin-bottom:1.3rem;">
+                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">Phone Number</label>
+                    <input type="tel" id="edit-phone" value="${currentUser.phone || ''}" placeholder="10-digit mobile number" maxlength="10" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; font-weight:600; outline:none;" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+
+                <div style="margin-bottom:1.3rem;">
+                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">New Password (Optional)</label>
+                    <input type="password" id="edit-new-pass" placeholder="Enter new password to change" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; outline:none;">
+                </div>
+
+                <div style="margin-bottom:1.3rem; background:rgba(65,91,6,0.04); border:1px solid rgba(65,91,6,0.15); border-radius:14px; padding:1rem;">
+                    <label style="display:block; color:var(--forest-green); font-size:0.8rem; font-weight:700; margin-bottom:0.4rem;">🔐 Current Password</label>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.6rem;">Required to authorize modifications to your email, phone, or password.</p>
+                    <input type="password" id="edit-current-pass" placeholder="Enter your current password" style="width:100%; padding:0.85rem 1rem; background:#FFF; border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; outline:none;">
                 </div>
             `;
         }
@@ -725,25 +740,33 @@
             msg.innerText = 'Syncing changes...';
             msg.style.color = 'var(--forest-green)';
             
-            const updates = {
-                name: document.getElementById('edit-name').value,
-                email: document.getElementById('edit-email').value
-            };
-
-            const newPass = document.getElementById('edit-pass').value;
-            if (newPass) {
-                updates.password = await StorageManager.hashPassword(newPass);
-            }
+            const email = (document.getElementById('edit-email').value || '').trim();
+            const phone = (document.getElementById('edit-phone').value || '').trim();
+            const newPassword = (document.getElementById('edit-new-pass').value || '').trim();
+            const currentPassword = (document.getElementById('edit-current-pass').value || '').trim();
 
             try {
-                await StorageManager.updateUserDetails(currentUser.regNum, updates);
-                msg.innerText = 'Profile Updated Successfully! ✅';
-                msg.style.color = 'var(--success)';
-                localStorage.setItem('ovs_currentUser', JSON.stringify({ ...currentUser, ...updates }));
-                setTimeout(() => location.reload(), 1500);
+                const res = await StorageManager.updateStudentProfile({
+                    regNum: currentUser.regNum,
+                    email,
+                    phone,
+                    currentPassword,
+                    newPassword
+                });
+
+                msg.innerText = '✅ ' + (res.message || 'Profile details updated successfully!');
+                msg.style.color = '#16A34A';
+                
+                // Update local storage
+                currentUser.email = email;
+                currentUser.phone = phone;
+                localStorage.setItem('ovs_currentUser', JSON.stringify(currentUser));
+                
+                document.getElementById('edit-new-pass').value = '';
+                document.getElementById('edit-current-pass').value = '';
             } catch(err) {
-                msg.innerText = 'Failed to update profile: ' + err.message;
-                msg.style.color = 'var(--danger)';
+                msg.innerText = '❌ ' + err.message;
+                msg.style.color = '#DC2626';
             }
         }
 

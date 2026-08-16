@@ -564,19 +564,22 @@
             }
 
             if (!isStaffMode) {
-                if (fpContainer) fpContainer.style.display = 'block';
-                // Voter Mode: Back button + Register button
+                // Voter / Student Mode: No password field needed! Only Registration ID + Face Biometrics
+                if (fpContainer) fpContainer.style.display = 'none';
+                const passGroup = document.getElementById('password')?.closest('.form-group');
+                if (passGroup) passGroup.style.display = 'none';
+                if (passInput) passInput.required = false;
+
                 setHTML('nav-right', `
-                    <button onclick="window.location.href='index.html'" class="staff-login-pill" style="font-size:0.82rem;padding:0.45rem 1rem;">← Back</button>
-                    <button onclick="window.location.href='register.html'" class="submit-btn" style="width:auto; padding:0.48rem 1.25rem; font-size:0.84rem; margin:0;">New? Register</button>
+                    <button onclick="window.location.href='index.html'" class="staff-login-pill" style="font-size:0.82rem;padding:0.45rem 1rem;">← Home</button>
                 `);
 
                 const tc = document.getElementById('login-tabs');
                 if(tc) tc.style.display = 'none';
-                setText('login-title', 'Student Login');
-                setText('reg-label', 'Registration ID / Roll No.');
-                if(regInput) regInput.placeholder = 'Enter Registration Number';
-                if(passInput) passInput.placeholder = 'Enter Password';
+                setText('login-title', 'Student Biometric Login');
+                setText('reg-label', 'Student Registration Number');
+                if(regInput) regInput.placeholder = 'e.g. 25L31A0501';
+                setText('login-btn', 'Continue to Face Auth →');
                 updateHeaderIcon('voter');
             } else {
                 if (fpContainer) {
@@ -584,6 +587,9 @@
                     fpContainer.style.textAlign = 'center';
                     fpContainer.style.marginBottom = '1rem';
                 }
+                const passGroup = document.getElementById('password')?.closest('.form-group');
+                if (passGroup) passGroup.style.display = 'block';
+                if (passInput) passInput.required = true;
                 // Staff Mode: Back Home button
                 setHTML('nav-right', `<a href="index.html" class="staff-login-pill" style="font-size:0.82rem;padding:0.45rem 1rem;text-decoration:none;">🏛️ Home</a>`);
                 const tc = document.getElementById('login-tabs');
@@ -613,6 +619,7 @@
                     regInput.maxLength = 7;
                     passInput.placeholder = 'e.g. Admin@12';
                     passInput.maxLength = 8;
+                    setText('login-btn', 'Secure Login →');
                     updateHeaderIcon('admin');
                     resetInputs();
                 });
@@ -627,6 +634,7 @@
                     regInput.maxLength = 9;
                     passInput.placeholder = 'e.g. Sa@ab1';
                     passInput.maxLength = 6;
+                    setText('login-btn', 'Secure Login →');
                     updateHeaderIcon('subadmin');
                     resetInputs();
                 });
@@ -637,6 +645,7 @@
                 regInput.maxLength = 7;
                 passInput.placeholder = 'e.g. Admin@12';
                 passInput.maxLength = 8;
+                setText('login-btn', 'Secure Login →');
                 updateHeaderIcon('admin');
             }
         }
@@ -666,11 +675,34 @@
                 return verify2FA();
             }
 
-            const regNum = regInput.value;
+            const regNum = (regInput.value || '').trim().toUpperCase();
             const password = passInput.value;
             const errorMsg = document.getElementById('error-msg');
             const submitBtn = document.getElementById('login-btn');
 
+            // ─── STUDENT BIOMETRIC LOGIN FLOW ───
+            if (isVoter) {
+                if (!regNum) return showError('Please enter your Student Registration Number.');
+                errorMsg.classList.add('hidden');
+                setText('login-btn', "Verifying Registration...");
+                submitBtn.disabled = true;
+
+                try {
+                    const student = await StorageManager.lookupStudentForLogin(regNum);
+                    if (!student) throw new Error("Student profile not found.");
+
+                    // Launch Biometric Face Verification Modal directly
+                    await openFaceAuthModal(student);
+                } catch (err) {
+                    showError(err.message || "Registration ID not found. Please contact your Class Admin to enroll you.");
+                } finally {
+                    setText('login-btn', "Continue to Face Auth →");
+                    submitBtn.disabled = false;
+                }
+                return;
+            }
+
+            // ─── STAFF LOGIN FLOW ───
             if (!isVoter && !isSubAdmin) {
                 if (regNum.length !== 7) return showError('Admin ID must be exactly 7 characters (A-Z & 0-9).');
                 if (password.length !== 8) return showError('Admin password must be exactly 8 characters.');
@@ -683,8 +715,6 @@
                 if ((password.match(/[a-zA-Z]/g)||[]).length < 3) return showError('Sub-Admin password must contain at least 3 letters.');
                 if ((password.match(/[0-9]/g)||[]).length < 1) return showError('Sub-Admin password must contain at least 1 number.');
                 if (!/[^a-zA-Z0-9]/.test(password)) return showError('Sub-Admin password must contain at least 1 special character.');
-            } else if (isVoter && password.length > 10) {
-                return showError('Password Max 10 Characters.');
             }
 
             errorMsg.classList.add('hidden');

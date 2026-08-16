@@ -677,6 +677,7 @@
       font-weight: 700;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <script src="session-guard.js"></script>
   <script src="config.js"></script>
 </head>
@@ -690,7 +691,7 @@
       <div class="role-tag" id="class-label">Class Admin</div>
       <div class="nav-item active" id="nav-overview" onclick="showPage('overview',this)"><span
           class="nav-icon">📊</span> Overview</div>
-      <div class="nav-item" id="nav-registrations" onclick="showPage('registrations',this)"><span class="nav-icon">🎓</span> Class Registrations</div>
+      <div class="nav-item" id="nav-students" onclick="showPage('students',this)"><span class="nav-icon">🎓</span> Class Students</div>
       <div class="nav-group-label">🗳️ Elections</div>
       <div class="nav-sub-item" id="nav-voting-my" onclick="showPage('voting-my',this)"><span
           class="nav-icon">🏛️</span> My Election</div>
@@ -725,70 +726,22 @@
         </div>
       </div>
 
-      <!-- MANAGE REGISTRATIONS -->
-      <div class="page" id="page-registrations">
-        <div class="page-title">📋 Manage Registrations</div>
-        <div class="page-sub">Control the registration window for your class and manage student approvals.</div>
-
-        <!-- Start Registration Card -->
-        <div class="card" id="start-registration-card">
-          <h3>▶️ Start Class Registration</h3>
-          <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.5rem;">Set a timeframe for students in your
-            class to register. This will generate a unique registration link and code for your class.</p>
-          <div class="form-grid" style="margin-bottom:1.5rem;">
-            <div class="form-field"><label>Registration Start</label><input type="datetime-local"
-                id="class-reg-start-time"></div>
-            <div class="form-field"><label>Registration End</label><input type="datetime-local" id="class-reg-end-time">
-            </div>
+      <!-- MY CLASS STUDENTS & BIOMETRIC ENROLLMENT -->
+      <div class="page" id="page-students">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+          <div>
+            <div class="page-title">🎓 My Class Students</div>
+            <div class="page-sub" id="class-students-sub">Enrolled students in your assigned class with Face Biometrics</div>
           </div>
-          <button class="btn btn-purple" style="width:100%;" onclick="startClassRegistrationWindow()">🚀 Generate Link &amp; Open Registration</button>
+          <button class="btn btn-purple" onclick="openEnrollModal()" style="display:flex; align-items:center; gap:0.5rem; font-size:0.95rem; padding:0.75rem 1.4rem;">
+            <span>➕</span> Enroll New Student
+          </button>
         </div>
 
-        <!-- Active Registration Card -->
-        <div id="active-registration-card" style="display:none;">
-          <div class="election-code-box">
-            <div class="code-label">🔑 Class Registration Code</div>
-            <!-- Status Badge -->
-            <div id="class-reg-status-badge"
-              style="display:inline-block; margin:0.6rem auto 1rem; padding:0.3rem 1rem; border-radius:99px; font-size:0.82rem; font-weight:700; border:1px solid rgba(34,197,94,0.3); background:rgba(34,197,94,0.08); color:#22c55e;">
-              🟢 Registration Open</div>
-            <div class="code" id="class-reg-code">------</div>
-            <div style="margin-top:0.5rem; font-size:0.85rem; color:var(--forest-green); word-break:break-all; font-weight:600;"
-              id="class-reg-link"></div>
-            <div style="margin-top:0.8rem;display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;">
-              <button class="btn-sm btn-e" onclick="copyClassRegLink()">🔗 Copy Link</button>
-              <button class="btn-sm btn-e" onclick="copyClassRegCode()">📋 Copy Code</button>
-            </div>
-            <div style="margin-top:1.2rem;display:flex;justify-content:center;gap:0.75rem;flex-wrap:wrap;">
-              <button id="class-reg-stop-btn" class="btn-sm btn-d" onclick="stopClassRegistrationWindow()">⏹ Stop Registration</button>
-              <button id="class-reg-reopen-btn" class="btn-sm btn-g" onclick="reopenClassRegistrationWindow()"
-                style="display:none;">▶️ Re-open Registration</button>
-            </div>
-            <div style="margin-top:0.8rem;display:flex;justify-content:center;">
-              <button class="btn-sm btn-d" onclick="deleteClassRegistrationWindow()">🗑 Delete &amp; Start Fresh</button>
-            </div>
-          </div>
-
-          <div id="standalone-reg-countdown-card" class="card"
-            style="background:rgba(255,253,249,0.98); border:1px solid var(--border); margin-top:1.5rem;">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-              <div>
-                <div
-                  style="font-size:0.75rem; color:var(--forest-green); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.5rem; font-weight:700;"
-                  id="standalone-reg-cd-label">
-                  ⏱️ Registration Window — Ends In</div>
-                <div id="standalone-reg-cd-display"
-                  style="font-size:2.2rem; font-weight:900; color:var(--forest-green); font-family:monospace;">--:--:--</div>
-              </div>
-              <button class="btn-sm btn-e" onclick="promptModifyRegistrationSchedule()">⏱️ Modify Time</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Search + Sort for Registrations -->
-        <div style="margin-bottom:1rem; margin-top:1.5rem; display:flex; gap:0.7rem; align-items:center; flex-wrap:wrap;">
+        <!-- Search + Sort for Class Students -->
+        <div style="margin-bottom:1.2rem; display:flex; gap:0.7rem; align-items:center; flex-wrap:wrap;">
           <input id="student-search"
-            style="flex:1; min-width:180px;"
+            style="flex:1; min-width:200px;"
             placeholder="🔍 Search by name or reg no..." oninput="filterStudentsByTab(this.value)">
           <select id="student-sort-field" onchange="updateSortDirLabels()"
             style="min-width:160px; max-width:200px;">
@@ -802,125 +755,26 @@
           </select>
         </div>
 
-        <!-- Registration Management Tables -->
-        <div id="pending-registrations-card" class="card" style="padding:0; overflow:hidden; margin-top:1.5rem;">
-          <div style="padding:1rem 1.5rem; background:rgba(217,119,6,0.06); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; color:#d97706;">⏳ Pending Registrations</h3>
+        <!-- Students Table Card -->
+        <div class="card" style="padding:0; overflow:hidden;">
+          <div style="padding:1rem 1.5rem; background:rgba(26,60,41,0.03); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; color:var(--forest-green);">👥 Class Roster (<span id="approved-count">0</span>)</h3>
+            <span style="font-size:0.82rem; color:var(--muted);">All students are enrolled with facial authentication</span>
           </div>
           <div style="overflow-x:auto;">
             <table>
               <thead>
                 <tr>
-                  <th style="width:50px;">ID</th>
-                  <th style="width:50px;">Face</th>
+                  <th style="width:60px;">Photo</th>
                   <th style="width:20%;">Reg No</th>
-                  <th>Name</th>
+                  <th>Student Name</th>
                   <th>Class</th>
-                  <th>Liveness</th>
-                  <th style="width:22%;">Actions</th>
+                  <th>Biometric Status</th>
+                  <th style="width:20%;">Actions</th>
                 </tr>
               </thead>
-              <tbody id="reg-pending-student-table"></tbody>
+              <tbody id="approved-student-table"></tbody>
             </table>
-          </div>
-        </div>
-
-        <div id="approved-students-card" class="card" style="padding:0; overflow:hidden; margin-top:1.5rem;">
-          <div
-            style="padding:1rem 1.5rem; background:rgba(22,163,74,0.06); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; color:#16a34a;">✅ Approved Students</h3>
-          </div>
-          <div style="overflow-x:auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:50px;">ID</th>
-                  <th style="width:50px;">Face</th>
-                  <th style="width:20%;">Reg No</th>
-                  <th>Name</th>
-                  <th>Class</th>
-                  <th>Liveness</th>
-                  <th style="width:22%;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="reg-approved-student-table"></tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- MY CLASS STUDENTS -->
-      <div class="page" id="page-students">
-        <div class="page-title">🎓 My Class Students</div>
-        <div class="page-sub" id="class-students-sub">Students you are responsible for</div>
-
-        <!-- Tab Bar -->
-        <div
-          style="display:flex; gap:0; margin-bottom:1.5rem; background:rgba(65,91,6,0.04); border:1px solid var(--border); border-radius:14px; overflow:hidden;">
-          <button id="tab-pending" onclick="switchStudentTab('pending')"
-            style="flex:1; padding:0.8rem 1rem; background:var(--forest-green); color:#FFFFFF; border:none; border-right:1px solid var(--border); font-family:var(--font-body); font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.2s;">
-            ⏳ Pending Registrations <span id="pending-count"
-              style="background:rgba(255,255,255,0.2); padding:2px 8px; border-radius:99px; font-size:0.75rem; margin-left:0.4rem;">0</span>
-          </button>
-          <button id="tab-approved" onclick="switchStudentTab('approved')"
-            style="flex:1; padding:0.8rem 1rem; background:transparent; color:var(--muted); border:none; font-family:var(--font-body); font-size:0.9rem; font-weight:600; cursor:pointer; transition:all 0.2s;">
-            ✅ Approved Students <span id="approved-count"
-              style="background:rgba(22,163,74,0.1); padding:2px 8px; border-radius:99px; font-size:0.75rem; margin-left:0.4rem; color:#16a34a;">0</span>
-          </button>
-        </div>
-
-        <!-- Pending Tab -->
-        <div id="tab-content-pending">
-          <div class="card" style="padding:0; overflow:hidden;">
-            <div
-              style="padding:1rem 1.5rem; background:rgba(217,119,6,0.06); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-              <h3 style="margin:0; color:#d97706;">⏳ Pending Registrations</h3>
-              <span style="font-size:0.8rem; color:var(--muted);">Accept or reject each request</span>
-            </div>
-            <div style="overflow-x:auto;">
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width:50px;">ID</th>
-                    <th style="width:50px;">Face</th>
-                    <th style="width:20%;">Reg No</th>
-                    <th>Name</th>
-                    <th>Class</th>
-                    <th>Liveness</th>
-                    <th style="width:22%;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="pending-student-table"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- Approved Tab -->
-        <div id="tab-content-approved" style="display:none;">
-          <div class="card" style="padding:0; overflow:hidden;">
-            <div
-              style="padding:1rem 1.5rem; background:rgba(22,163,74,0.06); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-              <h3 style="margin:0; color:#16a34a;">✅ Approved Students</h3>
-              <span style="font-size:0.8rem; color:var(--muted);">Edit details or remove students</span>
-            </div>
-            <div style="overflow-x:auto;">
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width:50px;">ID</th>
-                    <th style="width:50px;">Face</th>
-                    <th style="width:20%;">Reg No</th>
-                    <th>Name</th>
-                    <th>Class</th>
-                    <th>Liveness</th>
-                    <th style="width:22%;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="approved-student-table"></tbody>
-              </table>
-            </div>
           </div>
         </div>
       </div>
@@ -1124,6 +978,71 @@
     </div>
   </div>
 
+  <!-- ENROLL STUDENT MODAL WITH FACE BIOMETRICS -->
+  <div class="modal-overlay" id="enroll-modal" style="display:none; align-items:center; justify-content:center;">
+    <div class="modal" style="max-width:540px; max-height:90vh; overflow-y:auto;">
+      <button class="modal-close" onclick="closeEnrollModal()">✕</button>
+      <h3 style="color:var(--forest-green); margin-bottom:0.4rem;">🎓 Enroll Student into Class</h3>
+      <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.2rem;">Directly register a student with required facial biometric identity.</p>
+
+      <!-- Scope Pill -->
+      <div id="enroll-scope-badge" style="background:rgba(65,91,6,0.06); border:1px solid rgba(65,91,6,0.2); border-radius:10px; padding:0.6rem 1rem; margin-bottom:1.2rem; font-size:0.82rem; font-weight:600; color:var(--forest-green);">
+        📚 Class Scope: <span id="enroll-scope-text">Loading...</span>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:1rem;">
+        <div class="form-field">
+          <label>Student Full Name <span style="color:red;">*</span></label>
+          <input type="text" id="enroll-name" placeholder="e.g. Rahul Sharma" maxlength="50" required>
+        </div>
+        <div class="form-field">
+          <label>Registration Number (Unique ID) <span style="color:red;">*</span></label>
+          <input type="text" id="enroll-regnum" placeholder="e.g. 25L31A0501" maxlength="15" required style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')">
+        </div>
+      </div>
+
+      <!-- Biometric Face Capture Section -->
+      <div style="background:rgba(255,253,249,0.98); border:1px solid var(--border); border-radius:14px; padding:1.2rem; margin-bottom:1.5rem;">
+        <div style="font-weight:700; font-size:0.9rem; color:var(--forest-green); margin-bottom:0.4rem; display:flex; align-items:center; gap:0.4rem;">
+          <span>📸</span> Facial Biometric Capture <span style="color:red;">*</span>
+        </div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-bottom:0.8rem;">Capture student face via webcam or upload a clear portrait photo for AI verification.</p>
+
+        <!-- Video element for live capture -->
+        <div id="enroll-cam-box" style="position:relative; width:100%; max-width:320px; height:240px; background:#111; border-radius:12px; margin:0 auto 0.8rem; overflow:hidden; display:none;">
+          <video id="enroll-video" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+          <div id="enroll-cam-overlay" style="position:absolute; inset:0; border:2px dashed rgba(255,255,255,0.4); border-radius:10px; pointer-events:none;"></div>
+        </div>
+        <canvas id="enroll-canvas" style="display:none;"></canvas>
+
+        <!-- Preview Thumbnail -->
+        <div id="enroll-preview-wrap" style="display:none; text-align:center; margin-bottom:0.8rem;">
+          <img id="enroll-thumb" src="" style="width:90px; height:90px; border-radius:14px; object-fit:cover; border:2px solid #16a34a; box-shadow:0 4px 14px rgba(22,163,74,0.2);">
+        </div>
+
+        <!-- Feedback & Status -->
+        <div id="enroll-face-status" style="font-size:0.82rem; font-weight:600; text-align:center; margin-bottom:0.8rem; color:var(--forest-green);">
+          Camera idle. Ready to capture face.
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex; justify-content:center; gap:0.6rem; flex-wrap:wrap;">
+          <button type="button" class="btn-sm btn-e" id="enroll-start-cam-btn" onclick="startEnrollCam()">📷 Start Live Camera</button>
+          <button type="button" class="btn-sm btn-g" id="enroll-capture-cam-btn" onclick="captureEnrollCam()" style="display:none;">📸 Capture & Validate Face</button>
+          <label class="btn-sm btn-e" style="cursor:pointer; margin:0;">
+            📁 Upload Photo
+            <input type="file" id="enroll-file-input" accept="image/*" style="display:none;" onchange="handleEnrollPhotoUpload(this)">
+          </label>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:0.8rem;">
+        <button class="btn btn-outline" style="flex:1;" onclick="closeEnrollModal()">Cancel</button>
+        <button class="btn btn-purple" style="flex:2;" id="enroll-submit-btn" onclick="submitStudentEnrollment()">✅ Enroll Student</button>
+      </div>
+    </div>
+  </div>
+
   <!-- STUDENT INFO MODAL -->
   <div class="modal-overlay" id="edit-modal">
     <div class="modal">
@@ -1250,7 +1169,7 @@
       if (id === 'voting-my') loadMyElection();
       if (id === 'voting-branch') loadBranchElectionPage();
       if (id === 'voting-college') loadCollegeElectionPage();
-      if (id === 'registrations') loadClassRegistration();
+      if (id === 'students') loadAll();
     }
 
     async function refreshAll() { 
@@ -1260,52 +1179,15 @@
 
     async function loadAll() {
       try {
-        await loadClassRegistration();
         const students = await apiFetch(`/voters/by-class/${encodeURIComponent(session.class)}?institution=${encodeURIComponent(session.institution)}&year=${encodeURIComponent(session.year || '1st')}`);
-        classStudents = students;
-        studentMap = {}; students.forEach(s => { studentMap[s.regNum] = s; });
+        classStudents = students || [];
+        studentMap = {}; classStudents.forEach(s => { studentMap[s.regNum] = s; });
 
-        setText('s-students', students.filter(s => s.role === 'voter').length);
+        setText('s-students', classStudents.filter(s => s.role === 'voter').length);
 
         const q = (document.getElementById('student-search') || {}).value || '';
         filterStudentsByTab(q);
       } catch (e) { toast(e.message, false); }
-    }
-
-    let currentStudentTab = 'pending';
-
-    function switchStudentTab(tab) {
-      currentStudentTab = tab;
-      const pendingTab = document.getElementById('tab-content-pending');
-      const approvedTab = document.getElementById('tab-content-approved');
-      const btnPending = document.getElementById('tab-pending');
-      const btnApproved = document.getElementById('tab-approved');
-
-      if (tab === 'pending') {
-        if (pendingTab) pendingTab.style.display = 'block';
-        if (approvedTab) approvedTab.style.display = 'none';
-        if (btnPending) {
-          btnPending.style.background = 'var(--forest-green)';
-          btnPending.style.color = '#FFFFFF';
-        }
-        if (btnApproved) {
-          btnApproved.style.background = 'transparent';
-          btnApproved.style.color = 'var(--muted)';
-        }
-      } else {
-        if (pendingTab) pendingTab.style.display = 'none';
-        if (approvedTab) approvedTab.style.display = 'block';
-        if (btnPending) {
-          btnPending.style.background = 'transparent';
-          btnPending.style.color = 'var(--muted)';
-        }
-        if (btnApproved) {
-          btnApproved.style.background = 'var(--forest-green)';
-          btnApproved.style.color = '#FFFFFF';
-        }
-      }
-      const q = (document.getElementById('student-search') || {}).value || '';
-      filterStudentsByTab(q);
     }
 
     function updateSortDirLabels() {
@@ -1351,85 +1233,253 @@
     function filterStudentsByTab(q) {
       const filtered = classStudents.filter(s => [s.regNum, s.name].join(' ').toLowerCase().includes(q.toLowerCase()));
       const sorted = sortStudentList(filtered);
-      renderPendingStudents(sorted.filter(s => s.status !== 'active'));
-      renderApprovedStudents(sorted.filter(s => s.status === 'active'));
+      renderApprovedStudents(sorted);
     }
 
     function _makeImgCells(s) {
-      let portraitHtml = '<div style="width:36px;height:36px;background:rgba(65,91,6,0.08);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;">None</div>';
-      if (s.portrait && s.portrait.startsWith('data:image')) portraitHtml = `<img src="${s.portrait}" onclick="showPortrait('${s.regNum}','portrait')" style="width:36px;height:36px;border-radius:6px;object-fit:cover;border:1px solid var(--border);cursor:pointer;">`;
-      else if (s.portrait && s.portrait.startsWith('data:application/pdf')) portraitHtml = `<div onclick="showPortrait('${s.regNum}','pdf')" style="width:36px;height:36px;background:#dc2626;border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;cursor:pointer;font-weight:bold;font-size:0.7rem;">PDF</div>`;
-      let faceHtml = '<div style="width:36px;height:36px;background:rgba(65,91,6,0.08);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;">N/A</div>';
-      if (s.webcamReg) faceHtml = `<img src="${s.webcamReg}" onclick="showPortrait('${s.regNum}','webcam')" style="width:36px;height:36px;border-radius:6px;object-fit:cover;border:1px solid var(--forest-green);cursor:pointer;">`;
-      return { portraitHtml, faceHtml };
-    }
-
-    function renderPendingStudents(list) {
-      const pending = list.filter(s => s.status !== 'active');
-      setText('pending-count', classStudents.filter(s => s.status !== 'active').length);
-      if (!pending.length) {
-        const empty = '<tr><td colspan="7" class="empty">No pending registrations 🎉</td></tr>';
-        setHTML('pending-student-table', empty);
-        setHTML('reg-pending-student-table', empty);
-        return;
+      let portraitHtml = '<div style="width:40px;height:40px;background:rgba(65,91,6,0.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">👤</div>';
+      const src = s.webcamReg || s.portrait;
+      if (src && src.startsWith('data:image')) {
+        portraitHtml = `<img src="${src}" onclick="showPortrait('${s.regNum}','portrait')" style="width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid var(--forest-green);cursor:pointer;">`;
       }
-      const html = pending.map(s => {
-        const { portraitHtml, faceHtml } = _makeImgCells(s);
-        const livenessBadge = s.livenessSkipped == 1
-          ? '<span style="background:rgba(217,119,6,0.12);color:#d97706;border:1px solid rgba(217,119,6,0.3);border-radius:6px;padding:2px 7px;font-size:0.72rem;font-weight:700;">📷 No Blink — Manual Photo</span>'
-          : '<span style="background:rgba(22,163,74,0.1);color:#16a34a;border:1px solid rgba(22,163,74,0.3);border-radius:6px;padding:2px 7px;font-size:0.72rem;font-weight:700;">✅ Blink Verified</span>';
-        return `<tr>
-      <td>${portraitHtml}</td><td>${faceHtml}</td>
-      <td><strong>${s.regNum}</strong></td>
-      <td><div style="font-weight:600;">${s.name}</div><div style="font-size:0.8rem;color:var(--muted);">${s.email || ''}</div></td>
-      <td><span style="color:var(--forest-green); font-weight:700;">${s.class || 'N/A'}</span></td>
-      <td>${livenessBadge}</td>
-      <td style="display:flex;gap:0.4rem;padding:0.6rem;">
-        <button onclick="acceptStudent('${s.regNum}')" class="btn-sm btn-g">✔ Accept</button>
-        <button onclick="rejectStudent('${s.regNum}')" class="btn-sm btn-d">✖ Reject</button>
-      </td>
-    </tr>`;
-      }).join('');
-      setHTML('pending-student-table', html);
-      setHTML('reg-pending-student-table', html);
+      return portraitHtml;
     }
 
     function renderApprovedStudents(list) {
-      const approved = list.filter(s => s.status === 'active');
-      setText('approved-count', classStudents.filter(s => s.status === 'active').length);
-      if (!approved.length) {
-        const empty = '<tr><td colspan="7" class="empty">No approved students yet</td></tr>';
-        setHTML('approved-student-table', empty);
-        setHTML('reg-approved-student-table', empty);
+      setText('approved-count', list.length);
+      const tableBody = document.getElementById('approved-student-table');
+      if (!tableBody) return;
+
+      if (!list.length) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="empty">No students enrolled yet. Click "➕ Enroll New Student" to enroll.</td></tr>';
         return;
       }
-      const html = approved.map(s => {
-        const { portraitHtml, faceHtml } = _makeImgCells(s);
-        const livenessBadge = s.livenessSkipped == 1
-          ? '<span style="background:rgba(217,119,6,0.12);color:#d97706;border:1px solid rgba(217,119,6,0.3);border-radius:6px;padding:2px 7px;font-size:0.72rem;font-weight:700;">📷 No Blink — Manual Photo</span>'
-          : '<span style="background:rgba(22,163,74,0.1);color:#16a34a;border:1px solid rgba(22,163,74,0.3);border-radius:6px;padding:2px 7px;font-size:0.72rem;font-weight:700;">✅ Blink Verified</span>';
+
+      tableBody.innerHTML = list.map(s => {
+        const photoHtml = _makeImgCells(s);
+        const hasBiometrics = !!s.faceDescriptor;
+        const bioBadge = hasBiometrics
+          ? '<span style="background:rgba(22,163,74,0.1);color:#16a34a;border:1px solid rgba(22,163,74,0.3);border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:700;">✅ Face Enrolled (128D)</span>'
+          : '<span style="background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.3);border-radius:6px;padding:3px 8px;font-size:0.75rem;font-weight:700;">⚠️ Missing Face</span>';
+
         return `<tr>
-      <td>${portraitHtml}</td><td>${faceHtml}</td>
-      <td><strong>${s.regNum}</strong></td>
-      <td><div style="font-weight:600;">${s.name}</div><div style="font-size:0.8rem;color:var(--muted);">${s.email || ''}</div></td>
-      <td><span style="color:var(--forest-green); font-weight:700;">${s.class || 'N/A'}</span></td>
-      <td>${livenessBadge}</td>
-      <td style="display:flex;gap:0.4rem;padding:0.6rem;">
-        <button onclick="removeStudent('${s.regNum}')" class="btn-sm btn-d">🗑 Remove</button>
-      </td>
-    </tr>`;
+          <td>${photoHtml}</td>
+          <td><strong>${s.regNum}</strong></td>
+          <td><div style="font-weight:600;">${s.name}</div><div style="font-size:0.8rem;color:var(--muted);">${s.email || 'No email registered'}</div></td>
+          <td><span style="color:var(--forest-green); font-weight:700;">${s.class || session.class}</span></td>
+          <td>${bioBadge}</td>
+          <td style="display:flex;gap:0.4rem;padding:0.6rem;">
+            <button onclick="openEdit('${s.regNum}')" class="btn-sm btn-e">👁️ Details</button>
+            <button onclick="removeStudent('${s.regNum}')" class="btn-sm btn-d">🗑 Remove</button>
+          </td>
+        </tr>`;
       }).join('');
-      setHTML('approved-student-table', html);
-      setHTML('reg-approved-student-table', html);
     }
 
-    function renderStudents(list) {
-      renderPendingStudents(list);
-      renderApprovedStudents(list);
+    async function removeStudent(id) { 
+      if (!confirm(`Are you sure you want to remove student "${id}" from your class?`)) return; 
+      try { 
+        await apiFetch(`/users/${id}?institution=${encodeURIComponent(session.institution)}`, { method: 'DELETE' }); 
+        toast(`Student ${id} removed successfully.`); 
+        loadAll(); 
+      } catch (e) { toast(e.message, false); } 
     }
 
-    async function acceptStudent(id) { try { await apiFetch(`/users/${id}?institution=${encodeURIComponent(session.institution)}`, { method: 'PATCH', body: JSON.stringify({ status: 'active' }) }); toast(`✅ Accepted ${id}`); loadAll(); } catch (e) { toast(e.message, false); } }
-    async function rejectStudent(id) { if (!confirm(`⚠️ Permanently delete registration for ${id}? This cannot be undone.`)) return; try { await apiFetch(`/users/${id}?institution=${encodeURIComponent(session.institution)}`, { method: 'DELETE' }); toast(`🗑 ${id} rejected & deleted`); loadAll(); } catch (e) { toast(e.message, false); } }
+    // ─── ENROLL STUDENT MODAL & FACE BIOMETRIC CAPTURE ───
+    let enrollFaceDescriptor = null;
+    let enrollCapturedImage = null;
+    let enrollStream = null;
+    let enrollModelsLoaded = false;
+
+    function openEnrollModal() {
+      const modal = document.getElementById('enroll-modal');
+      if (!modal) return;
+      document.getElementById('enroll-name').value = '';
+      document.getElementById('enroll-regnum').value = '';
+      document.getElementById('enroll-scope-text').textContent = `Branch: ${session.branch || 'General'} | Year: ${session.year || '1st'} | Class/Section: ${session.class || 'Section 1'}`;
+      
+      enrollFaceDescriptor = null;
+      enrollCapturedImage = null;
+      document.getElementById('enroll-preview-wrap').style.display = 'none';
+      document.getElementById('enroll-cam-box').style.display = 'none';
+      document.getElementById('enroll-start-cam-btn').style.display = 'inline-block';
+      document.getElementById('enroll-capture-cam-btn').style.display = 'none';
+      setText('enroll-face-status', 'Camera idle. Ready to capture face.');
+      
+      modal.style.display = 'flex';
+      loadEnrollFaceModels();
+    }
+
+    function closeEnrollModal() {
+      stopEnrollCam();
+      const modal = document.getElementById('enroll-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function loadEnrollFaceModels() {
+      if (enrollModelsLoaded) return true;
+      try {
+        setText('enroll-face-status', '⏳ Initializing AI Facial Recognition engine...');
+        const CDN_BASE = 'https://cdn.jsdelivr.net/gh/cgarciagl/face-api.js@0.22.2/weights';
+        await Promise.all([
+          faceapi.nets.ssdMobilenetv1.loadFromUri(CDN_BASE),
+          faceapi.nets.faceLandmark68Net.loadFromUri(CDN_BASE),
+          faceapi.nets.faceRecognitionNet.loadFromUri(CDN_BASE)
+        ]);
+        enrollModelsLoaded = true;
+        setText('enroll-face-status', '✅ AI Ready. Start camera or upload student portrait.');
+        return true;
+      } catch (e) {
+        console.warn('Primary weights mirror failed, trying secondary...', e);
+        try {
+          const MIRROR = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+          await Promise.all([
+            faceapi.nets.ssdMobilenetv1.loadFromUri(MIRROR),
+            faceapi.nets.faceLandmark68Net.loadFromUri(MIRROR),
+            faceapi.nets.faceRecognitionNet.loadFromUri(MIRROR)
+          ]);
+          enrollModelsLoaded = true;
+          setText('enroll-face-status', '✅ AI Ready. Start camera or upload student portrait.');
+          return true;
+        } catch (err) {
+          setText('enroll-face-status', '⚠️ AI model load failed. Please check internet connection.');
+          return false;
+        }
+      }
+    }
+
+    async function startEnrollCam() {
+      await loadEnrollFaceModels();
+      const video = document.getElementById('enroll-video');
+      const camBox = document.getElementById('enroll-cam-box');
+      const startBtn = document.getElementById('enroll-start-cam-btn');
+      const capBtn = document.getElementById('enroll-capture-cam-btn');
+
+      try {
+        enrollStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+        });
+        video.srcObject = enrollStream;
+        camBox.style.display = 'block';
+        startBtn.style.display = 'none';
+        capBtn.style.display = 'inline-block';
+        setText('enroll-face-status', '📷 Camera active. Align student face in frame and click Capture.');
+      } catch (e) {
+        toast('Camera access error: ' + e.message, false);
+      }
+    }
+
+    function stopEnrollCam() {
+      if (enrollStream) {
+        enrollStream.getTracks().forEach(t => t.stop());
+        enrollStream = null;
+      }
+      const camBox = document.getElementById('enroll-cam-box');
+      if (camBox) camBox.style.display = 'none';
+      const startBtn = document.getElementById('enroll-start-cam-btn');
+      if (startBtn) startBtn.style.display = 'inline-block';
+      const capBtn = document.getElementById('enroll-capture-cam-btn');
+      if (capBtn) capBtn.style.display = 'none';
+    }
+
+    async function captureEnrollCam() {
+      const video = document.getElementById('enroll-video');
+      const canvas = document.getElementById('enroll-canvas');
+      if (!video || !video.videoWidth) return;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      setText('enroll-face-status', '🔍 AI analyzing face and extracting 128D descriptors...');
+
+      try {
+        const detection = await faceapi.detectSingleFace(canvas).withFaceLandmarks().withFaceDescriptor();
+        if (!detection || !detection.descriptor) {
+          setText('enroll-face-status', '❌ No clear face detected. Ensure good lighting and look directly at camera.');
+          return;
+        }
+
+        enrollFaceDescriptor = Array.from(detection.descriptor);
+        enrollCapturedImage = canvas.toDataURL('image/jpeg', 0.85);
+
+        document.getElementById('enroll-thumb').src = enrollCapturedImage;
+        document.getElementById('enroll-preview-wrap').style.display = 'block';
+        setText('enroll-face-status', '✅ Face Biometrics Validated (128D descriptor extracted)');
+        stopEnrollCam();
+      } catch (e) {
+        setText('enroll-face-status', '❌ Face extraction failed: ' + e.message);
+      }
+    }
+
+    async function handleEnrollPhotoUpload(input) {
+      if (!input.files || !input.files[0]) return;
+      await loadEnrollFaceModels();
+
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const img = new Image();
+        img.onload = async function() {
+          setText('enroll-face-status', '🔍 Extracting face biometrics from uploaded photo...');
+          try {
+            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+            if (!detection || !detection.descriptor) {
+              setText('enroll-face-status', '❌ No clear face detected in photo. Please upload a clear frontal portrait.');
+              return;
+            }
+            enrollFaceDescriptor = Array.from(detection.descriptor);
+            enrollCapturedImage = e.target.result;
+            document.getElementById('enroll-thumb').src = enrollCapturedImage;
+            document.getElementById('enroll-preview-wrap').style.display = 'block';
+            setText('enroll-face-status', '✅ Face Biometrics Validated from photo (128D descriptor extracted)');
+            stopEnrollCam();
+          } catch (err) {
+            setText('enroll-face-status', '❌ Photo analysis error: ' + err.message);
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function submitStudentEnrollment() {
+      const name = (document.getElementById('enroll-name').value || '').trim();
+      const regNum = (document.getElementById('enroll-regnum').value || '').trim().toUpperCase();
+
+      if (!name) { toast('Please enter student full name.', false); return; }
+      if (!regNum) { toast('Please enter student registration number.', false); return; }
+      if (!enrollFaceDescriptor) { toast('Please capture or upload the student\'s face biometric.', false); return; }
+
+      const submitBtn = document.getElementById('enroll-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enrolling Student...';
+
+      try {
+        await StorageManager.enrollClassStudent({
+          name,
+          regNum,
+          faceDescriptor: enrollFaceDescriptor,
+          portrait: enrollCapturedImage,
+          webcamReg: enrollCapturedImage,
+          branch: session.branch,
+          class: session.class,
+          year: session.year,
+          section: session.section || session.class,
+          managedBy: session.regNum
+        });
+
+        toast(`✅ Student "${name}" (${regNum}) enrolled successfully!`);
+        closeEnrollModal();
+        await loadAll();
+      } catch (e) {
+        toast(e.message, false);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✅ Enroll Student';
+      }
+    }
     async function removeStudent(id) { if (!confirm(`Remove ${id}?`)) return; try { await apiFetch(`/users/${id}?institution=${encodeURIComponent(session.institution)}`, { method: 'DELETE' }); toast(`${id} removed`); loadAll(); } catch (e) { toast(e.message, false); } }
 
     function filterStudents(q) { renderStudents(classStudents.filter(s => [s.regNum, s.name].join(' ').toLowerCase().includes(q.toLowerCase()))); }

@@ -107,6 +107,7 @@ async function runMigrations() {
         { sql: "ALTER TABLE users ADD COLUMN section TEXT", label: "users.section" },
         { sql: "ALTER TABLE users ADD COLUMN livenessSkipped INTEGER DEFAULT 0", label: "users.livenessSkipped" },
         { sql: "ALTER TABLE users ADD COLUMN sessionToken TEXT", label: "users.sessionToken" },
+        { sql: "ALTER TABLE users ADD COLUMN phone TEXT", label: "users.phone" },
         { sql: "ALTER TABLE auditLogs ADD COLUMN institution TEXT", label: "auditLogs.institution" },
         { sql: "ALTER TABLE publicLedger ADD COLUMN institution TEXT", label: "publicLedger.institution" },
         { sql: "ALTER TABLE questions ADD COLUMN institution TEXT", label: "questions.institution" },
@@ -449,6 +450,183 @@ app.post('/api/users/add', async (req, res) => {
         });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ─── CLASS ADMIN (SUBADMIN) STUDENT ENROLLMENT ─────────────────────────────────
+app.post('/api/subadmin/enroll-student', async (req, res) => {
+    try {
+        const { name, regNum, faceDescriptor, portrait, webcamReg, branch, class: className, year, section, managedBy, institution } = req.body;
+        const inst = decodeURIComponent(institution || req.headers['x-ovs-institution'] || '');
+
+        if (!name || !regNum || !inst) {
+            return res.status(400).json({ error: "Student Name, Registration Number, and Institution are required." });
+        }
+
+        // 1. Check if student ID is already enrolled in this institution
+        const existingCheck = await db.execute({
+            sql: "SELECT regNum, name FROM users WHERE regNum = ? AND institution = ?",
+            args: [regNum.trim().toUpperCase(), inst]
+        });
+        if (existingCheck.rows.length > 0) {
+            return res.status(409).json({ error: `Student with Registration ID "${regNum}" is already enrolled (${existingCheck.rows[0].name}).` });
+        }
+
+        // 2. Check if face biometric is unique across the institution
+        if (faceDescriptor) {
+            let liveDescriptor;
+            try { liveDescriptor = typeof faceDescriptor === 'string' ? JSON.parse(faceDescriptor) : faceDescriptor; } catch(e) {}
+            if (Array.isArray(liveDescriptor) && liveDescriptor.length === 128) {
+                const allFaces = await db.execute({
+                    sql: "SELECT regNum, name, faceDescriptor FROM users WHERE institution = ? AND faceDescriptor IS NOT NULL",
+                    args: [inst]
+                });
+                for (const row of allFaces.rows) {
+                    try {
+                        const existingDesc = JSON.parse(row.faceDescriptor);
+                        if (Array.isArray(existingDesc) && existingDesc.length === 128) {
+                            const dist = euclideanDistance(liveDescriptor, existingDesc);
+                            if (dist < 0.40) {
+                                return res.status(409).json({ error: `Face Biometric Conflict: This face matches already enrolled student "${row.name}" (${row.regNum}).` });
+                            }
+                        }
+                    } catch(err) {}
+                }
+            }
+        }
+
+        const descriptorStr = typeof faceDescriptor === 'object' ? JSON.stringify(faceDescriptor) : (faceDescriptor || null);
+        const finalRegNum = regNum.trim().toUpperCase();
+
+        await db.execute({
+            sql: `INSERT INTO users (regNum, institution, password, role, name, email, phone, status, hasVoted, isBanned, portrait, webcamReg, branch, class, year, section, managedBy, canVote, faceDescriptor, livenessSkipped) 
+                  VALUES (?, ?, '', 'voter', ?, '', '', 'approved', 0, 0, ?, ?, ?, ?, ?, ?, ?, 1, ?, 0)`,
+            args: [
+                finalRegNum, inst, name.trim(),
+                portrait || null, webcamReg || null,
+                branch || null, className || null, year || null, section || null,
+                managedBy || null, descriptorStr
+            ]
+        });
+
+        res.json({ success: true, message: `Student "${name}" (${finalRegNum}) enrolled successfully.` });
+    } catch (e) {
+        console.error("[Enroll Student Error]", e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ─── VOTER / STUDENT LOOKUP (FOR FACE LOGIN) ──────────────────────────────────
+app.post('/api/auth/voter-lookup', async (req, res) => {
+    try {
+        const { regNum, institution } = req.body;
+        const inst = decodeURIComponent(institution || req.headers['x-ovs-institution'] || '');
+
+        if (!regNum || !inst) {
+            return res.status(400).json({ error: "Registration Number and Institution are required." });
+        }
+
+        const result = await db.execute({
+            sql: "SELECT regNum, institution, name, email, phone, branch, class, year, section, role, status, isBanned, hasVoted, canVote, portrait, webcamReg, faceDescriptor, (password IS NOT NULL AND password != '') AS hasPassword FROM users WHERE regNum = ? AND institution = ? AND (role = 'voter' OR role = 'contestant')",
+            args: [regNum.trim().toUpperCase(), inst]
+        });
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: `Registration ID "${regNum}" is not enrolled. Please contact your Class Admin to enroll your profile.` });
+        }
+
+        const student = result.rows[0];
+
+        if (student.isBanned === 1) {
+            return res.status(403).json({ error: "This student account has been restricted by the Administrator." });
+        }
+        if (student.status !== 'approved') {
+            return res.status(403).json({ error: "Your student profile is awaiting Class Admin approval." });
+        }
+
+        res.json({
+            success: true,
+            student: {
+                regNum: student.regNum,
+                institution: student.institution,
+                name: student.name,
+                email: student.email,
+                phone: student.phone,
+                branch: student.branch,
+                class: student.class,
+                year: student.year,
+                section: student.section,
+                role: student.role,
+                hasVoted: student.hasVoted === 1,
+                canVote: student.canVote === 1,
+                portrait: student.portrait,
+                webcamReg: student.webcamReg,
+                faceDescriptor: student.faceDescriptor,
+                hasPassword: !!student.hasPassword
+            }
+        });
+    } catch (e) {
+        console.error("[Voter Lookup Error]", e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ─── STUDENT PROFILE UPDATE (EMAIL, PHONE, PASSWORD) ──────────────────────────
+app.post('/api/student/update-profile', async (req, res) => {
+    try {
+        const { regNum, institution, email, phone, currentPassword, newPassword } = req.body;
+        const inst = decodeURIComponent(institution || req.headers['x-ovs-institution'] || '');
+
+        if (!regNum || !inst) {
+            return res.status(400).json({ error: "Registration Number and Institution are required." });
+        }
+
+        const userCheck = await db.execute({
+            sql: "SELECT regNum, password, email, phone FROM users WHERE regNum = ? AND institution = ?",
+            args: [regNum.trim().toUpperCase(), inst]
+        });
+
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Student not found." });
+        }
+
+        const currentDbUser = userCheck.rows[0];
+
+        // If user already has a password set, verify current password before allowing updates
+        if (currentDbUser.password && currentDbUser.password.trim() !== '') {
+            if (!currentPassword) {
+                return res.status(401).json({ error: "Current password is required to update your profile details." });
+            }
+            // Compare plaintext, SHA256 or base64
+            const isMatch = (
+                currentDbUser.password === currentPassword ||
+                currentDbUser.password === btoa(currentPassword) ||
+                currentDbUser.password === require('crypto').createHash('sha256').update(currentPassword).digest('hex')
+            );
+            if (!isMatch) {
+                return res.status(401).json({ error: "Incorrect current password. Profile update rejected." });
+            }
+        }
+
+        let updatedPassword = currentDbUser.password;
+        if (newPassword && newPassword.trim() !== '') {
+            updatedPassword = require('crypto').createHash('sha256').update(newPassword.trim()).digest('hex');
+        }
+
+        await db.execute({
+            sql: "UPDATE users SET email = ?, phone = ?, password = ? WHERE regNum = ? AND institution = ?",
+            args: [email ? email.trim() : currentDbUser.email, phone ? phone.trim() : currentDbUser.phone, updatedPassword, regNum.trim().toUpperCase(), inst]
+        });
+
+        res.json({
+            success: true,
+            message: "Profile details updated successfully.",
+            email: email || currentDbUser.email,
+            phone: phone || currentDbUser.phone
+        });
+    } catch (e) {
+        console.error("[Student Profile Update Error]", e);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // --- PACKS CRUD ---
