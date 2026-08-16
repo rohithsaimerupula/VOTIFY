@@ -359,6 +359,20 @@ const StorageManager = {
         }
     },
 
+    // --- CLASS ADMIN UPDATE STUDENT (NAME, REGNUM, BIOMETRICS) ---
+    async updateClassStudent(updateData) {
+        try {
+            const inst = localStorage.getItem('ovs_inst_name');
+            return await fetchApi('/subadmin/update-student', {
+                method: 'POST',
+                body: JSON.stringify({ ...updateData, institution: inst })
+            });
+        } catch (error) {
+            console.error("Update Student Error:", error);
+            throw new Error(error.message || "Failed to update student.");
+        }
+    },
+
     // --- VOTER LOOKUP FOR FACE LOGIN ---
     async lookupStudentForLogin(regNum) {
         try {

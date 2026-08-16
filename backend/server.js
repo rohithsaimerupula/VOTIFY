@@ -590,13 +590,20 @@ app.post('/api/student/update-profile', async (req, res) => {
         }
 
         const currentDbUser = userCheck.rows[0];
+        const hasExistingPassword = currentDbUser.password && currentDbUser.password.trim() !== '';
 
-        // If user already has a password set, verify current password before allowing updates
-        if (currentDbUser.password && currentDbUser.password.trim() !== '') {
-            if (!currentPassword) {
-                return res.status(401).json({ error: "Current password is required to update your profile details." });
+        // Case 1: First time setup — must fill all 3 details (email, phone, password)
+        if (!hasExistingPassword) {
+            if (!email || !email.trim() || !phone || !phone.trim() || !newPassword || !newPassword.trim()) {
+                return res.status(400).json({
+                    error: "To complete your initial profile setup, all 3 fields (Email Address, Phone Number, and Password) must be provided."
+                });
             }
-            // Compare plaintext, SHA256 or base64
+        } else {
+            // Case 2: Already setup — must enter current password to authorize any changes
+            if (!currentPassword) {
+                return res.status(401).json({ error: "Current password is required to authorize modifications to your profile." });
+            }
             const isMatch = (
                 currentDbUser.password === currentPassword ||
                 currentDbUser.password === btoa(currentPassword) ||
@@ -612,19 +619,120 @@ app.post('/api/student/update-profile', async (req, res) => {
             updatedPassword = require('crypto').createHash('sha256').update(newPassword.trim()).digest('hex');
         }
 
+        const finalEmail = email ? email.trim() : currentDbUser.email;
+        const finalPhone = phone ? phone.trim() : currentDbUser.phone;
+
         await db.execute({
             sql: "UPDATE users SET email = ?, phone = ?, password = ? WHERE regNum = ? AND institution = ?",
-            args: [email ? email.trim() : currentDbUser.email, phone ? phone.trim() : currentDbUser.phone, updatedPassword, regNum.trim().toUpperCase(), inst]
+            args: [finalEmail, finalPhone, updatedPassword, regNum.trim().toUpperCase(), inst]
         });
 
         res.json({
             success: true,
-            message: "Profile details updated successfully.",
-            email: email || currentDbUser.email,
-            phone: phone || currentDbUser.phone
+            message: hasExistingPassword ? "Profile details updated successfully." : "Profile setup complete! You can now change these details in the future with your password.",
+            email: finalEmail,
+            phone: finalPhone,
+            hasPassword: true
         });
     } catch (e) {
         console.error("[Student Profile Update Error]", e);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// ─── CLASS ADMIN (SUBADMIN) UPDATE STUDENT (NAME, REG NUM, FACE BIOMETRIC) ─────
+app.post('/api/subadmin/update-student', async (req, res) => {
+    try {
+        const { oldRegNum, newRegNum, name, faceDescriptor, portrait, webcamReg, institution } = req.body;
+        const inst = decodeURIComponent(institution || req.headers['x-ovs-institution'] || '');
+
+        if (!oldRegNum || !inst) {
+            return res.status(400).json({ error: "Original Registration Number and Institution are required." });
+        }
+
+        const targetOldReg = oldRegNum.trim().toUpperCase();
+        const targetNewReg = newRegNum ? newRegNum.trim().toUpperCase() : targetOldReg;
+
+        // 1. Verify student exists
+        const userCheck = await db.execute({
+            sql: "SELECT * FROM users WHERE regNum = ? AND institution = ?",
+            args: [targetOldReg, inst]
+        });
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: `Student "${oldRegNum}" not found in this institution.` });
+        }
+
+        const existingStudent = userCheck.rows[0];
+
+        // 2. If registration number is changing, verify new ID is unique
+        if (targetNewReg !== targetOldReg) {
+            const conflictCheck = await db.execute({
+                sql: "SELECT regNum, name FROM users WHERE regNum = ? AND institution = ?",
+                args: [targetNewReg, inst]
+            });
+            if (conflictCheck.rows.length > 0) {
+                return res.status(409).json({ error: `Registration ID "${targetNewReg}" is already used by student "${conflictCheck.rows[0].name}".` });
+            }
+        }
+
+        // 3. If face biometric is changing, verify uniqueness
+        let descriptorStr = null;
+        if (faceDescriptor) {
+            let liveDescriptor;
+            try { liveDescriptor = typeof faceDescriptor === 'string' ? JSON.parse(faceDescriptor) : faceDescriptor; } catch(e) {}
+            if (Array.isArray(liveDescriptor) && liveDescriptor.length === 128) {
+                const allFaces = await db.execute({
+                    sql: "SELECT regNum, name, faceDescriptor FROM users WHERE institution = ? AND regNum != ? AND faceDescriptor IS NOT NULL",
+                    args: [inst, targetOldReg]
+                });
+                for (const row of allFaces.rows) {
+                    try {
+                        const existingDesc = JSON.parse(row.faceDescriptor);
+                        if (Array.isArray(existingDesc) && existingDesc.length === 128) {
+                            const dist = euclideanDistance(liveDescriptor, existingDesc);
+                            if (dist < 0.40) {
+                                return res.status(409).json({ error: `Face Biometric Conflict: This face matches already enrolled student "${row.name}" (${row.regNum}).` });
+                            }
+                        }
+                    } catch(err) {}
+                }
+                descriptorStr = JSON.stringify(liveDescriptor);
+            }
+        }
+
+        const finalName = name ? name.trim() : existingStudent.name;
+        const finalPortrait = portrait || existingStudent.portrait;
+        const finalWebcam = webcamReg || existingStudent.webcamReg;
+        const finalDescriptor = descriptorStr || existingStudent.faceDescriptor;
+
+        // Update student record
+        await db.execute({
+            sql: "UPDATE users SET regNum = ?, name = ?, portrait = ?, webcamReg = ?, faceDescriptor = ? WHERE regNum = ? AND institution = ?",
+            args: [targetNewReg, finalName, finalPortrait, finalWebcam, finalDescriptor, targetOldReg, inst]
+        });
+
+        // Update vote records if registration number changed
+        if (targetNewReg !== targetOldReg) {
+            try {
+                await db.execute({
+                    sql: "UPDATE votes SET voterRegNum = ? WHERE voterRegNum = ? AND institution = ?",
+                    args: [targetNewReg, targetOldReg, inst]
+                });
+            } catch(e) {}
+        }
+
+        res.json({
+            success: true,
+            message: `Student details updated successfully for "${finalName}" (${targetNewReg}).`,
+            student: {
+                regNum: targetNewReg,
+                name: finalName,
+                portrait: finalPortrait,
+                webcamReg: finalWebcam
+            }
+        });
+    } catch (e) {
+        console.error("[Subadmin Update Student Error]", e);
         res.status(500).json({ error: e.message });
     }
 });

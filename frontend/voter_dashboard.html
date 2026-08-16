@@ -684,6 +684,36 @@
                 } catch(e) { }
             }
             const sectionLabel = displaySection || currentUser.class || 'Section 1';
+            const isInitialSetup = !currentUser.email || !currentUser.phone || !currentUser.hasPassword;
+
+            let statusBannerHtml = '';
+            let currentPassFieldHtml = '';
+            let newPassLabel = '';
+            let newPassReq = '';
+
+            if (isInitialSetup) {
+                statusBannerHtml = `
+                    <div style="background:rgba(217,119,6,0.08); border:1px solid rgba(217,119,6,0.3); border-radius:14px; padding:1rem 1.2rem; margin-bottom:1.4rem; font-size:0.85rem; color:#d97706; font-weight:600; line-height:1.5;">
+                        ⚠️ <strong>First-Time Profile Setup:</strong> Please fill in all 3 details (Email, Phone Number, and Password) to activate and secure your profile. Once saved, you can update them in the future using this password.
+                    </div>
+                `;
+                newPassLabel = 'Set Account Password <span style="color:red;">*</span>';
+                newPassReq = 'required';
+            } else {
+                statusBannerHtml = `
+                    <div style="background:rgba(22,163,74,0.08); border:1px solid rgba(22,163,74,0.3); border-radius:14px; padding:1rem 1.2rem; margin-bottom:1.4rem; font-size:0.85rem; color:#16a34a; font-weight:600; line-height:1.5;">
+                        ✅ <strong>Profile Active:</strong> You can modify your Email, Phone Number, or Password anytime by entering your current password below.
+                    </div>
+                `;
+                newPassLabel = 'New Password (Optional)';
+                currentPassFieldHtml = `
+                    <div style="margin-bottom:1.3rem; background:rgba(65,91,6,0.04); border:1px solid rgba(65,91,6,0.15); border-radius:14px; padding:1rem;">
+                        <label style="display:block; color:var(--forest-green); font-size:0.8rem; font-weight:700; margin-bottom:0.4rem;">🔐 Current Password <span style="color:red;">*</span></label>
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.6rem;">Required to authorize modifications to your email, phone, or password.</p>
+                        <input type="password" id="edit-current-pass" required placeholder="Enter your current password" style="width:100%; padding:0.85rem 1rem; background:#FFF; border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; outline:none;">
+                    </div>
+                `;
+            }
 
             area.innerHTML = `
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.3rem;">
@@ -711,26 +741,24 @@
                     <h3 style="font-size:1.1rem; color:var(--forest-green); font-family:var(--font-heading); margin-bottom:0.8rem;">📱 Contact & Security Details</h3>
                 </div>
 
+                ${statusBannerHtml}
+
                 <div style="margin-bottom:1.3rem;">
-                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">Email Address</label>
-                    <input type="email" id="edit-email" value="${currentUser.email || ''}" placeholder="student@example.com" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; font-weight:600; outline:none;">
+                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">Email Address ${isInitialSetup ? '<span style="color:red;">*</span>' : ''}</label>
+                    <input type="email" id="edit-email" ${isInitialSetup ? 'required' : ''} value="${currentUser.email || ''}" placeholder="student@example.com" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; font-weight:600; outline:none;">
                 </div>
 
                 <div style="margin-bottom:1.3rem;">
-                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">Phone Number</label>
-                    <input type="tel" id="edit-phone" value="${currentUser.phone || ''}" placeholder="10-digit mobile number" maxlength="10" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; font-weight:600; outline:none;" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">Phone Number ${isInitialSetup ? '<span style="color:red;">*</span>' : ''}</label>
+                    <input type="tel" id="edit-phone" ${isInitialSetup ? 'required' : ''} value="${currentUser.phone || ''}" placeholder="10-digit mobile number" maxlength="10" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; font-weight:600; outline:none;" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
                 </div>
 
                 <div style="margin-bottom:1.3rem;">
-                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">New Password (Optional)</label>
-                    <input type="password" id="edit-new-pass" placeholder="Enter new password to change" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; outline:none;">
+                    <label style="display:block; color:var(--forest-green); font-size:0.78rem; font-weight:700; margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.5px;">${newPassLabel}</label>
+                    <input type="password" id="edit-new-pass" ${newPassReq} placeholder="${isInitialSetup ? 'Create a secure password' : 'Enter new password to change (leave blank to keep)'}" style="width:100%; padding:0.85rem 1rem; background:rgba(255,253,249,0.95); border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; outline:none;">
                 </div>
 
-                <div style="margin-bottom:1.3rem; background:rgba(65,91,6,0.04); border:1px solid rgba(65,91,6,0.15); border-radius:14px; padding:1rem;">
-                    <label style="display:block; color:var(--forest-green); font-size:0.8rem; font-weight:700; margin-bottom:0.4rem;">🔐 Current Password</label>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.6rem;">Required to authorize modifications to your email, phone, or password.</p>
-                    <input type="password" id="edit-current-pass" placeholder="Enter your current password" style="width:100%; padding:0.85rem 1rem; background:#FFF; border:1px solid var(--glass-border); border-radius:12px; color:var(--forest-green); font-family:inherit; outline:none;">
-                </div>
+                ${currentPassFieldHtml}
             `;
         }
 
@@ -743,7 +771,18 @@
             const email = (document.getElementById('edit-email').value || '').trim();
             const phone = (document.getElementById('edit-phone').value || '').trim();
             const newPassword = (document.getElementById('edit-new-pass').value || '').trim();
-            const currentPassword = (document.getElementById('edit-current-pass').value || '').trim();
+            const currentPassEl = document.getElementById('edit-current-pass');
+            const currentPassword = currentPassEl ? (currentPassEl.value || '').trim() : '';
+
+            const isInitialSetup = !currentUser.email || !currentUser.phone || !currentUser.hasPassword;
+
+            if (isInitialSetup) {
+                if (!email || !phone || !newPassword) {
+                    msg.innerText = '❌ All 3 fields (Email, Phone Number, and Password) are required for initial setup.';
+                    msg.style.color = '#DC2626';
+                    return;
+                }
+            }
 
             try {
                 const res = await StorageManager.updateStudentProfile({
@@ -760,10 +799,12 @@
                 // Update local storage
                 currentUser.email = email;
                 currentUser.phone = phone;
+                currentUser.hasPassword = true;
                 localStorage.setItem('ovs_currentUser', JSON.stringify(currentUser));
                 
-                document.getElementById('edit-new-pass').value = '';
-                document.getElementById('edit-current-pass').value = '';
+                setTimeout(() => {
+                    loadProfile();
+                }, 1200);
             } catch(err) {
                 msg.innerText = '❌ ' + err.message;
                 msg.style.color = '#DC2626';

@@ -1043,25 +1043,65 @@
     </div>
   </div>
 
-  <!-- STUDENT INFO MODAL -->
-  <div class="modal-overlay" id="edit-modal">
-    <div class="modal">
+  <!-- EDIT STUDENT MODAL WITH NAME, REGNUM & BIOMETRIC UPDATE -->
+  <div class="modal-overlay" id="edit-modal" style="display:none; align-items:center; justify-content:center;">
+    <div class="modal" style="max-width:540px; max-height:90vh; overflow-y:auto;">
       <button class="modal-close" onclick="closeEdit()">✕</button>
-      <h3>👤 Student Details</h3>
-      <p style="color:var(--muted);font-size:0.8rem;margin-bottom:1rem;">ID: <strong id="edit-regnum-display" style="color:var(--forest-green);"></strong></p>
-      <input type="hidden" id="edit-regnum">
-      <div style="background:rgba(217,119,6,0.08);border:1px solid rgba(217,119,6,0.3);border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.85rem;color:#d97706;">
-        🔒 Student personal details cannot be modified by admins. You may only approve or remove students.
-      </div>
+      <h3 style="color:var(--forest-green); margin-bottom:0.4rem;">✏️ Edit Student Details</h3>
+      <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.2rem;">Modify Student Full Name, Registration Number, or re-scan Face Biometrics.</p>
+      
+      <input type="hidden" id="edit-regnum-orig">
+
       <div class="form-grid" style="margin-bottom:1rem;">
-        <div class="form-field"><label>Full Name</label><input type="text" id="edit-name" disabled style="opacity:0.6;cursor:not-allowed;"></div>
-        <div class="form-field"><label>Email</label><input type="email" id="edit-email" disabled style="opacity:0.6;cursor:not-allowed;"></div>
+        <div class="form-field">
+          <label>Student Full Name <span style="color:red;">*</span></label>
+          <input type="text" id="edit-name" placeholder="Full Name" maxlength="50" required>
+        </div>
+        <div class="form-field">
+          <label>Registration Number (Unique ID) <span style="color:red;">*</span></label>
+          <input type="text" id="edit-regnum-new" placeholder="Registration ID" maxlength="15" required style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase().replace(/\s/g,'')">
+        </div>
       </div>
-      <div class="form-grid" style="margin-bottom:1rem;">
-        <div class="form-field"><label>Year</label><input type="text" id="edit-year" disabled style="opacity:0.6;cursor:not-allowed;"></div>
-        <div class="form-field"><label>Class</label><input type="text" id="edit-section" disabled style="opacity:0.6;cursor:not-allowed;"></div>
+
+      <!-- Edit Biometric Face Section -->
+      <div style="background:rgba(255,253,249,0.98); border:1px solid var(--border); border-radius:14px; padding:1.2rem; margin-bottom:1.5rem;">
+        <div style="font-weight:700; font-size:0.9rem; color:var(--forest-green); margin-bottom:0.4rem; display:flex; align-items:center; gap:0.4rem;">
+          <span>📸</span> Update Face Biometrics
+        </div>
+        <p style="font-size:0.8rem; color:var(--muted); margin-bottom:0.8rem;">Leave unchanged to keep existing face profile, or re-capture/upload a new photo.</p>
+
+        <!-- Video element for live capture in edit mode -->
+        <div id="edit-cam-box" style="position:relative; width:100%; max-width:320px; height:240px; background:#111; border-radius:12px; margin:0 auto 0.8rem; overflow:hidden; display:none;">
+          <video id="edit-video" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+          <div style="position:absolute; inset:0; border:2px dashed rgba(255,255,255,0.4); border-radius:10px; pointer-events:none;"></div>
+        </div>
+        <canvas id="edit-canvas" style="display:none;"></canvas>
+
+        <!-- Current / New Thumbnail -->
+        <div id="edit-preview-wrap" style="text-align:center; margin-bottom:0.8rem;">
+          <img id="edit-thumb" src="" style="width:90px; height:90px; border-radius:14px; object-fit:cover; border:2px solid var(--forest-green); box-shadow:0 4px 14px rgba(26,60,41,0.15);">
+        </div>
+
+        <!-- Feedback & Status -->
+        <div id="edit-face-status" style="font-size:0.82rem; font-weight:600; text-align:center; margin-bottom:0.8rem; color:var(--forest-green);">
+          Current face template active.
+        </div>
+
+        <!-- Controls -->
+        <div style="display:flex; justify-content:center; gap:0.6rem; flex-wrap:wrap;">
+          <button type="button" class="btn-sm btn-e" id="edit-start-cam-btn" onclick="startEditCam()">📷 Re-scan Camera</button>
+          <button type="button" class="btn-sm btn-g" id="edit-capture-cam-btn" onclick="captureEditCam()" style="display:none;">📸 Capture New Face</button>
+          <label class="btn-sm btn-e" style="cursor:pointer; margin:0;">
+            📁 Upload New Photo
+            <input type="file" id="edit-file-input" accept="image/*" style="display:none;" onchange="handleEditPhotoUpload(this)">
+          </label>
+        </div>
       </div>
-      <button class="btn btn-purple" style="width:100%;" onclick="closeEdit()">Close</button>
+
+      <div style="display:flex; gap:0.8rem;">
+        <button class="btn btn-outline" style="flex:1;" onclick="closeEdit()">Cancel</button>
+        <button class="btn btn-purple" style="flex:2;" id="edit-submit-btn" onclick="saveStudentEdits()">💾 Save Student Changes</button>
+      </div>
     </div>
   </div>
 
@@ -1484,25 +1524,174 @@
 
     function filterStudents(q) { renderStudents(classStudents.filter(s => [s.regNum, s.name].join(' ').toLowerCase().includes(q.toLowerCase()))); }
 
+    // ─── EDIT STUDENT (NAME, REG NUM, FACE BIOMETRICS) ───
+    let editFaceDescriptor = null;
+    let editCapturedImage = null;
+    let editStream = null;
+
     function openEdit(id) {
-      const s = studentMap[id]; if (!s) return;
-      const regInp = document.getElementById('edit-regnum');
-      if (regInp) regInp.value = id;
-      setText('edit-regnum-display', id);
-      const nameEl = document.getElementById('edit-name');
-      const emailEl = document.getElementById('edit-email');
-      const yearEl = document.getElementById('edit-year');
-      const sectionEl = document.getElementById('edit-section');
-      if (nameEl) nameEl.value = s.name || '';
-      if (emailEl) emailEl.value = s.email || '';
-      if (yearEl) yearEl.value = s.year || '';
-      if (sectionEl) sectionEl.value = s.class || '';
+      const s = studentMap[id];
+      if (!s) return;
+
+      document.getElementById('edit-regnum-orig').value = s.regNum;
+      document.getElementById('edit-regnum-new').value = s.regNum;
+      document.getElementById('edit-name').value = s.name || '';
+
+      editFaceDescriptor = null;
+      editCapturedImage = null;
+
+      const currentImg = s.webcamReg || s.portrait;
+      const thumb = document.getElementById('edit-thumb');
+      if (currentImg) {
+        thumb.src = currentImg;
+        document.getElementById('edit-preview-wrap').style.display = 'block';
+      } else {
+        document.getElementById('edit-preview-wrap').style.display = 'none';
+      }
+
+      document.getElementById('edit-cam-box').style.display = 'none';
+      document.getElementById('edit-start-cam-btn').style.display = 'inline-block';
+      document.getElementById('edit-capture-cam-btn').style.display = 'none';
+      setText('edit-face-status', s.faceDescriptor ? '✅ Current face biometric active (128D)' : '⚠️ No face biometric registered yet.');
+
       const modal = document.getElementById('edit-modal');
-      if (modal) modal.classList.add('open');
+      if (modal) modal.style.display = 'flex';
+      loadEnrollFaceModels();
     }
+
     function closeEdit() {
+      stopEditCam();
       const modal = document.getElementById('edit-modal');
-      if (modal) modal.classList.remove('open');
+      if (modal) modal.style.display = 'none';
+    }
+
+    async function startEditCam() {
+      await loadEnrollFaceModels();
+      const video = document.getElementById('edit-video');
+      const camBox = document.getElementById('edit-cam-box');
+      const startBtn = document.getElementById('edit-start-cam-btn');
+      const capBtn = document.getElementById('edit-capture-cam-btn');
+
+      try {
+        editStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }
+        });
+        video.srcObject = editStream;
+        camBox.style.display = 'block';
+        startBtn.style.display = 'none';
+        capBtn.style.display = 'inline-block';
+        setText('edit-face-status', '📷 Camera active. Align face and click Capture.');
+      } catch (e) {
+        toast('Camera access error: ' + e.message, false);
+      }
+    }
+
+    function stopEditCam() {
+      if (editStream) {
+        editStream.getTracks().forEach(t => t.stop());
+        editStream = null;
+      }
+      const camBox = document.getElementById('edit-cam-box');
+      if (camBox) camBox.style.display = 'none';
+      const startBtn = document.getElementById('edit-start-cam-btn');
+      if (startBtn) startBtn.style.display = 'inline-block';
+      const capBtn = document.getElementById('edit-capture-cam-btn');
+      if (capBtn) capBtn.style.display = 'none';
+    }
+
+    async function captureEditCam() {
+      const video = document.getElementById('edit-video');
+      const canvas = document.getElementById('edit-canvas');
+      if (!video || !video.videoWidth) return;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      setText('edit-face-status', '🔍 AI extracting new 128D facial descriptors...');
+
+      try {
+        const detection = await faceapi.detectSingleFace(canvas).withFaceLandmarks().withFaceDescriptor();
+        if (!detection || !detection.descriptor) {
+          setText('edit-face-status', '❌ No clear face detected. Ensure good lighting and try again.');
+          return;
+        }
+
+        editFaceDescriptor = Array.from(detection.descriptor);
+        editCapturedImage = canvas.toDataURL('image/jpeg', 0.85);
+
+        document.getElementById('edit-thumb').src = editCapturedImage;
+        document.getElementById('edit-preview-wrap').style.display = 'block';
+        setText('edit-face-status', '✅ New Face Biometrics Validated (128D extracted)');
+        stopEditCam();
+      } catch (e) {
+        setText('edit-face-status', '❌ Face extraction failed: ' + e.message);
+      }
+    }
+
+    async function handleEditPhotoUpload(input) {
+      if (!input.files || !input.files[0]) return;
+      await loadEnrollFaceModels();
+
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const img = new Image();
+        img.onload = async function() {
+          setText('edit-face-status', '🔍 Extracting face biometrics from uploaded photo...');
+          try {
+            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+            if (!detection || !detection.descriptor) {
+              setText('edit-face-status', '❌ No clear face detected in photo. Upload a frontal portrait.');
+              return;
+            }
+            editFaceDescriptor = Array.from(detection.descriptor);
+            editCapturedImage = e.target.result;
+            document.getElementById('edit-thumb').src = editCapturedImage;
+            document.getElementById('edit-preview-wrap').style.display = 'block';
+            setText('edit-face-status', '✅ New Face Biometrics Validated from photo (128D)');
+            stopEditCam();
+          } catch (err) {
+            setText('edit-face-status', '❌ Photo analysis error: ' + err.message);
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveStudentEdits() {
+      const oldRegNum = (document.getElementById('edit-regnum-orig').value || '').trim().toUpperCase();
+      const newRegNum = (document.getElementById('edit-regnum-new').value || '').trim().toUpperCase();
+      const name = (document.getElementById('edit-name').value || '').trim();
+
+      if (!name) { toast('Please enter the student\'s full name.', false); return; }
+      if (!newRegNum) { toast('Please enter the student\'s registration number.', false); return; }
+
+      const submitBtn = document.getElementById('edit-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving Changes...';
+
+      try {
+        const res = await StorageManager.updateClassStudent({
+          oldRegNum,
+          newRegNum,
+          name,
+          faceDescriptor: editFaceDescriptor,
+          portrait: editCapturedImage,
+          webcamReg: editCapturedImage
+        });
+
+        toast(`✅ ${res.message || 'Student updated successfully!'}`);
+        closeEdit();
+        await loadAll();
+      } catch (e) {
+        toast(e.message, false);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💾 Save Student Changes';
+      }
     }
 
     function showPortrait(regNum, type) {
