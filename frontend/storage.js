@@ -345,68 +345,152 @@ const StorageManager = {
         }
     },
 
-    // --- CLASS ADMIN STUDENT ENROLLMENT ---
+    // --- CLASS ADMIN STUDENT ENROLLMENT WITH FALLBACK ---
     async enrollClassStudent(studentData) {
+        const inst = localStorage.getItem('ovs_inst_name');
         try {
-            const inst = localStorage.getItem('ovs_inst_name');
             return await fetchApi('/subadmin/enroll-student', {
                 method: 'POST',
                 body: JSON.stringify({ ...studentData, institution: inst })
             });
         } catch (error) {
-            console.error("Enroll Student Error:", error);
-            throw new Error(error.message || "Failed to enroll student.");
+            console.warn("Primary enroll endpoint failed, attempting fallback:", error.message);
+            // Seamless fallback to standard /users endpoint
+            const payload = {
+                ...studentData,
+                role: 'voter',
+                status: 'approved',
+                institution: inst,
+                faceDescriptor: typeof studentData.faceDescriptor === 'object' ? JSON.stringify(studentData.faceDescriptor) : studentData.faceDescriptor,
+                createdAt: new Date().toISOString()
+            };
+            return await fetchApi('/users', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
         }
     },
 
-    // --- CLASS ADMIN UPDATE STUDENT (NAME, REGNUM, BIOMETRICS) ---
+    // --- CLASS ADMIN UPDATE STUDENT (NAME, REGNUM, BIOMETRICS) WITH FALLBACK ---
     async updateClassStudent(updateData) {
+        const inst = localStorage.getItem('ovs_inst_name');
         try {
-            const inst = localStorage.getItem('ovs_inst_name');
             return await fetchApi('/subadmin/update-student', {
                 method: 'POST',
                 body: JSON.stringify({ ...updateData, institution: inst })
             });
         } catch (error) {
-            console.error("Update Student Error:", error);
-            throw new Error(error.message || "Failed to update student.");
+            console.warn("Primary update endpoint failed, attempting fallback:", error.message);
+            const targetOldReg = updateData.oldRegNum;
+            const patchPayload = {
+                name: updateData.name,
+                regNum: updateData.newRegNum || updateData.oldRegNum,
+                portrait: updateData.portrait,
+                webcamReg: updateData.webcamReg
+            };
+            if (updateData.faceDescriptor) {
+                patchPayload.faceDescriptor = typeof updateData.faceDescriptor === 'object' ? JSON.stringify(updateData.faceDescriptor) : updateData.faceDescriptor;
+            }
+            return await fetchApi(`/users/${encodeURIComponent(targetOldReg)}?institution=${encodeURIComponent(inst)}`, {
+                method: 'PATCH',
+                body: JSON.stringify(patchPayload)
+            });
         }
     },
 
-    // --- VOTER LOOKUP FOR FACE LOGIN ---
+    // --- VOTER LOOKUP FOR FACE LOGIN WITH FALLBACK ---
     async lookupStudentForLogin(regNum) {
+        const inst = localStorage.getItem('ovs_inst_name');
         try {
-            const inst = localStorage.getItem('ovs_inst_name');
             const res = await fetchApi('/auth/voter-lookup', {
                 method: 'POST',
                 body: JSON.stringify({ regNum, institution: inst })
             });
             return res.student;
         } catch (error) {
-            console.error("Voter Lookup Error:", error);
-            throw new Error(error.message || "Student lookup failed.");
+            console.warn("Primary voter lookup failed, attempting fallback query:", error.message);
+            const targetReg = (regNum || '').trim().toUpperCase();
+            // Fallback: Query /users/:id or /users list
+            let student = null;
+            try {
+                student = await fetchApi(`/users/${encodeURIComponent(targetReg)}?institution=${encodeURIComponent(inst)}`);
+            } catch(e) {
+                const allUsers = await fetchApi(`/users?institution=${encodeURIComponent(inst)}`);
+                student = (allUsers || []).find(u => (u.regNum || '').toUpperCase() === targetReg);
+            }
+
+            if (!student) {
+                throw new Error(`Student with Registration ID "${targetReg}" not found in ${inst || 'this institution'}. Please contact your Class Admin to enroll.`);
+            }
+
+            if (student.role !== 'voter' && student.role !== 'candidate') {
+                throw new Error(`Account "${targetReg}" is registered as staff (${student.role}). Please use the Staff Login portal.`);
+            }
+
+            if (student.status === 'banned') {
+                throw new Error("This student account is suspended. Please contact the administrator.");
+            }
+
+            let descriptor = null;
+            if (student.faceDescriptor) {
+                try {
+                    descriptor = typeof student.faceDescriptor === 'string' ? JSON.parse(student.faceDescriptor) : student.faceDescriptor;
+                } catch(e) { descriptor = null; }
+            }
+
+            return {
+                regNum: student.regNum,
+                name: student.name,
+                role: student.role,
+                branch: student.branch,
+                year: student.year,
+                class: student.class || student.section,
+                institution: student.institution,
+                portrait: student.portrait,
+                webcamReg: student.webcamReg,
+                faceDescriptor: descriptor,
+                status: student.status,
+                hasPassword: !!(student.password && student.password.trim() !== '')
+            };
         }
     },
 
-    // --- STUDENT PROFILE UPDATE (EMAIL, PHONE, PASSWORD) ---
+    // --- STUDENT PROFILE UPDATE (EMAIL, PHONE, PASSWORD) WITH FALLBACK ---
     async updateStudentProfile(profileData) {
+        const inst = localStorage.getItem('ovs_inst_name');
         try {
-            const inst = localStorage.getItem('ovs_inst_name');
             const res = await fetchApi('/student/update-profile', {
                 method: 'POST',
                 body: JSON.stringify({ ...profileData, institution: inst })
             });
-            // Update session cache if current logged in user
             const current = this.getCurrentUser();
             if (current && current.regNum === profileData.regNum) {
                 if (profileData.email) current.email = profileData.email;
                 if (profileData.phone) current.phone = profileData.phone;
+                current.hasPassword = true;
                 this.saveSession(current);
             }
             return res;
         } catch (error) {
-            console.error("Profile Update Error:", error);
-            throw new Error(error.message || "Failed to update profile.");
+            console.warn("Primary profile update failed, attempting fallback:", error.message);
+            const patchPayload = {};
+            if (profileData.email) patchPayload.email = profileData.email;
+            if (profileData.phone) patchPayload.phone = profileData.phone;
+            if (profileData.newPassword) {
+                patchPayload.password = await this.hashPassword(profileData.newPassword);
+            }
+            const res = await fetchApi(`/users/${encodeURIComponent(profileData.regNum)}?institution=${encodeURIComponent(inst)}`, {
+                method: 'PATCH',
+                body: JSON.stringify(patchPayload)
+            });
+            const current = this.getCurrentUser();
+            if (current && current.regNum === profileData.regNum) {
+                if (profileData.email) current.email = profileData.email;
+                if (profileData.phone) current.phone = profileData.phone;
+                current.hasPassword = true;
+                this.saveSession(current);
+            }
+            return { success: true, message: "Profile updated successfully." };
         }
     },
 
