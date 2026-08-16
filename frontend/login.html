@@ -692,7 +692,7 @@
                     if (!student) throw new Error("Student profile not found.");
 
                     // Launch Biometric Face Verification Modal directly
-                    await openFaceAuthModal(student);
+                    await startFaceAuth(student);
                 } catch (err) {
                     showError(err.message || "Registration ID not found. Please contact your Class Admin to enroll you.");
                 } finally {
@@ -986,6 +986,7 @@
         }
         loadFaceModels();
 
+        window.openFaceAuthModal = startFaceAuth;
         async function startFaceAuth(user) {
             tempVerifiedUser = user;
             const modal = document.getElementById('face-auth-modal');
