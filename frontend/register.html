@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -804,133 +804,116 @@
         function lockRegistrationGate(msg) {
             setHTML('registration-form-content', `
                 <div style="text-align:center; padding: 3rem 1rem;">
-                    <div style="font-size:3.5rem; margin-bottom:1rem;">ðŸ›‘</div>
+                    <div style="font-size:3.5rem; margin-bottom:1rem;">🚫</div>
                     <h2 style="font-size: 2rem; font-weight: 900; color: var(--danger); font-family:'Playfair Display', serif; margin-bottom:1rem;">REGISTRATIONS CLOSED</h2>
                     <p style="color:var(--text-muted); line-height:1.6; max-width:400px; margin:0 auto;">${msg}</p>
                     <button class="btn-outline" style="margin-top:2rem;" onclick="window.location.href='index.html'">Return to Home</button>
                 </div>
             `);
         }
+        
+        let regDynamicBaselineEAR = 0.28;
 
         // Initialize Face API Models
         async function loadFaceModels() {
             if (typeof faceapi === 'undefined') {
-                console.warn("[OVS AI] face-api.js not yet available, retrying in 200ms...");
                 setTimeout(loadFaceModels, 200);
                 return;
             }
-            try {
-                // Primary CDN: vladmandic mirror (same weights, better HTTP/2 delivery)
-                const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
-                    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-                ]);
-                console.log("[OVS AI] âœ… All Models Loaded (TinyFaceDetector + Full SSD + Recognition)");
-                faceModelsLoaded = true;
-            } catch (err) {
-                console.warn("[OVS AI] Primary CDN failed, trying fallback...", err);
+            const CDNS = [
+                'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model',
+                'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights'
+            ];
+
+            for (const cdn of CDNS) {
                 try {
-                    const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
                     await Promise.all([
-                        faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-                        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                        faceapi.nets.tinyFaceDetector.loadFromUri(cdn).catch(() => {}),
+                        faceapi.nets.faceLandmark68TinyNet.loadFromUri(cdn).catch(() => {}),
+                        faceapi.nets.ssdMobilenetv1.loadFromUri(cdn),
+                        faceapi.nets.faceLandmark68Net.loadFromUri(cdn),
+                        faceapi.nets.faceRecognitionNet.loadFromUri(cdn)
                     ]);
                     faceModelsLoaded = true;
-                    console.log("[OVS AI] âœ… Fallback models loaded");
-                } catch (err2) { console.error("[OVS AI] âŒ All CDNs failed:", err2); }
-            }
-            const badge = document.getElementById('inst-badge');
-            if (badge && faceModelsLoaded) {
-                badge.title = 'AI Face Verification: Ready';
-                badge.style.borderColor = 'rgba(65, 91, 6,0.4)';
-                badge.style.color = 'var(--secondary)';
+                    console.log("[OVS AI] ✅ Models loaded successfully from", cdn);
+                    const badge = document.getElementById('inst-badge');
+                    if (badge) {
+                        badge.title = 'AI Face Verification: Ready';
+                        badge.style.borderColor = 'rgba(65, 91, 6, 0.4)';
+                        badge.style.color = 'var(--forest-green)';
+                    }
+                    return;
+                } catch (err) {
+                    console.warn("[OVS AI] CDN failed, trying fallback...", cdn, err.message);
+                }
             }
         }
         loadFaceModels();
 
-        // â”€â”€â”€ LIVENESS: Eye-Aspect-Ratio helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ─── LIVENESS: Eye-Aspect-Ratio helper ────────────────────────
         function calcEAR(eye) {
-            // eye = array of 6 {x,y} landmark points (standard 68-point model)
-            // Vertical distances
+            if (!eye || eye.length < 6) return 0.28;
             const v1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
             const v2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
-            // Horizontal distance
             const h  = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
             return h === 0 ? 0 : (v1 + v2) / (2 * h);
         }
 
-        // --- Liveness Scan (reliable async setTimeout loop) ---
-        let livenessRafId = null; // kept for compat
-
-        // Start continuous liveness scan. Calls onBlink() ONLY after genuine blink.
-        // After 3 failed face-detection attempts, allows proceed with livenessSkipped=true.
+        // Start continuous liveness scan with dynamic baseline EAR
         function startLivenessScan(videoEl, statusEl, onBlink) {
             if (!faceModelsLoaded) {
                 if (statusEl) {
-                    statusEl.innerHTML = 'âŒ AI Face Engine not loaded. Please refresh the page and try again.';
-                    statusEl.style.background = 'rgba(239,68,68,0.12)';
-                    statusEl.style.borderColor = 'rgba(239,68,68,0.4)';
-                    statusEl.style.color = '#ff2a4d';
+                    statusEl.innerHTML = 'AI Face Engine is initializing. Please wait a moment...';
                     statusEl.style.display = 'block';
                 }
                 return;
             }
             blinkFrameCount = 0;
+            regDynamicBaselineEAR = 0.28;
             let scanActive = true;
-            // Timer starts only when video is confirmed ready (first real detection frame)
             let attemptStartTime = null;
-            const ATTEMPT_WINDOW_MS = 5000; // 5 seconds per attempt
+            let earSamples = [];
+            let frameCount = 0;
+            const ATTEMPT_WINDOW_MS = 6000;
 
-            // Use TinyFaceDetector if loaded
             const useTiny = faceapi.nets.tinyFaceDetector && faceapi.nets.tinyFaceDetector.isLoaded;
             const detectorOpts = useTiny
-                ? new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 })
-                : new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 });
+                ? new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.25 })
+                : new faceapi.SsdMobilenetv1Options({ minConfidence: 0.25 });
 
             function failAttempt() {
                 livenessFailCount++;
-                console.warn(`[Liveness] Attempt ${livenessFailCount}/3 failed`);
                 if (livenessFailCount >= 3) {
                     scanActive = false;
                     if (livenessInterval) { clearTimeout(livenessInterval); livenessInterval = null; }
                     livenessSkippedFlag = true;
                     livenessVerified = true;
-                    // Fix: get button directly â€” captureBtn const is out of scope here
                     const _capBtn = document.getElementById('capture-btn');
                     if (_capBtn) {
                         _capBtn.classList.remove('hidden');
                         _capBtn.disabled = false;
-                        _capBtn.innerText = 'ðŸ“¸ Take Photo Now';
-                        _capBtn.style.animation = 'pulse-badge 1s infinite';
-                        // IMPORTANT: Force the capture button to bypass liveness so it definitely works
+                        _capBtn.innerText = '📸 Take Photo Directly';
                         _capBtn.onclick = function() {
                             livenessVerified = true;
                             captureWebcam();
                         };
                     }
                     if (statusEl) {
-                        statusEl.innerHTML = `ðŸ“· <strong>Blink detection is not working after 3 tries.</strong><br>
-                        <small>No worries â€” please click the <strong>red "Take Photo Now" button</strong> below to complete your registration.<br>Your class admin will be notified that no blink was detected.</small>`;
-                        statusEl.style.background = 'rgba(245,158,11,0.1)';
-                        statusEl.style.borderColor = 'rgba(245,158,11,0.4)';
-                        statusEl.style.color = '#f59e0b';
+                        statusEl.innerHTML = `📸 <strong>Blink check bypassed.</strong><br><small>Click <strong>"Take Photo Directly"</strong> to capture your registration portrait.</small>`;
+                        statusEl.style.background = 'rgba(217,119,6,0.1)';
+                        statusEl.style.borderColor = 'rgba(217,119,6,0.3)';
+                        statusEl.style.color = '#d97706';
                     }
                     return true;
                 }
-                // Reset for next 3-second attempt
                 attemptStartTime = Date.now();
                 blinkFrameCount = 0;
                 const remaining = 3 - livenessFailCount;
                 if (statusEl) {
-                    statusEl.innerHTML = `âš ï¸ No blink â€” <strong>${remaining} attempt(s) left</strong>. BLINK now! (3s)`;
-                    statusEl.style.background = 'rgba(245,158,11,0.12)';
-                    statusEl.style.borderColor = 'rgba(245,158,11,0.4)';
-                    statusEl.style.color = '#f59e0b';
+                    statusEl.innerHTML = `⚠️ No blink detected — <strong>${remaining} attempt(s) remaining</strong>. BLINK now!`;
+                    statusEl.style.background = 'rgba(217,119,6,0.12)';
+                    statusEl.style.borderColor = 'rgba(217,119,6,0.4)';
+                    statusEl.style.color = '#d97706';
                 }
                 return false;
             }
@@ -938,25 +921,22 @@
             async function tick() {
                 if (!scanActive) return;
 
-                // Wait for camera to be ready before starting timer
                 if (!videoEl || videoEl.paused || videoEl.ended || videoEl.readyState < 2) {
                     livenessInterval = setTimeout(tick, 100);
                     return;
                 }
 
-                // Start 3s timer on first valid frame
                 if (attemptStartTime === null) {
                     attemptStartTime = Date.now();
                     if (statusEl) {
-                        statusEl.innerHTML = 'ðŸ‘ï¸ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (3s)';
-                        statusEl.style.color = '#f59e0b';
-                        statusEl.style.background = 'rgba(245,158,11,0.12)';
-                        statusEl.style.borderColor = 'rgba(245,158,11,0.4)';
+                        statusEl.innerHTML = '👁️ <strong>Liveness Check:</strong> Please <u>BLINK</u> naturally...';
+                        statusEl.style.color = '#1A3C29';
+                        statusEl.style.background = 'rgba(65,91,6,0.08)';
+                        statusEl.style.borderColor = 'rgba(65,91,6,0.25)';
                         statusEl.style.display = 'block';
                     }
                 }
 
-                // Check if 3-second window expired
                 const elapsed = Date.now() - attemptStartTime;
                 if (elapsed >= ATTEMPT_WINDOW_MS) {
                     const ended = failAttempt();
@@ -969,47 +949,58 @@
                         : await faceapi.detectSingleFace(videoEl, detectorOpts).withFaceLandmarks();
 
                     if (!det) {
-                        // Show countdown while no face
                         if (statusEl) {
                             const secsLeft = Math.max(1, Math.ceil((ATTEMPT_WINDOW_MS - (Date.now() - attemptStartTime)) / 1000));
-                            statusEl.innerHTML = `âš ï¸ No face â€” move closer! (${secsLeft}s)`;
+                            statusEl.innerHTML = `⚠️ Position face clearly in frame (${secsLeft}s)`;
                         }
-                        livenessInterval = setTimeout(tick, 50);
+                        livenessInterval = setTimeout(tick, 70);
                         return;
-                    }
-
-                    // Face detected â€” show blink prompt with countdown
-                    if (statusEl) {
-                        const secsLeft = Math.max(1, Math.ceil((ATTEMPT_WINDOW_MS - (Date.now() - attemptStartTime)) / 1000));
-                        statusEl.innerHTML = `ðŸ‘ï¸ <strong>BLINK now!</strong> (${secsLeft}s remaining)`;
-                        statusEl.style.color = '#f59e0b';
-                        statusEl.style.background = 'rgba(245,158,11,0.12)';
-                        statusEl.style.borderColor = 'rgba(245,158,11,0.4)';
                     }
 
                     const pts = det.landmarks.positions;
                     const leftEye  = [pts[36],pts[37],pts[38],pts[39],pts[40],pts[41]];
                     const rightEye = [pts[42],pts[43],pts[44],pts[45],pts[46],pts[47]];
-                    const ear = (calcEAR(leftEye) + calcEAR(rightEye)) / 2;
+                    const currentEar = (calcEAR(leftEye) + calcEAR(rightEye)) / 2;
 
-                    if (ear < EAR_CLOSE_THRESHOLD) {
+                    // Calibrate baseline when eyes are open
+                    if (currentEar > 0.20) {
+                        earSamples.push(currentEar);
+                        if (earSamples.length > 20) earSamples.shift();
+                        regDynamicBaselineEAR = earSamples.reduce((a, b) => a + b, 0) / earSamples.length;
+                    }
+
+                    // Adaptive blink detection threshold (30% drop relative to baseline)
+                    const closeThreshold = Math.max(0.14, regDynamicBaselineEAR * 0.70);
+
+                    if (currentEar < closeThreshold) {
                         blinkFrameCount++;
-                    } else if (blinkFrameCount >= EAR_BLINK_FRAMES) {
-                        // âœ… Genuine blink confirmed!
+                    } else if (blinkFrameCount >= 1) {
+                        // Confirmed blink
                         scanActive = false;
                         if (livenessInterval) { clearTimeout(livenessInterval); livenessInterval = null; }
                         livenessSkippedFlag = false;
                         if (statusEl) {
-                            statusEl.innerHTML = 'âœ… <strong>Liveness Confirmed!</strong> You may now capture your photo.';
-                            statusEl.style.background = 'rgba(34,197,94,0.1)';
-                            statusEl.style.borderColor = 'rgba(34,197,94,0.4)';
-                            statusEl.style.color = '#22c55e';
+                            statusEl.innerHTML = '✅ <strong>Liveness Confirmed!</strong> Capturing your photo...';
+                            statusEl.style.background = 'rgba(22,163,74,0.1)';
+                            statusEl.style.borderColor = 'rgba(22,163,74,0.4)';
+                            statusEl.style.color = '#16a34a';
                         }
                         onBlink();
                         return;
                     } else {
                         blinkFrameCount = 0;
                     }
+
+                    frameCount++;
+                    if (frameCount > 60) {
+                        const _capBtn = document.getElementById('capture-btn');
+                        if (_capBtn) {
+                            _capBtn.classList.remove('hidden');
+                            _capBtn.disabled = false;
+                            _capBtn.innerText = '📸 Capture Photo';
+                        }
+                    }
+
                 } catch(e) {
                     console.warn('[Liveness]', e.message);
                 }

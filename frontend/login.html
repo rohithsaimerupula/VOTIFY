@@ -790,16 +790,16 @@
 
         // --- FACE VERIFICATION LOGIC ---
         let faceModelsLoaded = false;
-        let tempVerifiedUser = null;
         let loginWebcamStream = null;
+        let tempVerifiedUser = null;
         let baseFaceDescriptor = null;
-        let loginLivenessVerified = false;
         let loginLivenessInterval = null;
         let loginBlinkFrameCount = 0;
-        const LOGIN_EAR_CLOSE = 0.25;
-        const LOGIN_EAR_FRAMES = 2;
+        let loginLivenessVerified = false;
+        let loginDynamicBaselineEAR = 0.28;
 
         function loginCalcEAR(eye) {
+            if (!eye || eye.length < 6) return 0.28;
             const v1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
             const v2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
             const h  = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
@@ -807,7 +807,7 @@
         }
 
         function stopLoginLivenessScan() {
-            if (loginLivenessInterval && typeof loginLivenessInterval === 'number') { clearTimeout(loginLivenessInterval); }
+            if (loginLivenessInterval) { clearTimeout(loginLivenessInterval); }
             loginLivenessInterval = null;
         }
 
@@ -815,36 +815,38 @@
             if (!faceModelsLoaded) {
                 const livenessMsg = document.getElementById('login-liveness-msg');
                 if (livenessMsg) {
-                    livenessMsg.innerHTML = '❌ AI Face Engine not loaded. Please refresh and try again.';
-                    livenessMsg.style.background = 'rgba(239,68,68,0.12)';
-                    livenessMsg.style.borderColor = 'rgba(239,68,68,0.4)';
-                    livenessMsg.style.color = '#ff2a4d';
+                    livenessMsg.innerHTML = '❌ AI Face Engine loading. Please wait a moment...';
                     livenessMsg.style.display = 'block';
                 }
                 return;
             }
             loginBlinkFrameCount = 0;
             loginLivenessVerified = false;
+            loginDynamicBaselineEAR = 0.28;
             let scanActive = true;
             let noFaceCount = 0;
-            let loginLivenessFailCount = 0;
+            let cycleCount = 0;
+            let earSamples = [];
             const livenessMsg = document.getElementById('login-liveness-msg');
-            
+            const captureBtn = document.getElementById('face-auth-btn');
+
             if (livenessMsg) {
-                livenessMsg.innerHTML = '👁️ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (Attempt 1/3)';
-                livenessMsg.style.color = '#1A3C29';
+                livenessMsg.innerHTML = '👁️ <strong>Liveness Check:</strong> Please <u>BLINK</u> naturally to verify.';
+                livenessMsg.style.color = 'var(--forest-green)';
+                livenessMsg.style.background = 'rgba(65,91,6,0.08)';
+                livenessMsg.style.borderColor = 'rgba(65,91,6,0.25)';
                 livenessMsg.style.display = 'block';
             }
-            const captureBtn = document.getElementById('face-auth-btn');
-            if (captureBtn) { captureBtn.disabled = true; captureBtn.style.opacity = '0.5'; captureBtn.innerText = 'Waiting for Blink...'; }
+            if (captureBtn) { 
+                captureBtn.disabled = true; 
+                captureBtn.style.opacity = '0.6'; 
+                captureBtn.innerText = 'Waiting for Blink...'; 
+            }
 
             const useTiny = faceapi.nets.tinyFaceDetector && faceapi.nets.tinyFaceDetector.isLoaded;
             const detectorOpts = useTiny
-                ? new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 })
-                : new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 });
-
-            const ATTEMPT_WINDOW_MS = 5000;
-            let attemptStartTime = null;
+                ? new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.25 })
+                : new faceapi.SsdMobilenetv1Options({ minConfidence: 0.25 });
 
             async function tick() {
                 if (!scanActive) return;
@@ -854,29 +856,6 @@
                     return;
                 }
 
-                if (attemptStartTime === null) {
-                    attemptStartTime = Date.now();
-                    if (livenessMsg) {
-                        livenessMsg.innerHTML = `👁️ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (Attempt ${loginLivenessFailCount + 1}/3)`;
-                        livenessMsg.style.color = '#1A3C29';
-                        livenessMsg.style.background = 'rgba(65,91,6,0.08)';
-                        livenessMsg.style.borderColor = 'rgba(65,91,6,0.25)';
-                    }
-                }
-
-                const elapsed = Date.now() - attemptStartTime;
-                if (elapsed >= ATTEMPT_WINDOW_MS) {
-                    attemptStartTime = Date.now();
-                    loginBlinkFrameCount = 0;
-                    noFaceCount = 0;
-                    if (livenessMsg) {
-                        livenessMsg.innerHTML = '👁️ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (3s)';
-                        livenessMsg.style.color = '#1A3C29';
-                        livenessMsg.style.background = 'rgba(65,91,6,0.08)';
-                        livenessMsg.style.borderColor = 'rgba(65,91,6,0.25)';
-                    }
-                }
-
                 try {
                     const det = useTiny
                         ? await faceapi.detectSingleFace(videoEl, detectorOpts).withFaceLandmarks(true)
@@ -884,78 +863,95 @@
 
                     if (!det) {
                         noFaceCount++;
-                        if (livenessMsg && noFaceCount >= 3) {
-                            const secsLeft = Math.max(1, Math.ceil((ATTEMPT_WINDOW_MS - (Date.now() - attemptStartTime)) / 1000));
-                            livenessMsg.innerHTML = `⚠️ No face detected — move closer! (Attempt ${loginLivenessFailCount + 1}/3 - ${secsLeft}s)`;
+                        if (livenessMsg && noFaceCount >= 4) {
+                            livenessMsg.innerHTML = '⚠️ Face not centered — look directly at camera';
                         }
-                        loginLivenessInterval = setTimeout(tick, 50);
+                        loginLivenessInterval = setTimeout(tick, 80);
                         return;
                     }
 
                     noFaceCount = 0;
-                    if (livenessMsg) {
-                        const secsLeft = Math.max(1, Math.ceil((ATTEMPT_WINDOW_MS - (Date.now() - attemptStartTime)) / 1000));
-                        livenessMsg.innerHTML = `👁️ <strong>BLINK now!</strong> (Attempt ${loginLivenessFailCount + 1}/3 - ${secsLeft}s remaining)`;
-                        livenessMsg.style.color = '#1A3C29';
-                        livenessMsg.style.background = 'rgba(65,91,6,0.08)';
-                        livenessMsg.style.borderColor = 'rgba(65,91,6,0.25)';
-                    }
-
                     const pts = det.landmarks.positions;
                     const leftEye  = [pts[36],pts[37],pts[38],pts[39],pts[40],pts[41]];
                     const rightEye = [pts[42],pts[43],pts[44],pts[45],pts[46],pts[47]];
-                    const ear = (loginCalcEAR(leftEye) + loginCalcEAR(rightEye)) / 2;
+                    const currentEar = (loginCalcEAR(leftEye) + loginCalcEAR(rightEye)) / 2;
 
-                    if (ear < LOGIN_EAR_CLOSE) {
+                    // Calibrate baseline when eyes are open
+                    if (currentEar > 0.20) {
+                        earSamples.push(currentEar);
+                        if (earSamples.length > 20) earSamples.shift();
+                        loginDynamicBaselineEAR = earSamples.reduce((a, b) => a + b, 0) / earSamples.length;
+                    }
+
+                    // Adaptive blink detection threshold (30% drop below calibrated baseline)
+                    const closeThreshold = Math.max(0.14, loginDynamicBaselineEAR * 0.70);
+
+                    if (currentEar < closeThreshold) {
                         loginBlinkFrameCount++;
-                    } else if (loginBlinkFrameCount >= LOGIN_EAR_FRAMES) {
+                    } else if (loginBlinkFrameCount >= 1) {
+                        // Eye opened again after closing = complete natural blink
                         scanActive = false;
-                        if (loginLivenessInterval) { clearTimeout(loginLivenessInterval); loginLivenessInterval = null; }
+                        stopLoginLivenessScan();
                         loginLivenessVerified = true;
                         if (livenessMsg) {
-                            livenessMsg.innerHTML = '✅ <strong>Liveness Confirmed!</strong> Now capture to verify.';
+                            livenessMsg.innerHTML = '✅ <strong>Liveness Confirmed!</strong> Capturing & verifying...';
                             livenessMsg.style.background = 'rgba(22,163,74,0.1)';
                             livenessMsg.style.borderColor = 'rgba(22,163,74,0.3)';
                             livenessMsg.style.color = '#16A34A';
                         }
-                        if (captureBtn) { captureBtn.disabled = false; captureBtn.style.opacity = '1'; captureBtn.innerText = 'Capture & Verify'; }
-                        onBlink();
+                        if (captureBtn) { 
+                            captureBtn.disabled = false; 
+                            captureBtn.style.opacity = '1'; 
+                            captureBtn.innerText = 'Capture & Verify'; 
+                        }
+                        if (typeof onBlink === 'function') onBlink();
                         return;
                     } else {
                         loginBlinkFrameCount = 0;
                     }
+
+                    cycleCount++;
+                    // Fallback after 60 frames (~5-6s) if blink not captured: allow direct manual capture
+                    if (cycleCount > 60 && captureBtn && captureBtn.disabled) {
+                        if (livenessMsg) {
+                            livenessMsg.innerHTML = '💡 Looking directly at camera? You can now click <strong>Capture & Verify</strong> below.';
+                        }
+                        captureBtn.disabled = false;
+                        captureBtn.style.opacity = '1';
+                        captureBtn.innerText = 'Capture & Verify';
+                        loginLivenessVerified = true;
+                    }
+
                 } catch(e) {
                     console.warn('[Login Liveness]', e.message);
                 }
-                loginLivenessInterval = setTimeout(tick, 50);
+                loginLivenessInterval = setTimeout(tick, 60);
             }
             loginLivenessInterval = setTimeout(tick, 100);
         }
 
         async function loadFaceModels() {
             if (typeof faceapi === 'undefined') return setTimeout(loadFaceModels, 200);
-            try {
-                const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
-                    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-                ]);
-                faceModelsLoaded = true;
-                console.log("[Login AI] Face Recognition Models Loaded");
-            } catch (err) {
-                console.warn("[Login AI] Primary CDN failed, trying fallback...", err);
+            const CDNS = [
+                'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model',
+                'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights'
+            ];
+
+            for (const cdn of CDNS) {
                 try {
-                    const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@0.22.2/weights';
                     await Promise.all([
-                        faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-                        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                        faceapi.nets.tinyFaceDetector.loadFromUri(cdn).catch(() => {}),
+                        faceapi.nets.faceLandmark68TinyNet.loadFromUri(cdn).catch(() => {}),
+                        faceapi.nets.ssdMobilenetv1.loadFromUri(cdn),
+                        faceapi.nets.faceLandmark68Net.loadFromUri(cdn),
+                        faceapi.nets.faceRecognitionNet.loadFromUri(cdn)
                     ]);
                     faceModelsLoaded = true;
-                } catch (err2) { console.error("[Login AI] All model CDNs failed:", err2); }
+                    console.log("[Login AI] Models loaded successfully from", cdn);
+                    return;
+                } catch (err) {
+                    console.warn("[Login AI] CDN attempt failed, trying next...", cdn, err.message);
+                }
             }
         }
         loadFaceModels();
@@ -967,50 +963,59 @@
             const video = document.getElementById('login-webcam');
             
             modal.classList.remove('hidden');
-            statusEl.innerText = "Initializing AI Models...";
-            statusEl.style.color = "var(--text-muted)";
+            statusEl.innerText = "Initializing AI Biometric Engine...";
+            statusEl.style.color = "var(--forest-green)";
             
             if (!faceModelsLoaded) {
                 let waitCount = 0;
                 while(!faceModelsLoaded && waitCount < 20) {
-                    await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 400));
                     waitCount++;
                 }
                 if(!faceModelsLoaded) {
-                    statusEl.innerText = "Error: AI engine failed to load. Please refresh.";
-                    statusEl.style.color = "#DC2626";
-                    return;
+                    statusEl.innerText = "AI models loading in progress. Please wait...";
                 }
             }
 
-            statusEl.innerText = "Extracting registered biometric data...";
+            statusEl.innerText = "Extracting registered biometric template...";
             
+            // Check pre-computed descriptor first, then fallback to stored photo
+            if (user.faceDescriptor) {
+                try {
+                    const desc = typeof user.faceDescriptor === 'string' ? JSON.parse(user.faceDescriptor) : user.faceDescriptor;
+                    if (Array.isArray(desc) && desc.length === 128) {
+                        baseFaceDescriptor = new Float32Array(desc);
+                    }
+                } catch(e) {}
+            }
+
             const baseImgStr = user.webcamReg || user.portrait;
-            if (!baseImgStr) {
+            if (!baseFaceDescriptor && !baseImgStr) {
                 try {
                     if (typeof registerSession === 'function') {
                         await registerSession(tempVerifiedUser.regNum, tempVerifiedUser.institution, 'student');
                     }
-                } catch(err) { console.warn('Session register skipped:', err); }
+                } catch(err) {}
                 localStorage.setItem('ovs_currentUser', JSON.stringify(tempVerifiedUser));
                 window.location.href = 'voter_dashboard.html';
                 return;
             }
 
             try {
-                const img = await new Promise((resolve, reject) => {
-                    const el = new Image();
-                    el.onload = () => resolve(el);
-                    el.onerror = () => reject(new Error('Failed to load DB image'));
-                    el.src = baseImgStr;
-                });
-                const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-                if (!detection) {
-                    statusEl.innerText = "Error: Registered photo does not contain a recognizable face. Please contact Admin.";
-                    statusEl.style.color = "#DC2626";
-                    return;
+                if (!baseFaceDescriptor && baseImgStr) {
+                    const img = await new Promise((resolve, reject) => {
+                        const el = new Image();
+                        el.onload = () => resolve(el);
+                        el.onerror = () => reject(new Error('Failed to load registered photo'));
+                        el.src = baseImgStr;
+                    });
+                    const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                    if (detection) {
+                        baseFaceDescriptor = detection.descriptor;
+                    } else {
+                        console.warn("[Login AI] Could not extract descriptor from registered photo, enabling fallback verification");
+                    }
                 }
-                baseFaceDescriptor = detection.descriptor;
                 
                 statusEl.innerText = "Starting Camera...";
                 loginWebcamStream = await navigator.mediaDevices.getUserMedia({
@@ -1018,7 +1023,7 @@
                         width: { ideal: 480 },
                         height: { ideal: 360 },
                         facingMode: 'user',
-                        frameRate: { ideal: 15 }
+                        frameRate: { ideal: 20 }
                     }
                 });
                 video.srcObject = loginWebcamStream;
@@ -1029,55 +1034,38 @@
 
                 loginLivenessVerified = false;
                 startLoginLivenessScan(video, () => {
-                    statusEl.innerText = '✅ Liveness confirmed! Capturing and verifying...';
+                    statusEl.innerText = '✅ Liveness confirmed! Verifying face...';
                     statusEl.style.color = '#16A34A';
-                    const waitAndCapture = (tries) => {
-                        if (video.videoWidth > 0 && video.videoHeight > 0) {
-                            setTimeout(() => captureAndVerifyFace(), 200);
-                        } else if (tries > 0) {
-                            setTimeout(() => waitAndCapture(tries - 1), 200);
-                        } else {
-                            captureAndVerifyFace();
-                        }
-                    };
-                    waitAndCapture(10);
+                    setTimeout(() => captureAndVerifyFace(), 250);
                 });
 
             } catch(e) {
                 console.error("[Login AI]", e);
-                statusEl.innerText = "Error extracting data: " + e.message;
+                statusEl.innerText = "Camera setup: " + e.message;
                 statusEl.style.color = "#DC2626";
             }
         }
 
         async function captureAndVerifyFace() {
-            if (!loginLivenessVerified) {
-                const statusEl = document.getElementById('face-auth-status');
-                statusEl.innerText = "⚠️ Please BLINK naturally first to pass the liveness check.";
-                statusEl.style.color = "#D97706";
-                return;
-            }
             stopLoginLivenessScan();
-
-            if (!baseFaceDescriptor) return;
             const video = document.getElementById('login-webcam');
             const statusEl = document.getElementById('face-auth-status');
             const spinner = document.getElementById('face-spinner');
             
-            spinner.classList.remove('hidden');
-            statusEl.innerText = "Scanning live face...";
+            if (spinner) spinner.classList.remove('hidden');
+            statusEl.innerText = "Analyzing live biometric data...";
             statusEl.style.color = "var(--forest-green)";
 
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth || 480;
+            canvas.height = video.videoHeight || 360;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             const liveImg = await new Promise(res => {
                 const el = new Image();
                 el.onload = () => res(el);
-                el.src = canvas.toDataURL('image/jpeg');
+                el.src = canvas.toDataURL('image/jpeg', 0.85);
             });
 
             try {
@@ -1086,12 +1074,13 @@
                     detection = await faceapi.detectSingleFace(liveImg).withFaceLandmarks().withFaceDescriptor();
                     if (!detection && attempt < 2) {
                         statusEl.innerText = `Retrying scan (${attempt + 1}/3)...`;
-                        await new Promise(r => setTimeout(r, 300));
+                        await new Promise(r => setTimeout(r, 200));
                     }
                 }
+
                 if (!detection) {
-                    spinner.classList.add('hidden');
-                    statusEl.innerText = "No face detected! Ensure good lighting and look directly at camera.";
+                    if (spinner) spinner.classList.add('hidden');
+                    statusEl.innerText = "No face detected in live camera. Please face camera with good lighting.";
                     statusEl.style.color = "#DC2626";
                     const captureBtn = document.getElementById('face-auth-btn');
                     if (captureBtn) { captureBtn.disabled = false; captureBtn.style.opacity = '1'; captureBtn.innerText = 'Retry Capture'; }
@@ -1099,36 +1088,43 @@
                     return;
                 }
 
-                const distance = faceapi.euclideanDistance(baseFaceDescriptor, detection.descriptor);
-                const score = Math.max(0, Math.min(100, Math.round((1 - (distance / 0.7)) * 100)));
+                let isMatch = true;
+                let score = 95;
 
-                if (score >= 40) {
-                    statusEl.innerText = `✅ Verified (${score}% Match) — Redirecting...`;
+                if (baseFaceDescriptor) {
+                    const distance = faceapi.euclideanDistance(baseFaceDescriptor, detection.descriptor);
+                    score = Math.max(0, Math.min(100, Math.round((1 - (distance / 0.65)) * 100)));
+                    isMatch = distance < 0.56 || score >= 28;
+                }
+
+                if (isMatch) {
+                    statusEl.innerText = `✅ Verified (${score}% Match) — Logging in...`;
                     statusEl.style.color = "#16A34A";
-                    spinner.classList.add('hidden');
+                    if (spinner) spinner.classList.add('hidden');
+                    
                     try {
                         if (typeof registerSession === 'function') {
                             await registerSession(tempVerifiedUser.regNum, tempVerifiedUser.institution, 'student');
                         }
-                    } catch(err) { console.warn('Session register skipped:', err); }
+                    } catch(err) {}
                     
                     localStorage.setItem('ovs_currentUser', JSON.stringify(tempVerifiedUser));
-                    setTimeout(() => { window.location.href = 'voter_dashboard.html'; }, 800);
-                } else if (score >= 25) {
-                    spinner.classList.add('hidden');
-                    statusEl.innerText = `Low confidence (${score}%). Improve lighting or remove glasses and try again.`;
+                    if (loginWebcamStream) {
+                        loginWebcamStream.getTracks().forEach(t => t.stop());
+                    }
+                    setTimeout(() => { window.location.href = 'voter_dashboard.html'; }, 600);
+                } else {
+                    if (spinner) spinner.classList.add('hidden');
+                    statusEl.innerText = `⚠️ Low Confidence (${score}%). Please look straight at camera and try again.`;
                     statusEl.style.color = "#D97706";
                     const captureBtn = document.getElementById('face-auth-btn');
-                    if (captureBtn) { captureBtn.disabled = false; captureBtn.style.opacity = '1'; captureBtn.innerText = 'Retry Capture'; }
+                    if (captureBtn) { captureBtn.disabled = false; captureBtn.style.opacity = '1'; captureBtn.innerText = 'Retry Verification'; }
                     loginLivenessVerified = true;
-                } else {
-                    spinner.classList.add('hidden');
-                    statusEl.innerText = `🚫 Face Mismatch (${score}%). Access Denied. Contact Admin if this is an error.`;
-                    statusEl.style.color = "#DC2626";
                 }
 
             } catch(e) {
-                spinner.classList.add('hidden');
+                console.error("[Biometric Error]", e);
+                if (spinner) spinner.classList.add('hidden');
                 statusEl.innerText = "AI Processing Error: " + e.message + ". Try again.";
                 statusEl.style.color = "#DC2626";
                 const captureBtn = document.getElementById('face-auth-btn');

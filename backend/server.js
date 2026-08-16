@@ -1,4 +1,4 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -39,34 +39,29 @@ app.use(express.json({ limit: '10mb' }));
 // Removed express.static as backend is now separate API only
 
 const turso = createClient({
-    url: process.env.TURSO_DATABASE_URL || "libsql://dummy",
-    authToken: process.env.TURSO_AUTH_TOKEN || "dummy",
+    url: process.env.TURSO_DATABASE_URL || "file:local.db",
+    authToken: process.env.TURSO_AUTH_TOKEN || undefined,
 });
-
-
 
 // Basic Middleware for Request Scoping
 function authGuard(req, res, next) {
     const regNum = req.headers['x-ovs-reg-num'];
     const institution = decodeURIComponent(req.headers['x-ovs-institution'] || '');
     
-    // For now, we just ensure these exist for sensitive operations
-    // In a full production app, this would verify a JWT token
     if (!regNum || !institution) {
-        // Allow GET config without auth (except sensitive ones)
         if (req.method === 'GET' && req.path.startsWith('/api/config')) return next();
         return res.status(401).json({ error: "Unauthorized: Registration Number and Institution required in headers." });
     }
     next();
 }
 
-async function retryWithBackoff(fn, retries = 6, delayMs = 3000) {
+async function retryWithBackoff(fn, retries = 2, delayMs = 1000) {
     let lastError = null;
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
             return await Promise.race([
                 fn(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 25000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 4000))
             ]);
         } catch (e) {
             lastError = e;
@@ -910,38 +905,68 @@ app.post('/api/deviceFingerprints', async (req, res) => {
 
 const otpRateLimit = new Map();
 
+function getSmtpConfig() {
+    const user = process.env.SMTP_USER || process.env.SMTP_FROM;
+    const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+    if (!user || !pass) return null;
+    return { user, pass };
+}
+
 app.post('/api/auth/send-otp', async (req, res) => {
     try {
         const { email, name, otp, context } = req.body;
         if (!email || !otp) return res.status(400).json({ error: "Email and OTP required" });
 
-        // Simple Rate Limiting
+        // Rate Limiting (15s backoff)
         const now = Date.now();
-        if (otpRateLimit.has(email) && (now - otpRateLimit.get(email)) < 60000) {
-            return res.status(429).json({ error: "Please wait 60 seconds before requesting another OTP." });
+        if (otpRateLimit.has(email) && (now - otpRateLimit.get(email)) < 15000) {
+            return res.status(429).json({ error: "Please wait 15 seconds before requesting another OTP." });
         }
         otpRateLimit.set(email, now);
 
-        // --- GMAIL SMTP DELIVERY ---
+        const smtp = getSmtpConfig();
+        if (!smtp) {
+            console.warn(`[OTP_DISPATCH] SMTP not configured. OTP for ${email}: ${otp}`);
+            try {
+                await db.execute({
+                    sql: "INSERT INTO system_alerts (type, message, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
+                    args: ["SMTP_WARNING", `SMTP credentials not configured. OTP generated for ${email}.`, `OTP: ${otp} | Context: ${context || 'General'}`, String(Date.now()), "Global"]
+                });
+            } catch(err) {}
+            return res.json({ success: true, warning: "SMTP not configured. OTP logged to system." });
+        }
+
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.SMTP_FROM,
-                pass: process.env.GMAIL_APP_PASSWORD
+                user: smtp.user,
+                pass: smtp.pass
             }
         });
 
         const mailOptions = {
-            from: `"Vanguard Security" <${process.env.SMTP_FROM}>`,
+            from: `"VOTIFY Security" <${smtp.user}>`,
             to: email,
-            subject: `${context || 'Verification Code'} â€” OVS`,
-            html: `<div style="font-family:sans-serif;max-width:500px;margin:auto;padding:20px;border:1px solid #eee;border-radius:10px;"><h2>Vanguard Voting</h2><p>Hello <strong>${name || 'User'}</strong>,</p><p>Your verification code for <strong>${context || 'Secure Activity'}</strong> is:</p><div style="background:#f4f4f4;padding:20px;text-align:center;font-size:32px;font-weight:bold;letter-spacing:5px;border-radius:5px;">${otp}</div><p style="color:#666;font-size:12px;">This code expires in 10 minutes.</p></div>`
+            subject: `${context || 'Verification Code'} — VOTIFY`,
+            html: `<div style="font-family:sans-serif;max-width:520px;margin:auto;padding:30px;background:#FAF6F0;border:1px solid rgba(65,91,6,0.2);border-radius:16px;color:#1A3C29;">
+                <h2 style="color:#1A3C29;margin-top:0;font-size:24px;font-weight:800;">VOTIFY Security Verification</h2>
+                <p style="font-size:15px;color:#4B5563;">Hello <strong>${name || 'User'}</strong>,</p>
+                <p style="font-size:15px;color:#4B5563;">Your single-use verification code for <strong>${context || 'Secure Activity'}</strong> is:</p>
+                <div style="background:#FFFDF9;border:1px solid rgba(65,91,6,0.16);padding:20px;text-align:center;font-size:34px;font-weight:900;letter-spacing:6px;color:#1A3C29;border-radius:12px;margin:20px 0;">${otp}</div>
+                <p style="color:#6B7280;font-size:13px;margin-bottom:0;">This verification code will expire in 10 minutes. If you did not make this request, please ignore this email.</p>
+            </div>`
         };
 
         await transporter.sendMail(mailOptions);
         res.json({ success: true });
     } catch (e) {
         console.error("[NODEMAILER_FAIL]", e);
+        try {
+            await db.execute({
+                sql: "INSERT INTO system_alerts (type, message, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
+                args: ["SMTP_FAILURE", `Email delivery failed for ${req.body.email || 'unknown'}`, e.message, String(Date.now()), "Global"]
+            });
+        } catch(err) {}
         res.status(500).json({ error: `SMTP Error: ${e.message}` });
     }
 });
@@ -950,7 +975,7 @@ app.get('/api/admin/system-health', authGuard, async (req, res) => {
     try {
         const inst = decodeURIComponent(req.query.institution || '');
         const alerts = await db.execute({ sql: "SELECT * FROM system_alerts WHERE (institution = ? OR institution = 'Global') AND type != 'OTP_GENERATED' ORDER BY timestamp DESC LIMIT 20", args: [inst] });
-        res.json({ alerts: alerts.rows, smtpStatus: !!process.env.GMAIL_APP_PASSWORD });
+        res.json({ alerts: alerts.rows, smtpStatus: !!(process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS) });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
