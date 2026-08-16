@@ -1,16 +1,22 @@
-// API Configuration
-// When running as a native Android app (via Capacitor), location.hostname is
-// 'localhost' even in production — so we must detect the native platform explicitly.
+function getApiBase() {
+    if (typeof API !== 'undefined' && API) return API;
+    if (typeof PROD_API_URL !== 'undefined' && PROD_API_URL) return PROD_API_URL;
+    if (typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+        return 'http://localhost:3001/api';
+    }
+    return 'https://votify-kttt.onrender.com/api';
+}
+
 const _isCapacitorNative = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-const API_BASE = typeof API !== 'undefined' ? API : (location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api');
 
 // Shared utilities
 async function fetchApi(path, options = {}, retries = 2) {
+    const apiBase = getApiBase();
     try {
         const currentUser = JSON.parse(localStorage.getItem('ovs_currentUser') || 'null');
         const inst = localStorage.getItem('ovs_inst_name') || (currentUser ? currentUser.institution : '');
         
-        const res = await fetch(`${API_BASE}${path}`, {
+        const res = await fetch(`${apiBase}${path}`, {
             ...(options || {}),
             headers: {
                 'Content-Type': 'application/json',
@@ -29,7 +35,7 @@ async function fetchApi(path, options = {}, retries = 2) {
     } catch (e) {
         if (retries > 0 && e.message !== "Not found" && !e.message.includes("exists")) {
             console.warn(`[OVS Network] Fetch failed: ${e.message}. Retrying... (${retries} retries left)`);
-            await new Promise(r => setTimeout(r, 600)); // wait 600ms before retry
+            await new Promise(r => setTimeout(r, 600));
             return fetchApi(path, options, retries - 1);
         }
         throw e;

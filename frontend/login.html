@@ -692,7 +692,7 @@
             submitBtn.disabled = true;
 
             try {
-                const timeoutP = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout: Server could not connect after 8 seconds.")), 8000));
+                const timeoutP = new Promise((_, reject) => setTimeout(() => reject(new Error("Connecting to secure cloud server... Please wait a few seconds.")), 30000));
                 
                 const userObj = await Promise.race([
                     StorageManager.login(regNum, password),
