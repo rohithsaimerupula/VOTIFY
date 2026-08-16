@@ -1,17 +1,18 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="var(--secondary)">
+    <meta name="theme-color" content="#1A3C29">
     <link rel="apple-touch-icon" href="assets/icon-192.png">
-    <title>Secure Login â€” OVS</title>
+    <title>Secure Portal Login — OVS</title>
     <meta name="description" content="Securely login to the Online Voting System voter or staff portal.">
     <link rel="stylesheet" href="style.css?v=1781373415711">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Playfair+Display:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         (function() {
@@ -19,34 +20,67 @@
             localStorage.setItem('ovs_theme', 'light');
         })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
-
-        /* â”€â”€â”€ LOGIN PAGE LAYOUT â”€â”€â”€ */
+        /* ── Page Layout & Alignment ── */
         .login-wrapper {
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 5rem 1.5rem 3rem;
+            padding: 6rem 1.5rem 3.5rem;
             position: relative;
             z-index: 10;
         }
 
         .login-card {
             width: 100%;
-            max-width: 460px;
-            padding: 2.8rem 2.2rem;
+            max-width: 470px;
+            background: rgba(255, 253, 249, 0.92);
+            border: 1px solid rgba(65, 91, 6, 0.18);
+            border-radius: 24px;
+            padding: 2.8rem 2.4rem;
+            box-shadow: 0 24px 64px -16px rgba(26, 60, 41, 0.12), 0 4px 16px rgba(0, 0, 0, 0.02), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(24px);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* â”€â”€â”€ TABS â”€â”€â”€ */
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(65, 91, 6, 0.5), transparent);
+        }
+
+        /* ── Dynamic Vector Icon Header ── */
+        .login-header-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.2rem;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(65, 91, 6, 0.09) 0%, rgba(26, 60, 41, 0.03) 100%);
+            border: 1px solid rgba(65, 91, 6, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(26, 60, 41, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .login-card:hover .login-header-icon {
+            transform: scale(1.06);
+        }
+
+        /* ── Tabs (Staff Mode) ── */
         .login-tabs {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--glass-border);
+            gap: 0.4rem;
+            margin-bottom: 1.8rem;
+            background: rgba(65, 91, 6, 0.06);
+            border: 1px solid rgba(65, 91, 6, 0.16);
             border-radius: 14px;
             padding: 0.35rem;
         }
@@ -58,194 +92,264 @@
             border: none;
             background: transparent;
             color: var(--text-muted);
-            font-family: var(--font-heading);
+            font-family: var(--font-body);
             font-weight: 600;
-            font-size: 0.87rem;
+            font-size: 0.88rem;
             cursor: pointer;
             transition: all 0.25s ease;
-        }
-
-        .tab-btn:hover {
-            background: rgba(255,255,255,0.06);
-            color: white;
-        }
-
-        .tab-btn.active {
-            background: rgba(65, 91, 6, 0.14);
-            border: 1px solid rgba(65, 91, 6, 0.28);
-            color: var(--neon-cyan);
-            box-shadow: 0 0 20px rgba(65, 91, 6,0.12);
-        }
-
-        /* â”€â”€â”€ INPUT GLOW â”€â”€â”€ */
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: rgba(65, 91, 6, 0.55);
-            background: rgba(65, 91, 6, 0.05);
-            box-shadow: 0 0 0 3px rgba(65, 91, 6,0.1), 0 0 24px rgba(65, 91, 6,0.08);
-        }
-
-        /* â”€â”€â”€ LOGIN HEADER â”€â”€â”€ */
-        .login-header-icon {
-            width: 60px; height: 60px;
-            margin: 0 auto 1.2rem;
-            border-radius: 16px;
-            background: linear-gradient(135deg, rgba(65, 91, 6,0.12), rgba(65, 91, 6,0.1));
-            border: 1px solid rgba(65, 91, 6,0.25);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
-            box-shadow: 0 0 24px rgba(65, 91, 6,0.12);
-            animation: float 4s ease-in-out infinite;
+            gap: 0.4rem;
         }
 
-        /* â”€â”€â”€ INST DISPLAY â”€â”€â”€ */
+        .tab-btn:hover {
+            color: var(--forest-green);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-btn.active {
+            background: var(--forest-green);
+            color: #FFFFFF;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(26, 60, 41, 0.18);
+        }
+
+        .tab-btn.active-subadmin {
+            background: var(--olive);
+            color: #FFFFFF;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(65, 91, 6, 0.18);
+        }
+
+        /* ── Institution Badge ── */
         #inst-display {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 1.1rem;
             border-radius: 999px;
-            background: rgba(65, 91, 6,0.08);
-            border: 1px solid rgba(65, 91, 6,0.2);
-            color: var(--neon-cyan);
+            background: rgba(65, 91, 6, 0.07);
+            border: 1px solid rgba(65, 91, 6, 0.20);
+            color: var(--forest-green);
             font-size: 0.8rem;
             font-weight: 700;
             letter-spacing: 0.06em;
             text-transform: uppercase;
-            margin-bottom: 1.8rem;
+            margin-bottom: 1.6rem;
         }
 
-        .pass-eye-btn:hover { color: var(--neon-cyan); }
+        /* ── Input Styling ── */
+        .form-group label {
+            color: var(--forest-green);
+            font-size: 0.86rem;
+            font-weight: 600;
+            margin-bottom: 0.45rem;
+            display: block;
+        }
 
-        /* â”€â”€â”€ VOTER COUNTDOWN â”€â”€â”€ */
-        #voter-countdown-card {
-            background: rgba(255, 42, 77, 0.05);
-            border: 1px solid rgba(255, 42, 77, 0.15);
+        .form-group input {
+            width: 100%;
+            padding: 0.9rem 1.15rem;
+            background: rgba(255, 253, 249, 0.95);
+            border: 1px solid rgba(65, 91, 6, 0.18);
             border-radius: 12px;
+            color: var(--forest-green);
+            font-family: var(--font-body);
+            font-size: 0.98rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            border-color: var(--forest-green);
+            box-shadow: 0 0 0 3px rgba(26, 60, 41, 0.12);
+            background: #FFFFFF;
+        }
+
+        .pass-eye-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
+
+        .pass-eye-btn:hover {
+            color: var(--forest-green);
+        }
+
+        /* ── Buttons ── */
+        .submit-btn {
+            width: 100%;
+            padding: 0.9rem 1.5rem;
+            border-radius: var(--radius-pill);
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: var(--font-body);
+            transition: all 0.25s ease;
+            text-align: center;
+            border: none;
+            background: var(--forest-green);
+            color: #FFFFFF;
+            box-shadow: 0 6px 18px rgba(26, 60, 41, 0.18);
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(26, 60, 41, 0.26);
+            background: #11281B;
+        }
+
+        /* ── Voter Countdown Card ── */
+        #voter-countdown-card {
+            background: rgba(220, 38, 38, 0.05);
+            border: 1px solid rgba(220, 38, 38, 0.16);
+            border-radius: 14px;
             padding: 1rem;
             margin-bottom: 1.5rem;
             text-align: center;
             display: none;
             animation: fadeIn 0.5s ease-out;
         }
-        .cd-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.7rem; font-weight: 700; }
+        .cd-label { font-size: 0.7rem; color: #DC2626; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-weight: 700; }
         .cd-values { display: flex; justify-content: center; gap: 0.8rem; }
         .cd-item { display: flex; flex-direction: column; align-items: center; }
-        .cd-num { font-size: 1.5rem; font-weight: 800; color: #ff2a4d; line-height: 1; }
-        .cd-txt { font-size: 0.6rem; color: var(--text-dim); margin-top: 0.3rem; font-weight: 600; }
-        .cd-sep { font-size: 1.2rem; color: rgba(255, 255, 255, 0.1); margin-top: -0.2rem; }
+        .cd-num { font-size: 1.45rem; font-weight: 800; color: #DC2626; line-height: 1; font-family: var(--font-heading); }
+        .cd-txt { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; font-weight: 600; }
+        .cd-sep { font-size: 1.2rem; color: rgba(220, 38, 38, 0.3); margin-top: -0.2rem; }
     </style>
     <script src="session-guard.js"></script>
-<script src="config.js"></script>
+    <script src="config.js"></script>
 </head>
 
 <body>
-    <!-- Cyber Mesh Particles -->
-    <div id="tsparticles" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;"></div>
-    <!-- SUPER ADMIN HIDDEN MODAL (Staff mode only) -->
-    <style>
-      @keyframes popIn { 0% { opacity:0; transform:scale(0.9) translateY(20px); } 100% { opacity:1; transform:scale(1) translateY(0); } }
-      @keyframes slideUp { 0% { opacity:0; transform:translateY(40px) scale(0.95); } 100% { opacity:1; transform:translateY(0) scale(1); } }
-      @keyframes otpPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); } 50% { box-shadow: 0 0 0 8px rgba(245,158,11,0.15); } }
-      .sa-modal-input { transition: all 0.3s ease; }
-      .sa-modal-input:focus { transform: translateY(-2px); box-shadow: 0 10px 20px -10px rgba(245,158,11,0.3); border-color: rgba(245,158,11,0.5) !important; }
-      .otp-digit-display { animation: otpPulse 2s infinite; }
-    </style>
+    <!-- ── 3D FLOWING SILK FABRIC BACKGROUND ── -->
+    <div class="silk-bg" aria-hidden="true">
+        <div class="silk-layer"></div>
+        <div class="silk-layer-2"></div>
+    </div>
 
-    <!-- Step 1: Credentials Modal -->
-    <div id="sa-login-modal" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,0.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;">
-      <div style="position:absolute;width:50vw;height:50vw;background:radial-gradient(circle,rgba(245,158,11,0.08) 0%,transparent 60%);top:10%;right:10%;filter:blur(60px);pointer-events:none;"></div>
-      <div style="background:rgba(12,18,28,0.92);backdrop-filter:blur(24px);border:1px solid rgba(245,158,11,0.2);border-top:1px solid rgba(245,158,11,0.4);border-radius:24px;padding:3rem;width:100%;max-width:440px;text-align:center;position:relative;box-shadow:0 40px 80px -20px rgba(0,0,0,0.9);animation:popIn 0.5s cubic-bezier(0.16,1,0.3,1);">
-        <button onclick="closeSAModal()" style="position:absolute;top:1.5rem;right:1.5rem;background:rgba(255,255,255,0.08);border:none;color:white;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.3s;" onmouseover="this.style.background='rgba(239,68,68,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">âœ•</button>
-        <div style="width:68px;height:68px;background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(245,158,11,0.03));border:1px solid rgba(245,158,11,0.5);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin:0 auto 1.2rem auto;box-shadow:0 0 40px rgba(245,158,11,0.15);">ðŸ‘º</div>
-        <h2 style="font-size:2rem;font-weight:900;color:#fff;margin-bottom:0.2rem;letter-spacing:-0.5px;">Super Admin</h2>
-        <p style="color:#64748b;font-size:0.8rem;margin-bottom:2rem;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;">Secure Portal Access</p>
-        <div style="text-align:left;margin-bottom:1.2rem;">
-          <label style="display:flex;justify-content:space-between;color:#94a3b8;font-size:0.72rem;font-weight:700;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:1px;">
-            <span>Super Admin ID</span><small style="color:rgba(255,255,255,0.25);font-weight:400;text-transform:none;">(9 chars)</small>
+    <!-- ── SUPER ADMIN STEP 1: CREDENTIALS MODAL ── -->
+    <div id="sa-login-modal" style="display:none;position:fixed;inset:0;background:rgba(240,230,218,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:9999;align-items:center;justify-content:center;padding:1.5rem;">
+      <div style="background:rgba(255,253,249,0.96);border:1px solid rgba(217,119,6,0.3);border-radius:24px;padding:2.8rem 2.2rem;width:100%;max-width:440px;text-align:center;position:relative;box-shadow:0 30px 80px -20px rgba(26,60,41,0.18),0 4px 16px rgba(0,0,0,0.03);">
+        <button onclick="closeSAModal()" style="position:absolute;top:1.2rem;right:1.2rem;background:rgba(65,91,6,0.08);border:none;color:var(--forest-green);width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;">✕</button>
+        
+        <!-- Gold Shield SVG -->
+        <div style="width:64px;height:64px;background:linear-gradient(135deg,rgba(217,119,6,0.14),rgba(65,91,6,0.04));border:1.5px solid rgba(217,119,6,0.4);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem auto;box-shadow:0 6px 18px rgba(217,119,6,0.12);">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z"/>
+                <circle cx="12" cy="11" r="2.5"/>
+                <path d="M12 13.5v2.5"/>
+            </svg>
+        </div>
+
+        <h2 style="font-family:var(--font-heading);font-size:1.85rem;font-weight:900;color:var(--forest-green);margin-bottom:0.3rem;">Super Admin</h2>
+        <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:1.8rem;text-transform:uppercase;letter-spacing:1.2px;font-weight:600;">Institution Master Access</p>
+        
+        <div style="text-align:left;margin-bottom:1.1rem;">
+          <label style="display:flex;justify-content:space-between;color:var(--forest-green);font-size:0.75rem;font-weight:700;margin-bottom:0.45rem;text-transform:uppercase;letter-spacing:0.8px;">
+            <span>Super Admin ID</span><small style="color:var(--text-muted);font-weight:400;text-transform:none;">(9 chars)</small>
           </label>
           <div style="position:relative;">
-            <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);opacity:0.35;font-size:1.1rem;">👤</span>
-            <input type="text" id="sa-modal-id" placeholder="SADMIN001" maxlength="9" autocomplete="off" class="sa-modal-input"
-              style="width:100%;height:50px;padding-left:2.8rem;padding-right:1rem;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.35);color:white;font-family:'Outfit',sans-serif;font-size:1rem;letter-spacing:1.5px;outline:none;">
+            <input type="text" id="sa-modal-id" placeholder="e.g. SADMIN001" maxlength="9" autocomplete="off"
+              style="width:100%;height:48px;padding:0 1.1rem;border-radius:12px;border:1px solid rgba(65,91,6,0.2);background:rgba(255,253,249,0.95);color:var(--forest-green);font-family:'Outfit',sans-serif;font-size:0.98rem;letter-spacing:1px;outline:none;">
           </div>
         </div>
+
         <div style="text-align:left;margin-bottom:1.8rem;">
-          <label style="color:#94a3b8;font-size:0.72rem;font-weight:700;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:1px;display:block;">Master Password</label>
+          <label style="color:var(--forest-green);font-size:0.75rem;font-weight:700;margin-bottom:0.45rem;text-transform:uppercase;letter-spacing:0.8px;display:block;">Master Password</label>
           <div style="position:relative;">
-            <span style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);opacity:0.35;font-size:1.1rem;">ðŸ”’</span>
-            <input type="password" id="sa-modal-pass" placeholder="Enter secure password" maxlength="10" class="sa-modal-input"
-              style="width:100%;height:50px;padding-left:2.8rem;padding-right:1rem;border-radius:12px;border:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.35);color:white;font-family:'Outfit',sans-serif;font-size:1rem;outline:none;">
+            <input type="password" id="sa-modal-pass" placeholder="Enter password (10 chars)" maxlength="10"
+              style="width:100%;height:48px;padding:0 1.1rem;border-radius:12px;border:1px solid rgba(65,91,6,0.2);background:rgba(255,253,249,0.95);color:var(--forest-green);font-family:'Outfit',sans-serif;font-size:0.98rem;outline:none;">
           </div>
         </div>
-        <button id="sa-modal-btn" onclick="saModalLogin()" style="width:100%;height:52px;border-radius:14px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-weight:800;font-size:1.05rem;cursor:pointer;box-shadow:0 12px 30px -10px rgba(245,158,11,0.5);font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:0.5rem;letter-spacing:0.3px;transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 16px 36px -10px rgba(245,158,11,0.6)'" onmouseout="this.style.transform='';this.style.boxShadow='0 12px 30px -10px rgba(245,158,11,0.5)'">
-          ðŸ“¨ Send OTP & Continue <span style="font-size:1.1rem;">â†’</span>
+
+        <button id="sa-modal-btn" onclick="saModalLogin()" style="width:100%;height:50px;border-radius:var(--radius-pill);border:none;background:linear-gradient(135deg,#D97706,#B45309);color:#FFFFFF;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 8px 24px rgba(217,119,6,0.3);font-family:'Outfit',sans-serif;display:flex;align-items:center;justify-content:center;gap:0.5rem;letter-spacing:0.2px;transition:all 0.2s;">
+          Send OTP & Continue →
         </button>
-        <div style="margin-top:1.5rem;text-align:center;">
-          <button type="button" onclick="closeSAModal(); showRecoveryModal('superadmin')" style="background:none;border:none;color:rgba(245,158,11,0.7);font-size:0.82rem;cursor:pointer;font-weight:600;text-decoration:underline;font-family:'Outfit',sans-serif;">Forgot Master Password?</button>
+
+        <div style="margin-top:1.3rem;text-align:center;">
+          <button type="button" onclick="closeSAModal(); showRecoveryModal('superadmin')" style="background:none;border:none;color:#B45309;font-size:0.82rem;cursor:pointer;font-weight:600;text-decoration:underline;font-family:'Outfit',sans-serif;">Forgot Master Password?</button>
         </div>
-        <div id="sa-modal-err" style="color:#ef4444;margin-top:1.2rem;font-size:0.88rem;min-height:1.2rem;font-weight:600;"></div>
+        <div id="sa-modal-err" style="color:#DC2626;margin-top:1rem;font-size:0.86rem;min-height:1.2rem;font-weight:600;"></div>
       </div>
     </div>
 
-    <!-- Step 2: OTP Verification Modal (separate popup) -->
-    <div id="sa-otp-modal" style="display:none;position:fixed;inset:0;background:rgba(5,10,20,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:10000;align-items:center;justify-content:center;">
-      <div style="position:absolute;width:60vw;height:60vw;background:radial-gradient(circle,rgba(245,158,11,0.06) 0%,transparent 60%);top:-10%;left:-10%;filter:blur(80px);pointer-events:none;"></div>
-      <div style="background:rgba(10,16,26,0.95);backdrop-filter:blur(30px);border:1px solid rgba(245,158,11,0.25);border-radius:28px;padding:3rem 3rem 2.5rem;width:100%;max-width:420px;text-align:center;position:relative;box-shadow:0 50px 100px -30px rgba(0,0,0,0.95);animation:slideUp 0.5s cubic-bezier(0.16,1,0.3,1);">
-        <!-- Shield icon with pulse ring -->
-        <div style="position:relative;width:80px;height:80px;margin:0 auto 1.5rem auto;">
-          <div style="position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(245,158,11,0.3);animation:otpPulse 2s infinite;"></div>
-          <div style="width:80px;height:80px;background:linear-gradient(135deg,rgba(245,158,11,0.25),rgba(245,158,11,0.05));border:1.5px solid rgba(245,158,11,0.6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.4rem;box-shadow:0 0 50px rgba(245,158,11,0.2);">ðŸ›¡ï¸</div>
+    <!-- ── SUPER ADMIN STEP 2: OTP MODAL ── -->
+    <div id="sa-otp-modal" style="display:none;position:fixed;inset:0;background:rgba(240,230,218,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:10000;align-items:center;justify-content:center;padding:1.5rem;">
+      <div style="background:rgba(255,253,249,0.98);border:1px solid rgba(217,119,6,0.35);border-radius:24px;padding:2.8rem 2.2rem;width:100%;max-width:420px;text-align:center;position:relative;box-shadow:0 35px 80px -20px rgba(26,60,41,0.22);">
+        
+        <div style="width:70px;height:70px;margin:0 auto 1.3rem auto;background:linear-gradient(135deg,rgba(217,119,6,0.18),rgba(65,91,6,0.05));border:1.5px solid rgba(217,119,6,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(217,119,6,0.15);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2.5"/>
+                <path d="M7 11V7a5 5 0 0110 0v4"/>
+                <circle cx="12" cy="16.5" r="1.5" fill="#D97706"/>
+            </svg>
         </div>
-        <h2 style="font-size:1.75rem;font-weight:900;color:#fff;margin-bottom:0.3rem;letter-spacing:-0.5px;">Verify Identity</h2>
-        <p id="sa-otp-sent-to" style="color:#64748b;font-size:0.82rem;margin-bottom:0.5rem;font-weight:500;">OTP sent to your registered email</p>
-        <p style="color:rgba(245,158,11,0.7);font-size:0.75rem;margin-bottom:2rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;">â± Expires in 10 minutes</p>
+
+        <h2 style="font-family:var(--font-heading);font-size:1.75rem;font-weight:900;color:var(--forest-green);margin-bottom:0.25rem;">Verify Identity</h2>
+        <p id="sa-otp-sent-to" style="color:var(--text-muted);font-size:0.84rem;margin-bottom:0.35rem;font-weight:500;">OTP sent to your registered email</p>
+        <p style="color:#D97706;font-size:0.75rem;margin-bottom:1.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">⏱ Expires in 10 minutes</p>
 
         <!-- OTP Input -->
-        <div style="position:relative;margin-bottom:1.8rem;">
+        <div style="margin-bottom:1.6rem;">
           <input type="text" id="sa-modal-otp" placeholder="0 0 0 0 0 0" maxlength="6" autocomplete="one-time-code"
-            style="width:100%;height:70px;border-radius:16px;border:2px solid rgba(245,158,11,0.35);background:rgba(245,158,11,0.04);color:#f59e0b;font-size:2rem;letter-spacing:8px;font-weight:900;text-align:center;font-family:'Outfit',sans-serif;outline:none;transition:all 0.3s;caret-color:#f59e0b;"
-            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6); if(this.value.length===6) { document.getElementById('sa-otp-verify-btn').style.background='linear-gradient(135deg,#22c55e,#16a34a)'; } else { document.getElementById('sa-otp-verify-btn').style.background='linear-gradient(135deg,#f59e0b,#d97706)'; }"
+            style="width:100%;height:64px;border-radius:14px;border:2px solid rgba(217,119,6,0.4);background:rgba(255,253,249,0.95);color:#D97706;font-size:1.9rem;letter-spacing:8px;font-weight:900;text-align:center;font-family:'Outfit',sans-serif;outline:none;"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6); if(this.value.length===6) { document.getElementById('sa-otp-verify-btn').style.background='linear-gradient(135deg,#16A34A,#15803D)'; } else { document.getElementById('sa-otp-verify-btn').style.background='linear-gradient(135deg,#D97706,#B45309)'; }"
             onkeydown="if(event.key==='Enter') saModalVerifyOtp()">
-          <div style="position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:60%;height:2px;background:linear-gradient(90deg,transparent,rgba(245,158,11,0.5),transparent);border-radius:2px;"></div>
         </div>
 
         <!-- Verify button -->
-        <button id="sa-otp-verify-btn" onclick="saModalVerifyOtp()" style="width:100%;height:54px;border-radius:14px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;font-weight:800;font-size:1.08rem;cursor:pointer;box-shadow:0 12px 30px -10px rgba(245,158,11,0.5);font-family:'Outfit',sans-serif;letter-spacing:0.3px;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-          âœ… Verify & Access Dashboard
+        <button id="sa-otp-verify-btn" onclick="saModalVerifyOtp()" style="width:100%;height:50px;border-radius:var(--radius-pill);border:none;background:linear-gradient(135deg,#D97706,#B45309);color:#FFFFFF;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 8px 24px rgba(217,119,6,0.3);font-family:'Outfit',sans-serif;letter-spacing:0.2px;transition:all 0.25s;">
+          Verify & Access Dashboard
         </button>
 
-        <!-- Resend + Back -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;">
-          <button onclick="saOtpBack()" style="background:none;border:none;color:#64748b;font-size:0.82rem;cursor:pointer;font-family:'Outfit',sans-serif;transition:color 0.2s;" onmouseover="this.style.color='#94a3b8'" onmouseout="this.style.color='#64748b'">â† Back</button>
-          <button onclick="saResendOtp()" style="background:none;border:none;color:rgba(245,158,11,0.7);font-size:0.82rem;cursor:pointer;font-weight:600;font-family:'Outfit',sans-serif;text-decoration:underline;" id="sa-resend-btn">Resend OTP</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.4rem;">
+          <button onclick="saOtpBack()" style="background:none;border:none;color:var(--text-muted);font-size:0.84rem;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;">← Back</button>
+          <button onclick="saResendOtp()" style="background:none;border:none;color:#D97706;font-size:0.84rem;cursor:pointer;font-weight:700;font-family:'Outfit',sans-serif;text-decoration:underline;" id="sa-resend-btn">Resend OTP</button>
         </div>
-        <div id="sa-otp-err" style="color:#ef4444;margin-top:1rem;font-size:0.88rem;min-height:1.2rem;font-weight:600;"></div>
+        <div id="sa-otp-err" style="color:#DC2626;margin-top:0.8rem;font-size:0.86rem;min-height:1.2rem;font-weight:600;"></div>
       </div>
     </div>
 
+    <!-- ── NAV ── -->
     <nav>
-        <div class="brand" id="ovs-logo" style="cursor:pointer;">VANGUARD</div>
-        <div style="display:flex; align-items:center; gap:0.5rem;">
+        <div class="brand" id="ovs-logo" style="cursor:pointer;color:var(--forest-green);">VOTIFY</div>
+        <div style="display:flex; align-items:center; gap:0.6rem;">
             <div class="nav-links" id="nav-right">
                 <!-- Populated by JS based on mode -->
             </div>
         </div>
     </nav>
 
+    <!-- ── MAIN LOGIN CONTAINER ── -->
     <div class="login-wrapper">
-        <div class="glass-panel login-card animate-fade-in">
+        <div class="login-card animate-fade-in">
 
-            <!-- Icon header -->
-            <div class="login-header-icon" id="login-header-icon">📜</div>
+            <!-- Dynamic Vector Header Icon -->
+            <div class="login-header-icon" id="login-header-icon">
+                <!-- Injected by JS -->
+            </div>
 
-            <div class="login-tabs" id="login-tabs">
+            <!-- Role Tabs (Staff Mode) -->
+            <div class="login-tabs" id="login-tabs" style="display:none;">
                 <!-- Tabs populated by JS -->
             </div>
 
             <!-- Election Countdown (for Voters) -->
             <div id="voter-countdown-card">
-                <div class="cd-label">â³ Election Ending In</div>
+                <div class="cd-label">⏱ Election Ending In</div>
                 <div class="cd-values">
                     <div class="cd-item"><div class="cd-num" id="vd-days">00</div><div class="cd-txt">Days</div></div>
                     <div class="cd-sep">:</div>
@@ -258,21 +362,19 @@
             </div>
 
             <!-- Winner Announcement (for Voters) -->
-            <div id="voter-winner-card" class="winner-card winner-reveal-anim" style="display:none; padding:1.5rem; margin-bottom:1.5rem; border-radius:12px;">
-                <div class="winner-badge" style="width:60px; height:60px; font-size:2rem; margin-bottom:0.8rem;">ðŸ†</div>
-                <div class="winner-label" style="font-size:0.7rem; letter-spacing:2px;">Official Winner</div>
-                <div id="vw-name" class="winner-name" style="font-size:1.8rem; margin:0.3rem 0;">NAME</div>
-                <div id="vw-stats" class="winner-stats" style="font-size:0.9rem;">Winner with 0 votes</div>
+            <div id="voter-winner-card" class="winner-card winner-reveal-anim" style="display:none; padding:1.5rem; margin-bottom:1.5rem; border-radius:16px; background:rgba(65,91,6,0.06); border:1px solid rgba(65,91,6,0.2);">
+                <div class="winner-badge" style="width:54px; height:54px; font-size:1.8rem; margin:0 auto 0.6rem;">🏆</div>
+                <div class="winner-label" style="font-size:0.7rem; letter-spacing:2px; color:var(--forest-green); font-weight:700;">Official Winner</div>
+                <div id="vw-name" class="winner-name" style="font-size:1.6rem; margin:0.3rem 0; font-family:var(--font-heading); color:var(--forest-green);">NAME</div>
+                <div id="vw-stats" class="winner-stats" style="font-size:0.88rem; color:var(--text-muted);">Winner with 0 votes</div>
             </div>
 
-            <h2 id="login-title" class="text-center" style="margin-bottom: 0.6rem; font-size:1.8rem;">Welcome Back</h2>
+            <h2 id="login-title" class="text-center" style="font-family:var(--font-heading); margin-bottom:0.4rem; font-size:1.85rem; font-weight:900; color:var(--forest-green);">Welcome Back</h2>
             <div style="text-align:center;">
                 <span id="inst-display"></span>
             </div>
 
-            <div class="divider"></div>
-
-            <form id="login-form" autocomplete="off">
+            <form id="login-form" autocomplete="off" style="margin-top:0.6rem;">
                 <div id="credentials-section">
                     <div class="form-group">
                         <label id="reg-label">Registration Number</label>
@@ -282,89 +384,90 @@
                     <div class="form-group">
                         <label id="password-label">Password</label>
                         <div style="position: relative;">
-                            <input type="password" id="password" required placeholder="Enter Password" autocomplete="new-password" style="width: 100%; padding-right: 44px;">
-                            <button type="button" onclick="togglePassword()" class="pass-eye-btn">ðŸ‘ï¸</button>
+                            <input type="password" id="password" required placeholder="Enter Password" autocomplete="new-password" style="padding-right:44px;">
+                            <button type="button" onclick="togglePassword()" class="pass-eye-btn" aria-label="Toggle password visibility">👁️</button>
                         </div>
                     </div>
 
                     <div style="text-align:right; margin-top:0.4rem;" id="forgot-password-container">
                         <button type="button" onclick="showRecoveryModal()" id="forgot-password-link"
-                            style="background:none; border:none; color:var(--neon-cyan); font-size:0.85rem; cursor:pointer; padding:0; font-weight:600; opacity:0.85; transition:opacity 0.2s;"
-                            onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">Forgot Password?</button>
+                            style="background:none; border:none; color:var(--olive); font-size:0.85rem; cursor:pointer; padding:0; font-weight:700; transition:opacity 0.2s;"
+                            onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Forgot Password?</button>
                     </div>
 
-                    <button type="submit" class="submit-btn" id="login-btn" style="margin-top: 1.25rem;">ðŸ” Secure Login</button>
+                    <button type="submit" class="submit-btn" id="login-btn" style="margin-top:1.4rem;">
+                        Secure Login →
+                    </button>
                 </div>
 
                 <!-- 2FA SECTION (INLINE) -->
-                <div id="inline-twofa-section" class="hidden" style="text-align: center;">
-                    <div style="font-size:2.5rem;margin-bottom:0.8rem;">ðŸ›¡ï¸</div>
-                    <h3 style="color:var(--warning); margin-bottom:0.5rem; font-size:1.2rem;">Two-Factor Auth</h3>
-                    <p class="text-muted" style="margin-bottom:1.5rem; font-size:0.9rem;">An OTP has been sent to your registered email.</p>
+                <div id="inline-twofa-section" class="hidden" style="text-align: center; padding-top:0.5rem;">
+                    <div style="width:60px;height:60px;background:rgba(217,119,6,0.1);border:1.5px solid rgba(217,119,6,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2.5"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16.5" r="1.5" fill="#D97706"/></svg>
+                    </div>
+                    <h3 style="color:var(--forest-green); font-family:var(--font-heading); margin-bottom:0.3rem; font-size:1.35rem;">Two-Factor Auth</h3>
+                    <p class="text-muted" style="margin-bottom:1.4rem; font-size:0.88rem;">An OTP has been sent to your registered email.</p>
                     <input type="text" id="twofa-otp" placeholder="0 0 0 0 0 0" maxlength="6"
-                        style="width:100%; padding:1rem; border-radius:12px; border:1px solid rgba(245,158,11,0.3); background:rgba(245,158,11,0.05); color:var(--warning); margin-bottom:1rem; text-align:center; font-size:1.6rem; letter-spacing:0.4rem; font-weight:800; outline:none; font-family:var(--font-heading);">
-                    <button type="button" onclick="verify2FA()" class="submit-btn" id="twofa-btn" style="background:linear-gradient(135deg,var(--warning),#d97706);">Verify & Enter</button>
-                    <p id="twofa-error" class="hidden text-danger" style="margin-top: 1rem; font-size:0.85rem;"></p>
+                        style="width:100%; padding:0.9rem; border-radius:12px; border:2px solid rgba(217,119,6,0.4); background:rgba(255,253,249,0.95); color:#D97706; margin-bottom:1.2rem; text-align:center; font-size:1.6rem; letter-spacing:0.4rem; font-weight:800; outline:none; font-family:var(--font-body);">
+                    <button type="button" onclick="verify2FA()" class="submit-btn" id="twofa-btn" style="background:linear-gradient(135deg,#D97706,#B45309);">Verify & Enter</button>
+                    <p id="twofa-error" class="hidden text-danger" style="margin-top: 1rem; font-size:0.85rem; font-weight:600;"></p>
                 </div>
             </form>
 
             <div id="error-msg" class="hidden"
-                style="margin-top: 1.5rem; padding: 1rem; border-radius: 12px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239,68,68,0.3); color: var(--danger); text-align: center; font-size:0.9rem; font-weight:500;">
+                style="margin-top:1.4rem; padding:0.9rem 1.2rem; border-radius:12px; background:rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.25); color:#DC2626; text-align:center; font-size:0.88rem; font-weight:600;">
             </div>
         </div>
     </div>
 
-
-
-    <!-- FACE VERIFICATION MODAL (STUDENT LOGIN) -->
-    <div id="face-auth-modal" class="hidden" style="position:fixed; inset:0; background:rgba(5,10,20,0.92); backdrop-filter:blur(16px); z-index:10000; display:flex; align-items:center; justify-content:center;">
-        <div style="background:rgba(10,16,26,0.95); border:1px solid rgba(65, 91, 6,0.3); border-radius:24px; padding:2.5rem; width:100%; max-width:440px; text-align:center; box-shadow:0 0 50px rgba(65, 91, 6,0.15);">
-            <h2 style="font-size:1.8rem; font-weight:800; color:#fff; margin-bottom:0.5rem;">Biometric Login</h2>
-            <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">Please verify your identity to access the dashboard.</p>
+    <!-- ── BIOMETRIC FACE VERIFICATION MODAL (STUDENT LOGIN) ── -->
+    <div id="face-auth-modal" class="hidden" style="position:fixed; inset:0; background:rgba(240,230,218,0.88); backdrop-filter:blur(16px); z-index:10000; display:flex; align-items:center; justify-content:center; padding:1.5rem;">
+        <div style="background:rgba(255,253,249,0.96); border:1px solid rgba(65,91,6,0.22); border-radius:24px; padding:2.5rem 2rem; width:100%; max-width:440px; text-align:center; box-shadow:0 30px 70px -20px rgba(26,60,41,0.18);">
+            <h2 style="font-family:var(--font-heading); font-size:1.8rem; font-weight:900; color:var(--forest-green); margin-bottom:0.3rem;">Biometric Login</h2>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:1.4rem;">Please verify your identity to access the voting portal.</p>
             
-            <div style="background:black; border-radius:12px; overflow:hidden; position:relative; border:1px solid var(--glass-border); height:240px; margin-bottom:1rem;">
+            <div style="background:#000; border-radius:16px; overflow:hidden; position:relative; border:1px solid rgba(65,91,6,0.3); height:240px; margin-bottom:1rem;">
                 <video id="login-webcam" autoplay playsinline style="width:100%; height:100%; object-fit:cover; transform:scaleX(-1);"></video>
-                <div id="face-scan-overlay" style="position:absolute; inset:0; border:2px dashed rgba(65, 91, 6,0.5); border-radius:12px; display:flex; align-items:center; justify-content:center; pointer-events:none;">
-                    <div class="spinner hidden" id="face-spinner" style="width:40px; height:40px; border:3px solid rgba(65, 91, 6,0.2); border-top-color:var(--secondary); border-radius:50%; animation:spin 1s linear infinite;"></div>
+                <div id="face-scan-overlay" style="position:absolute; inset:0; border:2px dashed rgba(65,91,6,0.5); border-radius:16px; display:flex; align-items:center; justify-content:center; pointer-events:none;">
+                    <div class="spinner hidden" id="face-spinner" style="width:40px; height:40px; border:3px solid rgba(65,91,6,0.2); border-top-color:var(--olive); border-radius:50%; animation:spin 1s linear infinite;"></div>
                 </div>
             </div>
 
-            <!-- Liveness status banner (shown after camera starts) -->
-            <div id="login-liveness-msg" style="display:none; margin-bottom:1rem; padding:0.6rem 1rem; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.4); border-radius:10px; color:#f59e0b; font-size:0.85rem; font-weight:600;">ðŸ‘ï¸ <strong>Liveness Check:</strong> Please <u>BLINK</u> naturally to prove you are live...</div>
+            <!-- Liveness status banner -->
+            <div id="login-liveness-msg" style="display:none; margin-bottom:1rem; padding:0.6rem 1rem; background:rgba(65,91,6,0.08); border:1px solid rgba(65,91,6,0.25); border-radius:10px; color:var(--forest-green); font-size:0.84rem; font-weight:600;">👁️ <strong>Liveness Check:</strong> Please <u>BLINK</u> naturally to verify live presence...</div>
 
-            <div id="face-auth-status" style="margin-bottom:1.5rem; font-size:0.9rem; font-weight:600; color:var(--text); min-height:1.2rem;">Position your face clearly in the camera.</div>
+            <div id="face-auth-status" style="margin-bottom:1.4rem; font-size:0.88rem; font-weight:600; color:var(--forest-green); min-height:1.2rem;">Position your face clearly in the camera frame.</div>
 
-            <button id="face-auth-btn" class="submit-btn" onclick="captureAndVerifyFace()" style="width:100%; font-size:1rem;">Capture & Verify</button>
-            <button class="btn-outline" onclick="cancelFaceAuth()" style="width:100%; margin-top:0.8rem;">Cancel Login</button>
+            <button id="face-auth-btn" class="submit-btn" onclick="captureAndVerifyFace()" style="width:100%; font-size:0.95rem;">Capture & Verify</button>
+            <button class="btn-outline" onclick="cancelFaceAuth()" style="width:100%; margin-top:0.75rem;">Cancel Login</button>
         </div>
     </div>
 
-    <!-- RECOVERY MODAL -->
+    <!-- ── RECOVERY MODAL ── -->
     <div id="recovery-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
-        <div class="glass-panel animate-fade-in" style="width:90%; max-width:400px; padding:2rem; position:relative;">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(240,230,218,0.85); backdrop-filter:blur(12px); z-index:10000; justify-content:center; align-items:center; padding:1.5rem;">
+        <div style="background:rgba(255,253,249,0.96); border:1px solid rgba(65,91,6,0.2); border-radius:24px; width:100%; max-width:420px; padding:2.5rem 2rem; position:relative; box-shadow:0 30px 70px -20px rgba(26,60,41,0.18);">
             <button type="button" onclick="closeRecoveryModal()"
-                style="position:absolute; top:1rem; right:1rem; background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+                style="position:absolute; top:1.2rem; right:1.2rem; background:rgba(65,91,6,0.08); border:none; color:var(--forest-green); width:32px; height:32px; border-radius:50%; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
 
-            <h3 id="rec-title" style="color:var(--gold-primary); margin-bottom:1rem;">Reset Password</h3>
+            <h3 id="rec-title" style="font-family:var(--font-heading); font-size:1.6rem; color:var(--forest-green); margin-bottom:0.8rem; font-weight:900;">Reset Password</h3>
 
             <!-- Step 1: ID -->
             <div id="rec-step-1">
-                <p id="rec-desc" class="text-muted" style="margin-bottom:1rem;">Enter your Registration Number/ID to receive a reset
-                    code.</p>
+                <p id="rec-desc" class="text-muted" style="margin-bottom:1.2rem; font-size:0.88rem;">Enter your Registration Number/ID to receive a reset code.</p>
                 <input type="text" id="rec-id" placeholder="Enter Reg Number"
-                    style="width:100%; padding:0.8rem; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:white; margin-bottom:1rem;">
-                <button type="button" onclick="sendRecoveryOtp()" class="submit-btn" id="rec-btn-1">Send Code</button>
+                    style="width:100%; padding:0.9rem 1.1rem; border-radius:12px; border:1px solid rgba(65,91,6,0.2); background:rgba(255,253,249,0.95); color:var(--forest-green); margin-bottom:1.2rem; outline:none; font-family:'Outfit',sans-serif;">
+                <button type="button" onclick="sendRecoveryOtp()" class="submit-btn" id="rec-btn-1">Send Reset Code</button>
             </div>
 
             <!-- Step 2: Verify & Reset -->
             <div id="rec-step-2" class="hidden">
-                <p class="text-muted" id="rec-email-hint" style="margin-bottom:1rem;"></p>
+                <p class="text-muted" id="rec-email-hint" style="margin-bottom:1rem; font-size:0.86rem;"></p>
                 <input type="text" id="rec-otp" placeholder="Enter 6-digit Code" maxlength="6"
-                    style="width:100%; padding:0.8rem; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:white; margin-bottom:1rem;">
+                    style="width:100%; padding:0.9rem 1.1rem; border-radius:12px; border:1px solid rgba(65,91,6,0.2); background:rgba(255,253,249,0.95); color:var(--forest-green); margin-bottom:1rem; outline:none; font-family:'Outfit',sans-serif;">
                 <input type="password" id="rec-new-pass" placeholder="New Password" maxlength="10"
-                    style="width:100%; padding:0.8rem; border-radius:8px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.05); color:white; margin-bottom:1rem;">
-                <button type="button" onclick="resetPasswordConfirm()" class="submit-btn" id="rec-btn-2">Reset Password</button>
+                    style="width:100%; padding:0.9rem 1.1rem; border-radius:12px; border:1px solid rgba(65,91,6,0.2); background:rgba(255,253,249,0.95); color:var(--forest-green); margin-bottom:1.2rem; outline:none; font-family:'Outfit',sans-serif;">
+                <button type="button" onclick="resetPasswordConfirm()" class="submit-btn" id="rec-btn-2">Confirm New Password</button>
             </div>
         </div>
     </div>
@@ -395,9 +498,33 @@
         // Determine mode from URL param: ?admin=true shows staff login
         const urlParams = new URLSearchParams(window.location.search);
         const isStaffMode = urlParams.get('admin') === 'true';
-        // isVoter = which login form is showing: voter=true, admin=false, subadmin=special
         let isVoter = !isStaffMode;
         let isSubAdmin = false;
+
+        // SVG Icon Builders
+        const ICONS = {
+            voter: `<svg width="32" height="32" viewBox="0 0 48 48" fill="none" stroke="#1A3C29" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="20" cy="16" r="7"/>
+                        <path d="M6 40c0-7.5 6-13.5 13.5-13.5h1"/>
+                        <path d="M35 24l7 3.5v5.5c0 4.5-3 8.5-7 9.5-4-1-7-5-7-9.5v-5.5l7-3.5z" fill="rgba(65,91,6,0.08)" stroke="#1A3C29"/>
+                        <path d="M32 33l2.5 2.5 5-5" stroke="#1A3C29" stroke-width="2.2"/>
+                    </svg>`,
+            admin: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1A3C29" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z"/>
+                        <circle cx="12" cy="11" r="2.2"/>
+                        <path d="M12 13.2v2.8"/>
+                    </svg>`,
+            subadmin: `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#415B06" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 010 7.75"/>
+                    </svg>`
+        };
+
+        function updateHeaderIcon(type) {
+            setHTML('login-header-icon', ICONS[type] || ICONS.voter);
+        }
 
         function buildUI() {
             const fpContainer = document.getElementById('forgot-password-container');
@@ -430,7 +557,7 @@
                         alert('This institution is no longer active. Redirecting to gateway...');
                         window.location.href = 'index.html';
                     } else {
-                        setText('inst-display', "â›©ï¸ " + userInst);
+                        setText('inst-display', "🏛️ " + userInst);
                         if (isVoter) checkElectionCountdown(); 
                     }
                 });
@@ -438,75 +565,79 @@
 
             if (!isStaffMode) {
                 if (fpContainer) fpContainer.style.display = 'block';
-                // Pure Voter Mode: show Manage Profile, Register, and Back button
+                // Voter Mode: Back button + Register button
                 setHTML('nav-right', `
-                    <button onclick="window.location.href='index.html'" class="btn-outline">â† Back</button>
-                    <button onclick="window.location.href='register.html'" class="submit-btn" style="width:auto; padding:0.5rem 1.2rem; margin:0;">New? Register</button>
+                    <button onclick="window.location.href='index.html'" class="staff-login-pill" style="font-size:0.82rem;padding:0.45rem 1rem;">← Back</button>
+                    <button onclick="window.location.href='register.html'" class="submit-btn" style="width:auto; padding:0.48rem 1.25rem; font-size:0.84rem; margin:0;">New? Register</button>
                 `);
 
                 const tc = document.getElementById('login-tabs');
                 if(tc) tc.style.display = 'none';
                 setText('login-title', 'Student Login');
                 setText('reg-label', 'Registration ID / Roll No.');
-                if(regInput) regInput.placeholder = 'Enter Reg ID';
+                if(regInput) regInput.placeholder = 'Enter Registration Number';
                 if(passInput) passInput.placeholder = 'Enter Password';
-                // NO logo click trick in voter mode
+                updateHeaderIcon('voter');
             } else {
                 if (fpContainer) {
                     fpContainer.style.display = 'block';
-                    // Center the link for staff mode since it's above the button
                     fpContainer.style.textAlign = 'center';
                     fpContainer.style.marginBottom = '1rem';
                 }
-                // Staff Mode: Admin + Sub-Admin tabs + 5-click OVS logo for Super Admin
-                setHTML('nav-right', `<a href="index.html" class="btn-outline">ðŸ  Home</a>`);
+                // Staff Mode: Back Home button
+                setHTML('nav-right', `<a href="index.html" class="staff-login-pill" style="font-size:0.82rem;padding:0.45rem 1rem;text-decoration:none;">🏛️ Home</a>`);
                 const tc = document.getElementById('login-tabs');
                 if(tc) {
                     tc.style.display = 'flex';
                     setHTML('login-tabs', `
-                        <button id="tab-admin" class="tab-btn active" style="flex:1; padding:0.8rem; background:linear-gradient(135deg,var(--warning),var(--danger)); border:none; border-radius:8px; color:white; font-weight:600; cursor:pointer;">ðŸ§‘â€💼 Branch Admin</button>
-                        <button id="tab-subadmin" class="tab-btn" style="flex:1; padding:0.8rem; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); border-radius:8px; color:white; cursor:pointer;">👥 Class Admin</button>
+                        <button id="tab-admin" class="tab-btn active">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 2L3 7v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V7l-9-5z"/></svg>
+                            Branch Admin
+                        </button>
+                        <button id="tab-subadmin" class="tab-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                            Class Admin
+                        </button>
                     `);
                 }
                 const tabA = document.getElementById('tab-admin');
                 const tabS = document.getElementById('tab-subadmin');
+                
                 if(tabA) tabA.addEventListener('click', () => {
                     isVoter = false; isSubAdmin = false;
-                    tabA.style.background = 'linear-gradient(135deg,var(--warning),var(--danger))';
-                    tabA.style.border = 'none';
-                    if(tabS) {
-                        tabS.style.background = 'rgba(255,255,255,0.05)';
-                        tabS.style.border = '1px solid var(--glass-border)';
-                    }
+                    tabA.className = 'tab-btn active';
+                    tabS.className = 'tab-btn';
                     setText('login-title', 'Branch Admin Login');
-                    setText('reg-label', 'Admin ID (7 chars · A-Z & 0-9)');
+                    setText('reg-label', 'Admin ID (7 characters · A-Z & 0-9)');
                     regInput.placeholder = 'e.g. ADMCSE01';
                     regInput.maxLength = 7;
                     passInput.placeholder = 'e.g. Admin@12';
                     passInput.maxLength = 8;
+                    updateHeaderIcon('admin');
                     resetInputs();
                 });
-                document.getElementById('tab-subadmin').addEventListener('click', () => {
+                
+                if(tabS) tabS.addEventListener('click', () => {
                     isVoter = false; isSubAdmin = true;
-                    document.getElementById('tab-subadmin').style.background = 'linear-gradient(135deg,#a855f7,#7c3aed)';
-                    document.getElementById('tab-subadmin').style.border = 'none';
-                    document.getElementById('tab-admin').style.background = 'rgba(255,255,255,0.05)';
-                    document.getElementById('tab-admin').style.border = '1px solid var(--glass-border)';
+                    tabS.className = 'tab-btn active-subadmin';
+                    tabA.className = 'tab-btn';
                     setText('login-title', 'Class Admin Login');
-                    setText('reg-label', 'Sub-Admin ID (9 chars · A-Z & 0-9)');
+                    setText('reg-label', 'Sub-Admin ID (9 characters · A-Z & 0-9)');
                     regInput.placeholder = 'e.g. SADMIN101';
                     regInput.maxLength = 9;
                     passInput.placeholder = 'e.g. Sa@ab1';
                     passInput.maxLength = 6;
+                    updateHeaderIcon('subadmin');
                     resetInputs();
                 });
 
-                setText('login-title', 'Admin Login');
-                setText('reg-label', 'Admin ID (7 chars · A-Z & 0-9)');
+                setText('login-title', 'Branch Admin Login');
+                setText('reg-label', 'Admin ID (7 characters · A-Z & 0-9)');
                 regInput.placeholder = 'e.g. ADMCSE01';
                 regInput.maxLength = 7;
                 passInput.placeholder = 'e.g. Admin@12';
                 passInput.maxLength = 8;
+                updateHeaderIcon('admin');
             }
         }
 
@@ -518,39 +649,19 @@
 
         buildUI();
 
-        // Removed auto-popup of SA modal to fix bug where staff login always opened it
-
-        // Stub legacy variables so nothing breaks below
-        const tabVoter = null;
-        const tabAdmin = null;
-        // updateTabs is no-op now
-        function updateTabs() {}
-
         // Input Constraints
         regInput.addEventListener('input', function (e) {
-            if (isVoter) {
-                // Voter: Capital Alphanumeric ONLY
-                this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            } else {
-                // Admin / Sub-Admin: Uppercase alphanumeric only, maxLength set per tab
-                this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            }
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         });
 
         passInput.addEventListener('input', function (e) {
-            // Remove space logic for everyone
             this.value = this.value.replace(/\s/g, '');
         });
-
-
-
-
 
         // --- SUBMIT HANDLING ---
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // IF 2FA IS SHOWING, ROUTE TO VERIFY INSTEAD OF RESENDING
             if (!document.getElementById('inline-twofa-section').classList.contains('hidden')) {
                 return verify2FA();
             }
@@ -560,16 +671,13 @@
             const errorMsg = document.getElementById('error-msg');
             const submitBtn = document.getElementById('login-btn');
 
-            // Credential validation matching super-admin portal creation rules
             if (!isVoter && !isSubAdmin) {
-                // Admin: ID = 7 chars A-Z0-9, Password = 8 chars, 3 letters, 1 number, 1 special
                 if (regNum.length !== 7) return showError('Admin ID must be exactly 7 characters (A-Z & 0-9).');
                 if (password.length !== 8) return showError('Admin password must be exactly 8 characters.');
                 if ((password.match(/[a-zA-Z]/g)||[]).length < 3) return showError('Admin password must contain at least 3 letters.');
                 if ((password.match(/[0-9]/g)||[]).length < 1) return showError('Admin password must contain at least 1 number.');
                 if (!/[^a-zA-Z0-9]/.test(password)) return showError('Admin password must contain at least 1 special character.');
             } else if (isSubAdmin) {
-                // Sub-Admin: ID = 9 chars A-Z0-9, Password = 6 chars, 3 letters, 1 number, 1 special
                 if (regNum.length !== 9) return showError('Sub-Admin ID must be exactly 9 characters (A-Z & 0-9).');
                 if (password.length !== 6) return showError('Sub-Admin password must be exactly 6 characters.');
                 if ((password.match(/[a-zA-Z]/g)||[]).length < 3) return showError('Sub-Admin password must contain at least 3 letters.');
@@ -592,15 +700,13 @@
                 ]);
 
                 if (userObj) {
-                    // Check if 2FA required (Super Admin Flow)
                     if (userObj.requires2FA) {
                         current2faState = userObj;
                         document.getElementById('credentials-section').classList.add('hidden');
                         document.getElementById('inline-twofa-section').classList.remove('hidden');
                         
-                        // Error handling for email quota exceeded
                         if (userObj.warning) {
-                            showError("âš ï¸ " + userObj.warning);
+                            showError("⚠️ " + userObj.warning);
                         }
                         
                         setText('login-btn', "Secure Login"); submitBtn.disabled = false;
@@ -609,7 +715,6 @@
                     
                     const user = userObj;
 
-                    // Role Check 
                     const staffRoles = ['admin','subadmin','superadmin','developer'];
                     if (isStaffMode && !staffRoles.includes(user.role)) {
                         showError("Access Denied. This portal is for Staff only.");
@@ -617,18 +722,17 @@
                         return;
                     }
                     if (!isStaffMode && staffRoles.includes(user.role)) {
-                        showError("Staff members: use the Admin Access button on the homepage.");
+                        showError("Staff members: use the Staff Login button on the homepage.");
                         setText('login-btn', "Secure Login"); submitBtn.disabled = false;
                         return;
                     }
-                    // Sub-admin tab guard: if sub-admin tab is selected, only allow subadmin role
                     if (isSubAdmin && user.role !== 'subadmin') {
-                        showError("Not a Sub-Admin account. Try the Admin tab.");
+                        showError("Not a Class Admin account. Try the Branch Admin tab.");
                         setText('login-btn', "Secure Login"); submitBtn.disabled = false;
                         return;
                     }
                     if (!isSubAdmin && isStaffMode && user.role === 'subadmin') {
-                        showError("Sub-Admins: please use the Sub-Admin tab.");
+                        showError("Class Admins: please select the Class Admin tab.");
                         setText('login-btn', "Secure Login"); submitBtn.disabled = false;
                         return;
                     }
@@ -639,13 +743,11 @@
                         return;
                     }
 
-                    // Success Redirect based on role
                     if (user.role === 'developer') window.location.href = 'developer.html';
                     else if (user.role === 'superadmin') window.location.href = 'superadmin_dashboard.html';
                     else if (user.role === 'admin') window.location.href = 'admin_dashboard.html';
                     else if (user.role === 'subadmin') window.location.href = 'subadmin_dashboard.html';
                     else {
-                        // Student -> Face Auth Interception
                         startFaceAuth(user);
                     }
 
@@ -671,14 +773,13 @@
             if (!pwd) return;
             if (pwd.type === 'password') {
                 pwd.type = 'text';
-                if(btn) btn.textContent = 'ðŸ•‘';
+                if(btn) btn.textContent = '🙈';
             } else {
                 pwd.type = 'password';
-                if(btn) btn.textContent = 'ðŸ‘ï¸';
+                if(btn) btn.textContent = '👁️';
             }
         }
 
-        // BFCache fix: Reset button state if user navigates back to this page
         window.addEventListener('pageshow', function (event) {
             const submitBtn = document.getElementById('login-btn');
             if (submitBtn && submitBtn.innerText === "Verifying...") {
@@ -692,13 +793,11 @@
         let tempVerifiedUser = null;
         let loginWebcamStream = null;
         let baseFaceDescriptor = null;
-
-        // --- LIVENESS DETECTION (Login) ---
         let loginLivenessVerified = false;
         let loginLivenessInterval = null;
         let loginBlinkFrameCount = 0;
-        const LOGIN_EAR_CLOSE = 0.25;  // Standard blink threshold (0.19 was too low for 128px)
-        const LOGIN_EAR_FRAMES = 2;    // 2 frames = reliable blink detection
+        const LOGIN_EAR_CLOSE = 0.25;
+        const LOGIN_EAR_FRAMES = 2;
 
         function loginCalcEAR(eye) {
             const v1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
@@ -708,28 +807,20 @@
         }
 
         function stopLoginLivenessScan() {
-            if (loginLivenessRafId) { cancelAnimationFrame(loginLivenessRafId); loginLivenessRafId = null; }
             if (loginLivenessInterval && typeof loginLivenessInterval === 'number') { clearTimeout(loginLivenessInterval); }
             loginLivenessInterval = null;
         }
 
-        let loginLivenessRafId = null; // kept for compat
-
-        // Reliable setTimeout-based liveness scan for login.
-        // 30-second override ensures user is never permanently blocked.
-        // Liveness scan for login. Blink is MANDATORY â€” no bypasses, no overrides.
         function startLoginLivenessScan(videoEl, onBlink) {
             if (!faceModelsLoaded) {
-                // Block completely â€” no bypass allowed
                 const livenessMsg = document.getElementById('login-liveness-msg');
                 if (livenessMsg) {
-                    livenessMsg.innerHTML = 'âŒ AI Face Engine not loaded. Please refresh and try again.';
+                    livenessMsg.innerHTML = '❌ AI Face Engine not loaded. Please refresh and try again.';
                     livenessMsg.style.background = 'rgba(239,68,68,0.12)';
                     livenessMsg.style.borderColor = 'rgba(239,68,68,0.4)';
                     livenessMsg.style.color = '#ff2a4d';
                     livenessMsg.style.display = 'block';
                 }
-                // Do NOT enable capture button â€” do NOT call onBlink()
                 return;
             }
             loginBlinkFrameCount = 0;
@@ -740,54 +831,49 @@
             const livenessMsg = document.getElementById('login-liveness-msg');
             
             if (livenessMsg) {
-                livenessMsg.innerHTML = 'ðŸ‘ï¸ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (Attempt 1/3)';
-                livenessMsg.style.color = '#f59e0b';
+                livenessMsg.innerHTML = '👁️ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (Attempt 1/3)';
+                livenessMsg.style.color = '#1A3C29';
                 livenessMsg.style.display = 'block';
             }
             const captureBtn = document.getElementById('face-auth-btn');
             if (captureBtn) { captureBtn.disabled = true; captureBtn.style.opacity = '0.5'; captureBtn.innerText = 'Waiting for Blink...'; }
 
-            // Use TinyFaceDetector if loaded
             const useTiny = faceapi.nets.tinyFaceDetector && faceapi.nets.tinyFaceDetector.isLoaded;
             const detectorOpts = useTiny
                 ? new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 })
                 : new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 });
 
-            // Timer starts only when first valid video frame is ready
-            const ATTEMPT_WINDOW_MS = 5000; // 5 seconds per attempt
+            const ATTEMPT_WINDOW_MS = 5000;
             let attemptStartTime = null;
 
             async function tick() {
                 if (!scanActive) return;
 
-                // Wait for camera to be ready
                 if (!videoEl || videoEl.paused || videoEl.ended || videoEl.readyState < 2) {
                     loginLivenessInterval = setTimeout(tick, 100);
                     return;
                 }
 
-                // Start timer on first valid frame
                 if (attemptStartTime === null) {
                     attemptStartTime = Date.now();
                     if (livenessMsg) {
-                        livenessMsg.innerHTML = `ðŸ‘ï¸ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (Attempt ${loginLivenessFailCount + 1}/3)`;
-                        livenessMsg.style.color = '#f59e0b';
-                        livenessMsg.style.background = 'rgba(245,158,11,0.12)';
-                        livenessMsg.style.borderColor = 'rgba(245,158,11,0.4)';
+                        livenessMsg.innerHTML = `👁️ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (Attempt ${loginLivenessFailCount + 1}/3)`;
+                        livenessMsg.style.color = '#1A3C29';
+                        livenessMsg.style.background = 'rgba(65,91,6,0.08)';
+                        livenessMsg.style.borderColor = 'rgba(65,91,6,0.25)';
                     }
                 }
 
-                // Check if 3-second window expired â€” reset and retry (blink mandatory for login)
                 const elapsed = Date.now() - attemptStartTime;
                 if (elapsed >= ATTEMPT_WINDOW_MS) {
                     attemptStartTime = Date.now();
                     loginBlinkFrameCount = 0;
                     noFaceCount = 0;
                     if (livenessMsg) {
-                        livenessMsg.innerHTML = 'ðŸ‘ï¸ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (3s)';
-                        livenessMsg.style.color = '#f59e0b';
-                        livenessMsg.style.background = 'rgba(245,158,11,0.12)';
-                        livenessMsg.style.borderColor = 'rgba(245,158,11,0.4)';
+                        livenessMsg.innerHTML = '👁️ <strong>Liveness Check:</strong> Please <u>BLINK</u> now! (3s)';
+                        livenessMsg.style.color = '#1A3C29';
+                        livenessMsg.style.background = 'rgba(65,91,6,0.08)';
+                        livenessMsg.style.borderColor = 'rgba(65,91,6,0.25)';
                     }
                 }
 
@@ -800,20 +886,19 @@
                         noFaceCount++;
                         if (livenessMsg && noFaceCount >= 3) {
                             const secsLeft = Math.max(1, Math.ceil((ATTEMPT_WINDOW_MS - (Date.now() - attemptStartTime)) / 1000));
-                            livenessMsg.innerHTML = `âš ï¸ No face â€” move closer! (Attempt ${loginLivenessFailCount + 1}/3 - ${secsLeft}s)`;
+                            livenessMsg.innerHTML = `⚠️ No face detected — move closer! (Attempt ${loginLivenessFailCount + 1}/3 - ${secsLeft}s)`;
                         }
                         loginLivenessInterval = setTimeout(tick, 50);
                         return;
                     }
 
-                    // Face detected â€” show blink countdown
                     noFaceCount = 0;
                     if (livenessMsg) {
                         const secsLeft = Math.max(1, Math.ceil((ATTEMPT_WINDOW_MS - (Date.now() - attemptStartTime)) / 1000));
-                        livenessMsg.innerHTML = `ðŸ‘ï¸ <strong>BLINK now!</strong> (Attempt ${loginLivenessFailCount + 1}/3 - ${secsLeft}s remaining)`;
-                        livenessMsg.style.color = '#f59e0b';
-                        livenessMsg.style.background = 'rgba(245,158,11,0.12)';
-                        livenessMsg.style.borderColor = 'rgba(245,158,11,0.4)';
+                        livenessMsg.innerHTML = `👁️ <strong>BLINK now!</strong> (Attempt ${loginLivenessFailCount + 1}/3 - ${secsLeft}s remaining)`;
+                        livenessMsg.style.color = '#1A3C29';
+                        livenessMsg.style.background = 'rgba(65,91,6,0.08)';
+                        livenessMsg.style.borderColor = 'rgba(65,91,6,0.25)';
                     }
 
                     const pts = det.landmarks.positions;
@@ -824,15 +909,14 @@
                     if (ear < LOGIN_EAR_CLOSE) {
                         loginBlinkFrameCount++;
                     } else if (loginBlinkFrameCount >= LOGIN_EAR_FRAMES) {
-                        // âœ… Genuine blink confirmed!
                         scanActive = false;
                         if (loginLivenessInterval) { clearTimeout(loginLivenessInterval); loginLivenessInterval = null; }
                         loginLivenessVerified = true;
                         if (livenessMsg) {
-                            livenessMsg.innerHTML = 'âœ… <strong>Liveness Confirmed!</strong> Now capture to verify.';
-                            livenessMsg.style.background = 'rgba(34,197,94,0.1)';
-                            livenessMsg.style.borderColor = 'rgba(34,197,94,0.4)';
-                            livenessMsg.style.color = '#22c55e';
+                            livenessMsg.innerHTML = '✅ <strong>Liveness Confirmed!</strong> Now capture to verify.';
+                            livenessMsg.style.background = 'rgba(22,163,74,0.1)';
+                            livenessMsg.style.borderColor = 'rgba(22,163,74,0.3)';
+                            livenessMsg.style.color = '#16A34A';
                         }
                         if (captureBtn) { captureBtn.disabled = false; captureBtn.style.opacity = '1'; captureBtn.innerText = 'Capture & Verify'; }
                         onBlink();
@@ -851,9 +935,7 @@
         async function loadFaceModels() {
             if (typeof faceapi === 'undefined') return setTimeout(loadFaceModels, 200);
             try {
-                // Use jsDelivr NPM CDN (more reliable, HTTP/2 multiplexed)
                 const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
-                // Load all models in parallel â€” TinyFaceDetector for fast liveness + full net for recognition
                 await Promise.all([
                     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
                     faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
@@ -862,7 +944,7 @@
                     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
                 ]);
                 faceModelsLoaded = true;
-                console.log("[Login AI] âœ… Face Recognition Models Loaded (Tiny + Full)");
+                console.log("[Login AI] Face Recognition Models Loaded");
             } catch (err) {
                 console.warn("[Login AI] Primary CDN failed, trying fallback...", err);
                 try {
@@ -873,8 +955,7 @@
                         faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
                     ]);
                     faceModelsLoaded = true;
-                    console.log("[Login AI] âœ… Models Loaded via fallback CDN");
-                } catch (err2) { console.error("[Login AI] âŒ All model CDNs failed:", err2); }
+                } catch (err2) { console.error("[Login AI] All model CDNs failed:", err2); }
             }
         }
         loadFaceModels();
@@ -897,19 +978,15 @@
                 }
                 if(!faceModelsLoaded) {
                     statusEl.innerText = "Error: AI engine failed to load. Please refresh.";
-                    statusEl.style.color = "#ff2a4d";
+                    statusEl.style.color = "#DC2626";
                     return;
                 }
             }
 
             statusEl.innerText = "Extracting registered biometric data...";
             
-            // Extract baseline from user.webcamReg or user.portrait
             const baseImgStr = user.webcamReg || user.portrait;
             if (!baseImgStr) {
-                // If user registered without photo (legacy), just let them in? Or block?
-                // We'll let them in if no photo exists in db, but log a warning.
-                console.warn("[Login AI] No biometric data found for this user. Bypassing check.");
                 try {
                     if (typeof registerSession === 'function') {
                         await registerSession(tempVerifiedUser.regNum, tempVerifiedUser.institution, 'student');
@@ -930,34 +1007,30 @@
                 const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
                 if (!detection) {
                     statusEl.innerText = "Error: Registered photo does not contain a recognizable face. Please contact Admin.";
-                    statusEl.style.color = "#ff2a4d";
+                    statusEl.style.color = "#DC2626";
                     return;
                 }
                 baseFaceDescriptor = detection.descriptor;
                 
                 statusEl.innerText = "Starting Camera...";
-                // Start webcam with optimized constraints for face detection
                 loginWebcamStream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         width: { ideal: 480 },
                         height: { ideal: 360 },
                         facingMode: 'user',
-                        frameRate: { ideal: 15 } // Enough for face detection, reduces CPU
+                        frameRate: { ideal: 15 }
                     }
                 });
                 video.srcObject = loginWebcamStream;
                 await new Promise(r => { video.onloadedmetadata = r; });
                 await video.play().catch(() => {});
-                statusEl.innerText = "ðŸ‘ï¸ Position your face clearly and BLINK to prove liveness.";
-                statusEl.style.color = "var(--text)";
+                statusEl.innerText = "👁️ Position your face clearly and BLINK to verify liveness.";
+                statusEl.style.color = "var(--forest-green)";
 
-                // Start liveness blink detection
                 loginLivenessVerified = false;
                 startLoginLivenessScan(video, () => {
-                    // onBlink callback â€” auto-capture and verify immediately
-                    statusEl.innerText = 'âœ… Liveness confirmed! Capturing and verifying...';
-                    statusEl.style.color = '#22c55e';
-                    // Wait for video to be ready then capture
+                    statusEl.innerText = '✅ Liveness confirmed! Capturing and verifying...';
+                    statusEl.style.color = '#16A34A';
                     const waitAndCapture = (tries) => {
                         if (video.videoWidth > 0 && video.videoHeight > 0) {
                             setTimeout(() => captureAndVerifyFace(), 200);
@@ -973,16 +1046,15 @@
             } catch(e) {
                 console.error("[Login AI]", e);
                 statusEl.innerText = "Error extracting data: " + e.message;
-                statusEl.style.color = "#ff2a4d";
+                statusEl.style.color = "#DC2626";
             }
         }
 
         async function captureAndVerifyFace() {
-            // Liveness guard â€” must blink before capture
             if (!loginLivenessVerified) {
                 const statusEl = document.getElementById('face-auth-status');
-                statusEl.innerText = "âš ï¸ Please BLINK naturally first to pass the liveness check.";
-                statusEl.style.color = "#f59e0b";
+                statusEl.innerText = "⚠️ Please BLINK naturally first to pass the liveness check.";
+                statusEl.style.color = "#D97706";
                 return;
             }
             stopLoginLivenessScan();
@@ -994,9 +1066,8 @@
             
             spinner.classList.remove('hidden');
             statusEl.innerText = "Scanning live face...";
-            statusEl.style.color = "var(--secondary)";
+            statusEl.style.color = "var(--forest-green)";
 
-            // Create temporary canvas to capture frame
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
@@ -1010,7 +1081,6 @@
             });
 
             try {
-                // Try up to 3 times to detect face (handles momentary blur/positioning)
                 let detection = null;
                 for (let attempt = 0; attempt < 3 && !detection; attempt++) {
                     detection = await faceapi.detectSingleFace(liveImg).withFaceLandmarks().withFaceDescriptor();
@@ -1022,11 +1092,10 @@
                 if (!detection) {
                     spinner.classList.add('hidden');
                     statusEl.innerText = "No face detected! Ensure good lighting and look directly at camera.";
-                    statusEl.style.color = "#ff2a4d";
-                    // Re-enable capture button for retry
+                    statusEl.style.color = "#DC2626";
                     const captureBtn = document.getElementById('face-auth-btn');
                     if (captureBtn) { captureBtn.disabled = false; captureBtn.style.opacity = '1'; captureBtn.innerText = 'Retry Capture'; }
-                    loginLivenessVerified = true; // allow retry without re-blink
+                    loginLivenessVerified = true;
                     return;
                 }
 
@@ -1034,10 +1103,9 @@
                 const score = Math.max(0, Math.min(100, Math.round((1 - (distance / 0.7)) * 100)));
 
                 if (score >= 40) {
-                    statusEl.innerText = `âœ… Verified (${score}% Match) â€” Redirecting...`;
-                    statusEl.style.color = "#22c55e";
+                    statusEl.innerText = `✅ Verified (${score}% Match) — Redirecting...`;
+                    statusEl.style.color = "#16A34A";
                     spinner.classList.add('hidden');
-                    // Register session safely BEFORE redirect so dashboard guard has token
                     try {
                         if (typeof registerSession === 'function') {
                             await registerSession(tempVerifiedUser.regNum, tempVerifiedUser.institution, 'student');
@@ -1047,23 +1115,22 @@
                     localStorage.setItem('ovs_currentUser', JSON.stringify(tempVerifiedUser));
                     setTimeout(() => { window.location.href = 'voter_dashboard.html'; }, 800);
                 } else if (score >= 25) {
-                    // Borderline â€” give user a hint instead of hard deny
                     spinner.classList.add('hidden');
                     statusEl.innerText = `Low confidence (${score}%). Improve lighting or remove glasses and try again.`;
-                    statusEl.style.color = "#f59e0b";
+                    statusEl.style.color = "#D97706";
                     const captureBtn = document.getElementById('face-auth-btn');
                     if (captureBtn) { captureBtn.disabled = false; captureBtn.style.opacity = '1'; captureBtn.innerText = 'Retry Capture'; }
                     loginLivenessVerified = true;
                 } else {
                     spinner.classList.add('hidden');
                     statusEl.innerText = `🚫 Face Mismatch (${score}%). Access Denied. Contact Admin if this is an error.`;
-                    statusEl.style.color = "#ff2a4d";
+                    statusEl.style.color = "#DC2626";
                 }
 
             } catch(e) {
                 spinner.classList.add('hidden');
                 statusEl.innerText = "AI Processing Error: " + e.message + ". Try again.";
-                statusEl.style.color = "#ff2a4d";
+                statusEl.style.color = "#DC2626";
                 const captureBtn = document.getElementById('face-auth-btn');
                 if (captureBtn) { captureBtn.disabled = false; captureBtn.style.opacity = '1'; captureBtn.innerText = 'Retry Capture'; }
                 loginLivenessVerified = true;
@@ -1090,80 +1157,53 @@
         // --- RECOVERY LOGIC ---
         let recoveryRegNum = null;
         let recoveryOtp = null;
+        let recoveryTargetRole = 'voter';
+        let recoveryInstitution = null;
 
         const recIdInput = document.getElementById('rec-id');
         const recNewPassInput = document.getElementById('rec-new-pass');
 
-        // Apply same constraints as login fields
         recIdInput.addEventListener('input', function() {
-            if (isVoter) {
-                this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-            } else {
-                let val = this.value;
-                if (val.startsWith(' ')) val = val.trimStart();
-                this.value = val;
-            }
-        });
-
-        recNewPassInput.addEventListener('input', function() {
-            if (isVoter) {
-                // Allow all chars, but length limit applies
-                if (this.value.length > 10) this.value = this.value.slice(0, 10);
-            } else {
-                // Allow all chars in pass
-            }
+            this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
         });
 
         function showRecoveryModal(forcedRole = null) {
-            console.log("[UI] Recovery Modal Triggered. isVoter:", isVoter, "forcedRole:", forcedRole);
-            const title = document.getElementById('rec-title');
-            const desc = document.getElementById('rec-desc');
             const modal = document.getElementById('recovery-modal');
+            if (!modal) return alert("UI Error: Modal not found.");
 
-            if (!modal) {
-                console.error("[UI] Error: 'recovery-modal' element not found in DOM!");
-                return alert("UI Error: Modal not found.");
-            }
-
-            // Determine effective role for labelling
             let displayRole = isVoter ? 'voter' : (isSubAdmin ? 'subadmin' : 'admin');
             if (forcedRole) displayRole = forcedRole;
 
             if (displayRole === 'voter') {
-                setText('rec-title', "Voter Password Recovery");
-                setText('rec-desc', "Enter registration number to receive reset code");
+                setText('rec-title', "Student Password Recovery");
+                setText('rec-desc', "Enter your Registration Number to receive a reset code.");
                 recIdInput.placeholder = "Enter registration number";
-                recNewPassInput.placeholder = "6-10 chars (3 letters, 1 number, 1 special)";
+                recNewPassInput.placeholder = "New Password (6-10 chars)";
             } else if (displayRole === 'subadmin') {
-                setText('rec-title', "Sub-Admin Recovery");
-                setText('rec-desc', "Enter Sub-Admin ID to receive reset code");
+                setText('rec-title', "Class Admin Recovery");
+                setText('rec-desc', "Enter your 9-character Sub-Admin ID to receive a reset code.");
                 recIdInput.placeholder = "e.g. SADMIN101";
-                recNewPassInput.placeholder = "Exactly 6 chars (3 letters, 1 number, 1 special)";
+                recNewPassInput.placeholder = "Exactly 6 chars (3 letters, 1 num, 1 special)";
             } else if (displayRole === 'superadmin') {
                 setText('rec-title', "Super-Admin Recovery");
-                setText('rec-desc', "Enter Super Admin ID to receive reset code");
+                setText('rec-desc', "Enter your Super Admin ID to receive a reset code.");
                 recIdInput.placeholder = "e.g. SADMIN001";
-                recNewPassInput.placeholder = "Exactly 10 chars (3 letters, 1 number, 1 special)";
+                recNewPassInput.placeholder = "Exactly 10 chars (3 letters, 1 num, 1 special)";
             } else {
-                setText('rec-title', "Admin Recovery");
-                setText('rec-desc', "Enter Admin ID to receive reset code");
+                setText('rec-title', "Branch Admin Recovery");
+                setText('rec-desc', "Enter your 7-character Admin ID to receive a reset code.");
                 recIdInput.placeholder = "e.g. ADMCSE01";
-                recNewPassInput.placeholder = "Exactly 8 chars (3 letters, 1 number, 1 special)";
+                recNewPassInput.placeholder = "Exactly 8 chars (3 letters, 1 num, 1 special)";
             }
 
             modal.style.display = "flex";
-            console.log("[UI] Modal display set to flex.");
             document.getElementById('rec-step-1').classList.remove('hidden');
             document.getElementById('rec-step-2').classList.add('hidden');
             recIdInput.value = '';
             recNewPassInput.value = '';
             document.getElementById('rec-otp').value = '';
-            
-            // Special handling for institution scoping in recovery
             recoveryTargetRole = displayRole;
         }
-
-        let recoveryTargetRole = 'voter';
 
         function closeRecoveryModal() {
             document.getElementById('recovery-modal').style.display = "none";
@@ -1176,14 +1216,11 @@
 
             setText('rec-btn-1', "Processing...");
             btn.disabled = true;
-            console.log(`[UI] Initiating password reset for ${regNum}...`);
 
             try {
                 const finalId = regNum.toUpperCase();
                 let inst = localStorage.getItem('ovs_inst_name');
 
-                // Super Admin: look them up by regNum without institution scoping
-                // since their regNum is unique and they may belong to any institution
                 if (recoveryTargetRole === 'superadmin') {
                     try {
                         const userData = await fetchApi(`/users/${finalId}`);
@@ -1195,7 +1232,7 @@
                     } catch(e) {
                         alert("Error: " + (e.message || "Super Admin ID not found."));
                         btn.disabled = false;
-                        btn.innerText = "Send Code";
+                        btn.innerText = "Send Reset Code";
                         return;
                     }
                 }
@@ -1220,10 +1257,10 @@
                     if (res.warning) {
                         const warn = document.createElement('div');
                         warn.id = 'rec-email-warn';
-                        warn.style.color = 'var(--warning)';
-                        warn.style.fontSize = '0.8rem';
+                        warn.style.color = '#D97706';
+                        warn.style.fontSize = '0.82rem';
                         warn.style.marginTop = '0.5rem';
-                        warn.innerText = "âš ï¸ " + res.warning;
+                        warn.innerText = "⚠️ " + res.warning;
                         if (!document.getElementById('rec-email-warn')) hintEl.parentNode.insertBefore(warn, hintEl.nextSibling);
                     }
                 } else {
@@ -1232,13 +1269,10 @@
             } catch (e) {
                 alert("System Error: " + e.message);
             }
-            setText('rec-btn-1', "Send Code");
+            setText('rec-btn-1', "Send Reset Code");
             btn.disabled = false;
         }
 
-        let recoveryInstitution = null;
-
-        // Password policy validator
         function validatePassword(pwd, minLen, maxLen) {
             if (pwd.length < minLen || (maxLen && pwd.length > maxLen)) {
                 return maxLen === minLen ? `Password must be exactly ${minLen} characters.` : `Password must be ${minLen}-${maxLen} characters.`;
@@ -1247,7 +1281,7 @@
             if (alphaCount < 3) return 'Password must contain at least 3 letters.';
             if (!/[0-9]/.test(pwd)) return 'Password must contain at least 1 number.';
             if (!/[^a-zA-Z0-9]/.test(pwd)) return 'Password must contain at least 1 special character.';
-            return null; // valid
+            return null;
         }
 
         async function resetPasswordConfirm() {
@@ -1257,7 +1291,6 @@
 
             if (otpIn !== recoveryOtp) return alert("Invalid Code");
             
-            // Role-based validation
             if (recoveryTargetRole === 'voter') {
                 const pwdError = validatePassword(newPass, 6, 10);
                 if (pwdError) return alert(pwdError);
@@ -1282,7 +1315,7 @@
             } catch (e) {
                 alert("Reset Failed: " + e.message);
             }
-            setText('rec-btn-2', "Reset Password");
+            setText('rec-btn-2', "Confirm New Password");
             btn.disabled = false;
         }
 
@@ -1302,9 +1335,8 @@
                 btn.disabled = true;
 
                 try {
-                // Log them in securely bypassing 2FA check
-                await StorageManager.login(regInput.value, passInput.value, true);
-                window.location.href = 'admin_dashboard.html';
+                    await StorageManager.login(regInput.value, passInput.value, true);
+                    window.location.href = 'admin_dashboard.html';
                 } catch (e) {
                     setText('twofa-btn', "Verify Login");
                     btn.disabled = false;
@@ -1318,18 +1350,13 @@
             }
         }
 
-        function togglePassword() {
-            const passInput = document.getElementById('password');
-            passInput.type = passInput.type === 'password' ? 'text' : 'password';
-        }
-
         // --- VOTER COUNTDOWN LOGIC ---
         let voterCountdownInterval = null;
 
         async function checkElectionCountdown() {
-            if (isStaffMode) return; // Only for voters
+            if (isStaffMode) return;
             const inst = localStorage.getItem('ovs_inst_name');
-            if (!inst) return; // Guard: No institution selected yet
+            if (!inst) return;
 
             try {
                 const [status, users] = await Promise.all([
@@ -1342,7 +1369,6 @@
 
                 if (status && status.isCompleted) {
                     countdownCard.style.display = 'none';
-                    // Calculate Winner
                     const inst = localStorage.getItem('ovs_inst_name');
                     const candidates = users.filter(u => u.role === 'contestant' && u.institution === inst);
                     const voters = users.filter(u => u.role === 'voter' && u.institution === inst);
@@ -1357,12 +1383,12 @@
                         if (winners.length > 1) {
                             setText('vw-name', "TIE RESULT");
                             setHTML('vw-stats', `Election tied between <strong>${winners.length}</strong> candidates.`);
-                            setText('vw-badge', 'âš–ï¸');
+                            setText('vw-badge', '⚖️');
                         } else {
                             const w = winners[0];
                             setText('vw-name', (w.symbol || '') + ' ' + (w.name).toUpperCase());
                             setHTML('vw-stats', `Winner of the <strong>${status.electionName || 'Election'}</strong> with <strong>${maxVotes}</strong> votes.`);
-                            setText('vw-badge', 'ðŸ†');
+                            setText('vw-badge', '🏆');
                         }
                     }
                 } else if (status && status.isActive && status.endTime) {
@@ -1370,14 +1396,13 @@
                     countdownCard.style.display = 'block';
                     if (status.electionName) {
                         setText('login-title', status.electionName);
-                        setText('login-header-icon', 'ðŸ—³ï¸');
                     }
                     startVoterCountdown(status.endTime);
                 } else {
                     winnerCard.style.display = 'none';
                     countdownCard.style.display = 'none';
                 }
-            } catch (e) { console.error("Checkout failed", e); }
+            } catch (e) { console.error("Countdown check failed", e); }
         }
 
         function startVoterCountdown(endTimeStr) {
@@ -1414,14 +1439,12 @@
         let ovsLogoTimer = null;
         document.getElementById('ovs-logo').addEventListener('click', (e) => {
             e.stopPropagation();
-            // Disable 6-click logo in voter mode, keep in staff mode
             if (!isStaffMode) return;
 
             ovsLogoClicks++;
             clearTimeout(ovsLogoTimer);
             if (ovsLogoClicks >= 6) {
                 ovsLogoClicks = 0;
-                // Move SA hidden modal so it's only visible in staff mode
                 if (isStaffMode) {
                     document.getElementById('sa-login-modal').style.display = 'flex';
                     document.getElementById('sa-modal-id').focus();
@@ -1438,7 +1461,7 @@
             document.getElementById('sa-modal-pass').value = '';
             const otpInput = document.getElementById('sa-modal-otp');
             if (otpInput) otpInput.value = '';
-            document.getElementById('sa-modal-btn').innerHTML = 'ðŸ“¨ Send OTP & Continue <span style="font-size:1.1rem;">â†’</span>';
+            document.getElementById('sa-modal-btn').innerHTML = 'Send OTP & Continue →';
         }
 
         async function saModalLogin() {
@@ -1448,12 +1471,10 @@
             const btn = document.getElementById('sa-modal-btn');
             err.textContent = '';
 
-            // Validate ID
             if (id.length !== 9 || /\s/.test(id)) {
                 err.textContent = 'ID must be exactly 9 characters with no spaces.';
                 return;
             }
-            // Validate password composition
             if (pass.length !== 10) { err.textContent = 'Password must be exactly 10 characters.'; return; }
             if (/\s/.test(pass)) { err.textContent = 'Password cannot contain spaces.'; return; }
             if ((pass.match(/[a-zA-Z]/g)||[]).length < 3) { err.textContent = 'Password needs at least 3 letters.'; return; }
@@ -1467,14 +1488,12 @@
                 if (!user) throw new Error('Invalid credentials.');
                 if (!user || user.role !== 'superadmin') throw new Error('Not a Super Admin account.');
 
-                // Generate OTP and send via Backend
                 const otp = Math.floor(100000 + Math.random() * 900000).toString();
                 window._saModalOtp = otp;
                 window._saModalUser = user;
                 btn.textContent = 'Sending OTP...';
                 await StorageManager.sendEmailOtp(user.email, user.name || 'Super Admin', otp, 'Super Admin Login');
                 
-                // Close credentials modal, open separate OTP modal
                 document.getElementById('sa-login-modal').style.display = 'none';
                 const otpModal = document.getElementById('sa-otp-modal');
                 otpModal.style.display = 'flex';
@@ -1482,12 +1501,12 @@
                 document.getElementById('sa-modal-otp').value = '';
                 document.getElementById('sa-modal-otp').focus();
                 document.getElementById('sa-otp-err').textContent = '';
-                document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+                document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#D97706,#B45309)';
 
             } catch(e) {
-                btn.textContent = 'ðŸ“¨ Send OTP & Continue';
+                btn.textContent = 'Send OTP & Continue →';
                 btn.disabled = false;
-                err.style.color = '#ef4444';
+                err.style.color = '#DC2626';
                 err.textContent = e.message || 'Access Denied';
             }
         }
@@ -1496,16 +1515,15 @@
             const entered = document.getElementById('sa-modal-otp').value.trim();
             const err = document.getElementById('sa-otp-err');
             if (entered !== window._saModalOtp) {
-                err.style.color = '#ef4444';
-                err.textContent = 'âŒ Invalid OTP. Please try again.';
-                document.getElementById('sa-modal-otp').style.borderColor = 'rgba(239,68,68,0.6)';
-                document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#ef4444,#dc2626)';
+                err.style.color = '#DC2626';
+                err.textContent = '❌ Invalid OTP. Please try again.';
+                document.getElementById('sa-modal-otp').style.borderColor = 'rgba(220,38,38,0.6)';
+                document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#DC2626,#B91C1C)';
                 return;
             }
-            // Save session and redirect â€” pass encoded token in URL as bulletproof fallback
             const sessionUser = { ...window._saModalUser, role: 'superadmin' };
             localStorage.setItem('ovs_currentUser', JSON.stringify(sessionUser));
-            document.getElementById('sa-otp-verify-btn').textContent = 'âœ… Verified! Redirecting...';
+            document.getElementById('sa-otp-verify-btn').textContent = '✅ Verified! Redirecting...';
             const rawToken = btoa(unescape(encodeURIComponent(JSON.stringify(sessionUser))));
             const token = encodeURIComponent(rawToken);
             await new Promise(r => setTimeout(r, 200));
@@ -1516,7 +1534,7 @@
             document.getElementById('sa-otp-modal').style.display = 'none';
             document.getElementById('sa-login-modal').style.display = 'flex';
             const btn = document.getElementById('sa-modal-btn');
-            btn.textContent = 'ðŸ“¨ Send OTP & Continue';
+            btn.textContent = 'Send OTP & Continue →';
             btn.disabled = false;
             document.getElementById('sa-modal-err').textContent = '';
         }
@@ -1529,16 +1547,15 @@
                 const otp = Math.floor(100000 + Math.random() * 900000).toString();
                 window._saModalOtp = otp;
                 await StorageManager.sendEmailOtp(window._saModalUser.email, window._saModalUser.name || 'Super Admin', otp, 'Super Admin Login');
-                document.getElementById('sa-otp-err').style.color = '#22c55e';
-                document.getElementById('sa-otp-err').textContent = 'âœ… New OTP sent!';
+                document.getElementById('sa-otp-err').style.color = '#16A34A';
+                document.getElementById('sa-otp-err').textContent = '✅ New OTP sent!';
             } catch(e) {
-                document.getElementById('sa-otp-err').style.color = '#ef4444';
+                document.getElementById('sa-otp-err').style.color = '#DC2626';
                 document.getElementById('sa-otp-err').textContent = 'Failed to resend OTP.';
             }
             setTimeout(() => { resendBtn.textContent = 'Resend OTP'; resendBtn.style.pointerEvents = ''; }, 30000);
         }
 
-        // Real-time restrictions on SA modal inputs
         document.getElementById('sa-modal-id').addEventListener('input', function() {
             this.value = this.value.replace(/\s/g, '').toUpperCase().slice(0, 9);
         });
@@ -1555,40 +1572,11 @@
             if (e.key === 'Enter') { e.preventDefault(); saModalLogin(); }
         });
 
-
-
-
         document.getElementById('regNum').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 document.getElementById('password').focus();
             }
-        });
-
-        // Initialize tsParticles Cyber Mesh Effect
-        tsParticles.load("tsparticles", {
-            fpsLimit: 60,
-            particles: {
-                number: { value: 50, density: { enable: true, value_area: 800 } },
-                color: { value: ["#ffffff", "#ff2a4d"] },
-                shape: { type: "circle" },
-                opacity: { value: 0.4, random: true },
-                size: { value: 2, random: true },
-                links: { enable: true, distance: 150, color: "#ffffff", opacity: 0.15, width: 1 },
-                move: { enable: true, speed: 0.8, direction: "none", random: false, straight: false, outModes: { default: "out" } }
-            },
-            interactivity: {
-                detectsOn: "canvas",
-                events: {
-                    onHover: { enable: true, mode: "grab" },
-                    resize: true
-                },
-                modes: {
-                    grab: { distance: 150, links: { opacity: 0.4 } }
-                }
-            },
-            retina_detect: true,
-            background: { color: "transparent" }
         });
     </script>
 </body>
