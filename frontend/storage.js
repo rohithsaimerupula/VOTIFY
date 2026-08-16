@@ -1,8 +1,8 @@
-﻿// API Configuration
+// API Configuration
 // When running as a native Android app (via Capacitor), location.hostname is
-// 'localhost' even in production â€” so we must detect the native platform explicitly.
+// 'localhost' even in production — so we must detect the native platform explicitly.
 const _isCapacitorNative = typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-const API_BASE = typeof API !== 'undefined' ? API : (location.hostname === 'localhost' ? 'http://localhost:3001/api' : 'https://online-voting-system-u5xy.onrender.com/api');
+const API_BASE = typeof API !== 'undefined' ? API : (location.hostname === 'localhost' ? 'http://localhost:3001/api' : '/api');
 
 // Shared utilities
 async function fetchApi(path, options = {}, retries = 2) {
