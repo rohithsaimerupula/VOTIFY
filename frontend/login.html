@@ -13,14 +13,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
+    <script src="config.js"></script>
+    <script src="storage.js"></script>
+    <script src="session-guard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script>
         (function() {
             document.documentElement.setAttribute('data-theme', 'light');
             localStorage.setItem('ovs_theme', 'light');
         })();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
         /* ── Page Layout & Alignment ── */
         .login-wrapper {
@@ -229,8 +232,6 @@
         .cd-txt { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; font-weight: 600; }
         .cd-sep { font-size: 1.2rem; color: rgba(220, 38, 38, 0.3); margin-top: -0.2rem; }
     </style>
-    <script src="session-guard.js"></script>
-    <script src="config.js"></script>
 </head>
 
 <body>
@@ -472,8 +473,6 @@
         </div>
     </div>
 
-    <script src="session-guard.js?v=2"></script>
-    <script src="storage.js?v=4"></script>
     <script>
         console.log("[OVS] Login System Initializing...");
 

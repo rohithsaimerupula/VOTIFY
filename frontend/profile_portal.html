@@ -1,14 +1,12 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#06b6d4">
+    <meta name="theme-color" content="#1A3C29">
     <link rel="apple-touch-icon" href="assets/icon-192.png">
-    <title>Profile Portal - OVS</title>
-
+    <title>Profile Portal — VOTIFY</title>
     <link rel="stylesheet" href="style.css?v=1781373415712">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Playfair+Display:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
@@ -17,31 +15,26 @@
             localStorage.setItem('ovs_theme', 'light');
         })();
     </script>
+    <script src="config.js"></script>
     <script src="storage.js?v=3"></script>
+    <script src="session-guard.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
-<script src="config.js"></script>
 </head>
-
 <body class="theme-register">
     <nav>
-        <div class="brand" onclick="window.location.href='index.html'" style="font-family:'Playfair Display', serif; letter-spacing:-1px;">VANGUARD</div>
+        <div class="brand" onclick="window.location.href='index.html'" style="font-family:'Playfair Display', serif; letter-spacing:-1px;">VOTIFY</div>
         <div class="nav-links" style="display:flex; align-items:center;">
             <button onclick="window.location.href='index.html'" class="btn-outline" style="margin-right:0.5rem; padding:0.5rem 1rem;">Home</button>
             <button onclick="window.location.href='login.html'" class="submit-btn" style="width: auto;">Log In</button>
         </div>
     </nav>
-
     <div class="container animate-fade-in" style="max-width: 500px;">
-        <!-- Login Section -->
         <div id="login-section" class="glass-panel" style="padding: 2.5rem;">
             <h2 class="text-center" style="margin-bottom: 2rem; font-family:'Playfair Display', serif; font-weight:700;">Profile Portal</h2>
-            
-            <!-- Role Selection Buttons -->
             <div class="login-tabs" style="display: flex; gap:10px; margin-bottom: 2rem;">
                 <button id="btn-voter-mode" class="tab-btn active" onclick="switchLoginMode('voter')" style="flex:1; padding:0.8rem; background:rgba(6,182,212,0.1); border:1px solid var(--neon-cyan); border-radius:8px; color:var(--neon-cyan); cursor:pointer;">Voter Login</button>
                 <button id="btn-candidate-mode" class="tab-btn" onclick="switchLoginMode('candidate')" style="flex:1; padding:0.8rem; background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); border-radius:8px; color:white; cursor:pointer;">Candidate Login</button>
             </div>
-
             <form id="portal-login-form">
                 <div class="form-group">
                     <label id="login-id-label">Registration Number</label>
@@ -188,7 +181,7 @@
                     // Voter: Auth with ID and Password via StorageManager
                     user = await StorageManager.login(id, pass, true);
                 } else {
-                    // Candidate: Auth with regNum only â€” look up by ID and institution, no password needed
+                    // Candidate: Auth with regNum only
                     const inst = localStorage.getItem('ovs_inst_name') || '';
                     try {
                         const data = await fetchApi(`/users/${id}?institution=${encodeURIComponent(inst)}`);
@@ -267,17 +260,10 @@
             return null; // valid
         }
 
-        // Real-time validation for new password
-        document.getElementById('new-password').addEventListener('input', function() {
-            if (sessionUser && sessionUser.role === 'voter') {
-                if (this.value.length > 10) this.value = this.value.slice(0, 10);
-            }
-        });
-
         let portalGeneratedOtp = null;
         let pendingUpdates = null;
 
-        // Profile Update (Initially just triggers OTP)
+        // Profile Update
         document.getElementById('profile-update-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('save-btn');
@@ -305,7 +291,6 @@
                         return alert(pwdError);
                     }
                 }
-                // Always hash (btoa) password before storing â€” consistent with login system
                 pendingUpdates.password = btoa(newPass);
             }
 
@@ -315,7 +300,6 @@
             }
 
             try {
-                // Generate and send OTP
                 portalGeneratedOtp = Math.floor(100000 + Math.random() * 900000).toString();
                 await StorageManager.sendEmailOtp(sessionUser.email, sessionUser.name, portalGeneratedOtp, "Profile Update");
                 
@@ -351,13 +335,12 @@
             }
 
             try {
-                // Pass institution so PATCH is scoped correctly to this tenant
                 const updatesWithInst = {
                     ...pendingUpdates,
                     institution: sessionUser.institution || localStorage.getItem('ovs_inst_name') || 'Unknown'
                 };
                 await StorageManager.updateUserDetails(sessionUser.regNum, updatesWithInst);
-                setText('status-msg', "Profile updated successfully! âœ…");
+                setText('status-msg', "Profile updated successfully! ✅");
                 if(msg) {
                     msg.style.background = "rgba(16, 185, 129, 0.2)";
                     msg.style.color = "#10b981";
@@ -407,4 +390,3 @@
     </script>
 </body>
 </html>
-
