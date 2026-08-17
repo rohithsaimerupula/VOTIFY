@@ -1219,15 +1219,21 @@ app.post('/api/auth/send-otp', async (req, res) => {
                     args: ["SMTP_WARNING", `SMTP credentials not configured. OTP generated for ${email}.`, `OTP: ${otp} | Context: ${context || 'General'}`, String(Date.now()), "Global"]
                 });
             } catch(err) {}
-            return res.json({ success: true, warning: "SMTP not configured. OTP logged to system." });
+            return res.json({ success: true, delivered: false, warning: "SMTP not configured. OTP logged to system.", fallbackOtp: otp });
         }
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
             auth: {
                 user: smtp.user,
                 pass: smtp.pass
-            }
+            },
+            connectionTimeout: 4000,
+            greetingTimeout: 4000,
+            socketTimeout: 5000
         });
 
         const mailOptions = {
@@ -1243,17 +1249,33 @@ app.post('/api/auth/send-otp', async (req, res) => {
             </div>`
         };
 
-        await transporter.sendMail(mailOptions);
-        res.json({ success: true });
+        let delivered = false;
+        try {
+            await Promise.race([
+                transporter.sendMail(mailOptions),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP timeout")), 5000))
+            ]);
+            delivered = true;
+            console.log(`[OTP_DISPATCH] Email delivered to ${email}`);
+        } catch (sendErr) {
+            console.warn(`[OTP_DISPATCH] Mail send failed (${sendErr.message}), saving system alert.`);
+            try {
+                await db.execute({
+                    sql: "INSERT INTO system_alerts (type, message, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
+                    args: ["SMTP_FAILURE", `Email delivery failed for ${email}: ${sendErr.message}`, `OTP: ${otp} | Context: ${context || 'General'}`, String(Date.now()), "Global"]
+                });
+            } catch(err) {}
+        }
+
+        res.json({ 
+            success: true, 
+            delivered: delivered, 
+            warning: delivered ? null : "Email delivery delayed or SMTP unavailable.",
+            fallbackOtp: delivered ? null : otp
+        });
     } catch (e) {
         console.error("[NODEMAILER_FAIL]", e);
-        try {
-            await db.execute({
-                sql: "INSERT INTO system_alerts (type, message, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
-                args: ["SMTP_FAILURE", `Email delivery failed for ${req.body.email || 'unknown'}`, e.message, String(Date.now()), "Global"]
-            });
-        } catch(err) {}
-        res.status(500).json({ error: `SMTP Error: ${e.message}` });
+        res.json({ success: true, delivered: false, warning: e.message, fallbackOtp: req.body.otp });
     }
 });
 

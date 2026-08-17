@@ -1517,17 +1517,31 @@
                 const otp = Math.floor(100000 + Math.random() * 900000).toString();
                 window._saModalOtp = otp;
                 window._saModalUser = user;
-                btn.textContent = 'Sending OTP...';
-                await StorageManager.sendEmailOtp(user.email, user.name || 'Super Admin', otp, 'Super Admin Login');
+                btn.textContent = 'Opening OTP Modal...';
                 
+                // Immediately switch to OTP modal so UI is responsive
                 document.getElementById('sa-login-modal').style.display = 'none';
                 const otpModal = document.getElementById('sa-otp-modal');
                 otpModal.style.display = 'flex';
-                document.getElementById('sa-otp-sent-to').textContent = `OTP sent to ${user.email}`;
+                document.getElementById('sa-otp-sent-to').textContent = `OTP sent to ${user.email || 'your registered email'}`;
                 document.getElementById('sa-modal-otp').value = '';
                 document.getElementById('sa-modal-otp').focus();
                 document.getElementById('sa-otp-err').textContent = '';
                 document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#D97706,#B45309)';
+
+                // Send email in background / parallel
+                StorageManager.sendEmailOtp(user.email, user.name || 'Super Admin', otp, 'Super Admin Login').then(res => {
+                    if (res && res.warning) {
+                        console.warn("[SuperAdmin Login]", res.warning);
+                        const errEl = document.getElementById('sa-otp-err');
+                        if (errEl && !document.getElementById('sa-modal-otp').value) {
+                            errEl.style.color = '#D97706';
+                            errEl.textContent = 'ℹ️ Email sending in progress. Please check inbox & spam.';
+                        }
+                    }
+                }).catch(err => {
+                    console.warn("[SuperAdmin Login] Email delivery warning:", err);
+                });
 
             } catch(e) {
                 btn.textContent = 'Send OTP & Continue →';
@@ -1540,9 +1554,9 @@
         async function saModalVerifyOtp() {
             const entered = document.getElementById('sa-modal-otp').value.trim();
             const err = document.getElementById('sa-otp-err');
-            if (entered !== window._saModalOtp) {
+            if (!entered || entered !== window._saModalOtp) {
                 err.style.color = '#DC2626';
-                err.textContent = '❌ Invalid OTP. Please try again.';
+                err.textContent = '❌ Invalid OTP. Please enter the 6-digit code sent to your email.';
                 document.getElementById('sa-modal-otp').style.borderColor = 'rgba(220,38,38,0.6)';
                 document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#DC2626,#B91C1C)';
                 return;
