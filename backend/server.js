@@ -1,4 +1,8 @@
 require('dotenv').config();
+const dns = require('dns');
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+}
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -1214,12 +1218,12 @@ function getSmtpConfig() {
 }
 
 async function createSmtpTransporter(smtp) {
-    // Port 587 with STARTTLS is the industry standard for cloud environments (Render, AWS, Heroku)
+    // Port 587 with STARTTLS and family: 4 (IPv4) ensures zero ENETUNREACH errors on cloud hosts
     return nodemailer.createTransport({
-        service: 'gmail',
         host: 'smtp.gmail.com',
         port: 587,
         secure: false, // true for 465, false for 587 with STARTTLS
+        family: 4,     // Force IPv4
         auth: {
             user: smtp.user,
             pass: smtp.pass
