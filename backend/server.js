@@ -901,15 +901,24 @@ app.delete('/api/users/orphans', authGuard, async (req, res) => {
 
 app.delete('/api/users/:id', async (req, res) => {
     try {
-        const inst = req.query.institution || '';
+        let inst = req.query.institution || '';
         const targetId = req.params.id;
         
         console.log(`[OVS] Attempting deletion of user ${targetId} for institution: "${inst}"`);
 
         // Fetch the user to perform cascading deletes
-        const userCheck = await db.execute({ sql: "SELECT role, branch, class, year FROM users WHERE regNum = ? AND institution = ?", args: [targetId, inst] });
+        let userCheck = inst 
+            ? await db.execute({ sql: "SELECT role, branch, class, year, institution FROM users WHERE regNum = ? AND institution = ?", args: [targetId, inst] })
+            : await db.execute({ sql: "SELECT role, branch, class, year, institution FROM users WHERE regNum = ?", args: [targetId] });
+
+        if (userCheck.rows.length === 0 && inst) {
+            // Fallback: search by regNum only if institution header/param differed
+            userCheck = await db.execute({ sql: "SELECT role, branch, class, year, institution FROM users WHERE regNum = ?", args: [targetId] });
+        }
+
         if (userCheck.rows.length > 0) {
-            const { role, branch, class: cls, year } = userCheck.rows[0];
+            const { role, branch, class: cls, year, institution: resolvedInst } = userCheck.rows[0];
+            inst = resolvedInst || inst;
             
             if (role === 'superadmin') {
                 console.log(`[OVS] Cascading deletion for Super Admin: ${targetId} of ${inst}`);
