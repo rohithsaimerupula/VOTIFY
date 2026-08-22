@@ -1237,6 +1237,62 @@ async function createSmtpTransporter(smtp) {
     });
 }
 
+async function sendEmailViaHttpsApi(toEmail, toName, subject, htmlContent) {
+    // 1. Resend REST API (Runs over HTTPS Port 443 - zero firewall blocks on Render / Vercel / Cloud)
+    if (process.env.RESEND_API_KEY) {
+        console.log(`[EMAIL_DISPATCH] Dispatching via Resend HTTPS API to ${toEmail}`);
+        const res = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                from: 'VOTIFY Security <onboarding@resend.dev>',
+                to: [toEmail],
+                subject: subject,
+                html: htmlContent
+            })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            console.log(`[EMAIL_DISPATCH] ✅ Delivered via Resend (ID: ${data.id})`);
+            return { success: true, provider: 'resend', id: data.id };
+        }
+        console.warn(`[EMAIL_DISPATCH] Resend API error:`, data);
+        throw new Error(`Resend API: ${data.message || JSON.stringify(data)}`);
+    }
+
+    // 2. Brevo / Sendinblue REST API (Runs over HTTPS Port 443)
+    const brevoKey = process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY;
+    if (brevoKey) {
+        console.log(`[EMAIL_DISPATCH] Dispatching via Brevo HTTPS API to ${toEmail}`);
+        const senderEmail = process.env.SMTP_FROM || 'noreply@votify.edu';
+        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+                'api-key': brevoKey.trim(),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                sender: { name: "VOTIFY Security", email: senderEmail },
+                to: [{ email: toEmail, name: toName || 'User' }],
+                subject: subject,
+                htmlContent: htmlContent
+            })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            console.log(`[EMAIL_DISPATCH] ✅ Delivered via Brevo (MessageId: ${data.messageId})`);
+            return { success: true, provider: 'brevo', messageId: data.messageId };
+        }
+        console.warn(`[EMAIL_DISPATCH] Brevo API error:`, data);
+        throw new Error(`Brevo API: ${data.message || JSON.stringify(data)}`);
+    }
+
+    return null;
+}
+
 app.post('/api/auth/send-otp', async (req, res) => {
     try {
         const { email, name, otp, context } = req.body;
@@ -1249,42 +1305,56 @@ app.post('/api/auth/send-otp', async (req, res) => {
         }
         otpRateLimit.set(email, now);
 
+        const subject = `${context || 'Verification Code'} — VOTIFY`;
+        const htmlContent = `<div style="font-family:sans-serif;max-width:520px;margin:auto;padding:30px;background:#FAF6F0;border:1px solid rgba(65,91,6,0.2);border-radius:16px;color:#1A3C29;">
+            <h2 style="color:#1A3C29;margin-top:0;font-size:24px;font-weight:800;">VOTIFY Security Verification</h2>
+            <p style="font-size:15px;color:#4B5563;">Hello <strong>${name || 'User'}</strong>,</p>
+            <p style="font-size:15px;color:#4B5563;">Your single-use verification code for <strong>${context || 'Secure Activity'}</strong> is:</p>
+            <div style="background:#FFFDF9;border:1px solid rgba(65,91,6,0.16);padding:20px;text-align:center;font-size:34px;font-weight:900;letter-spacing:6px;color:#1A3C29;border-radius:12px;margin:20px 0;">${otp}</div>
+            <p style="color:#6B7280;font-size:13px;margin-bottom:0;">This verification code will expire in 10 minutes. If you did not make this request, please ignore this email.</p>
+        </div>`;
+
+        // ─── METHOD 1: HTTPS REST API (Bypasses Render SMTP port firewall blocks) ───
+        const httpsResult = await sendEmailViaHttpsApi(email, name, subject, htmlContent);
+        if (httpsResult && httpsResult.success) {
+            return res.json({ success: true, delivered: true, provider: httpsResult.provider });
+        }
+
+        // ─── METHOD 2: Direct SMTP (Gmail Port 587) ───
         const smtp = getSmtpConfig();
         if (!smtp) {
-            console.error(`[OTP_DISPATCH] SMTP credentials missing in environment variables.`);
+            console.error(`[OTP_DISPATCH] No email provider configured (Neither HTTPS API nor SMTP).`);
             return res.status(500).json({ 
-                error: "Email service is not configured on the server. Please ensure SMTP_USER and SMTP_PASS are set in Render." 
+                error: "Email service is not configured. Please add RESEND_API_KEY or SMTP credentials in Render." 
             });
         }
 
         const transporter = await createSmtpTransporter(smtp);
-
         const mailOptions = {
             from: `"VOTIFY Security" <${smtp.user}>`,
             to: email,
-            subject: `${context || 'Verification Code'} — VOTIFY`,
-            html: `<div style="font-family:sans-serif;max-width:520px;margin:auto;padding:30px;background:#FAF6F0;border:1px solid rgba(65,91,6,0.2);border-radius:16px;color:#1A3C29;">
-                <h2 style="color:#1A3C29;margin-top:0;font-size:24px;font-weight:800;">VOTIFY Security Verification</h2>
-                <p style="font-size:15px;color:#4B5563;">Hello <strong>${name || 'User'}</strong>,</p>
-                <p style="font-size:15px;color:#4B5563;">Your single-use verification code for <strong>${context || 'Secure Activity'}</strong> is:</p>
-                <div style="background:#FFFDF9;border:1px solid rgba(65,91,6,0.16);padding:20px;text-align:center;font-size:34px;font-weight:900;letter-spacing:6px;color:#1A3C29;border-radius:12px;margin:20px 0;">${otp}</div>
-                <p style="color:#6B7280;font-size:13px;margin-bottom:0;">This verification code will expire in 10 minutes. If you did not make this request, please ignore this email.</p>
-            </div>`
+            subject: subject,
+            html: htmlContent
         };
 
         await transporter.sendMail(mailOptions);
-        console.log(`[OTP_DISPATCH] ✅ Email successfully sent to ${email}`);
+        console.log(`[OTP_DISPATCH] ✅ Email successfully sent via SMTP to ${email}`);
         res.json({ success: true, delivered: true });
 
     } catch (e) {
-        console.error("[NODEMAILER_FAIL]", e);
+        console.error("[EMAIL_DISPATCH_FAIL]", e);
         try {
             await db.execute({
                 sql: "INSERT INTO system_alerts (type, message, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
-                args: ["SMTP_FAILURE", `Email delivery failed for ${req.body.email || 'unknown'}: ${e.message}`, `Context: ${req.body.context || 'General'}`, String(Date.now()), "Global"]
+                args: ["EMAIL_FAILURE", `Email delivery failed for ${req.body.email || 'unknown'}: ${e.message}`, `Context: ${req.body.context || 'General'}`, String(Date.now()), "Global"]
             });
         } catch(err) {}
-        res.status(500).json({ error: `Failed to send email: ${e.message}` });
+        
+        let errMsg = e.message;
+        if (e.message && e.message.includes('Connection timeout')) {
+            errMsg = 'Render Free Tier blocked outbound SMTP port 587. Please add a free RESEND_API_KEY in Render environment variables for instant HTTPS delivery.';
+        }
+        res.status(500).json({ error: errMsg });
     }
 });
 
