@@ -1512,15 +1512,8 @@
                 window._saModalUser = user;
                 btn.textContent = 'Opening OTP Modal...';
                 
-                // Immediately switch to OTP modal so UI is responsive
-                document.getElementById('sa-login-modal').style.display = 'none';
-                const otpModal = document.getElementById('sa-otp-modal');
-                otpModal.style.display = 'flex';
-                document.getElementById('sa-otp-sent-to').textContent = `OTP sent to ${user.email || 'your registered email'}`;
-                document.getElementById('sa-modal-otp').value = '';
-                document.getElementById('sa-modal-otp').focus();
-                document.getElementById('sa-otp-err').textContent = '';
-                document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#D97706,#B45309)';
+                btn.textContent = 'Sending OTP...';
+                btn.disabled = true;
 
                 // Send real email OTP
                 await StorageManager.sendEmailOtp(user.email, user.name || 'Super Admin', otp, 'Super Admin Login');
