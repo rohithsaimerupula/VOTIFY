@@ -55,13 +55,13 @@ function authGuard(req, res, next) {
     next();
 }
 
-async function retryWithBackoff(fn, retries = 2, delayMs = 1000) {
+async function retryWithBackoff(fn, retries = 2, delayMs = 300) {
     let lastError = null;
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
             return await Promise.race([
                 fn(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 4000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('DB_TIMEOUT')), 8000))
             ]);
         } catch (e) {
             lastError = e;
@@ -88,10 +88,13 @@ async function initDb() {
             `CREATE TABLE IF NOT EXISTS globalChat (id INTEGER PRIMARY KEY AUTOINCREMENT, voterName TEXT, text TEXT, timestamp TEXT, institution TEXT)`,
             `CREATE TABLE IF NOT EXISTS system_alerts (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, message TEXT, details TEXT, timestamp TEXT, institution TEXT)`,
             `CREATE TABLE IF NOT EXISTS elections (id TEXT PRIMARY KEY, institution TEXT, name TEXT, type TEXT, scope TEXT, electionCode TEXT, isActive INTEGER DEFAULT 0, isCompleted INTEGER DEFAULT 0, registrationOpen INTEGER DEFAULT 1, startTime TEXT, endTime TEXT, createdBy TEXT, createdByRole TEXT, createdAt TEXT)`,
-            `CREATE TABLE IF NOT EXISTS packs (id TEXT PRIMARY KEY, name TEXT, maxAdmins INTEGER DEFAULT 20, maxSubAdmins INTEGER DEFAULT 4, maxStudents INTEGER DEFAULT 1000, createdAt TEXT)`
-            // NOTE: Column additions are handled by runMigrations() below â€” no ALTER TABLE here.
+            `CREATE TABLE IF NOT EXISTS packs (id TEXT PRIMARY KEY, name TEXT, maxAdmins INTEGER DEFAULT 20, maxSubAdmins INTEGER DEFAULT 4, maxStudents INTEGER DEFAULT 1000, createdAt TEXT)`,
+            `CREATE INDEX IF NOT EXISTS idx_users_inst_role ON users(institution, role)`,
+            `CREATE INDEX IF NOT EXISTS idx_users_class ON users(class, institution)`,
+            `CREATE INDEX IF NOT EXISTS idx_elections_inst ON elections(institution)`,
+            `CREATE INDEX IF NOT EXISTS idx_audit_inst ON auditLogs(institution)`
         ], "write");
-        console.log("Database initialized.");
+        console.log("Database initialized and indexed.");
     } catch (err) { console.error("Error initializing DB:", err); }
 }
 initDb();
