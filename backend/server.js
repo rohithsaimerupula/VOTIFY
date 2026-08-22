@@ -1217,80 +1217,68 @@ function getSmtpConfig() {
     };
 }
 
-async function createSmtpTransporter(smtp) {
-    // Port 587 with STARTTLS and family: 4 (IPv4) ensures zero ENETUNREACH errors on cloud hosts
-    return nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false, // true for 465, false for 587 with STARTTLS
-        family: 4,     // Force IPv4
-        auth: {
-            user: smtp.user,
-            pass: smtp.pass
+async function sendEmailViaGmailSmtp(smtp, mailOptions) {
+    const strategies = [
+        {
+            name: "Gmail Service Pool (IPv4)",
+            config: {
+                service: 'gmail',
+                pool: true,
+                maxConnections: 3,
+                maxMessages: 100,
+                family: 4,
+                auth: { user: smtp.user, pass: smtp.pass },
+                tls: { rejectUnauthorized: false },
+                connectionTimeout: 20000,
+                greetingTimeout: 20000,
+                socketTimeout: 25000
+            }
         },
-        tls: {
-            rejectUnauthorized: false
+        {
+            name: "Gmail SSL Port 465 (IPv4)",
+            config: {
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true,
+                family: 4,
+                auth: { user: smtp.user, pass: smtp.pass },
+                tls: { rejectUnauthorized: false },
+                connectionTimeout: 20000,
+                greetingTimeout: 20000,
+                socketTimeout: 25000
+            }
         },
-        connectionTimeout: 10000,
-        greetingTimeout: 10000,
-        socketTimeout: 15000
-    });
-}
-
-async function sendEmailViaHttpsApi(toEmail, toName, subject, htmlContent) {
-    // 1. Resend REST API (Runs over HTTPS Port 443 - zero firewall blocks on Render / Vercel / Cloud)
-    if (process.env.RESEND_API_KEY) {
-        console.log(`[EMAIL_DISPATCH] Dispatching via Resend HTTPS API to ${toEmail}`);
-        const res = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.RESEND_API_KEY.trim()}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                from: 'VOTIFY Security <onboarding@resend.dev>',
-                to: [toEmail],
-                subject: subject,
-                html: htmlContent
-            })
-        });
-        const data = await res.json();
-        if (res.ok) {
-            console.log(`[EMAIL_DISPATCH] ✅ Delivered via Resend (ID: ${data.id})`);
-            return { success: true, provider: 'resend', id: data.id };
+        {
+            name: "Gmail STARTTLS Port 587 (IPv4)",
+            config: {
+                host: 'smtp.gmail.com',
+                port: 587,
+                secure: false,
+                family: 4,
+                auth: { user: smtp.user, pass: smtp.pass },
+                tls: { rejectUnauthorized: false },
+                connectionTimeout: 20000,
+                greetingTimeout: 20000,
+                socketTimeout: 25000
+            }
         }
-        console.warn(`[EMAIL_DISPATCH] Resend API error:`, data);
-        throw new Error(`Resend API: ${data.message || JSON.stringify(data)}`);
-    }
+    ];
 
-    // 2. Brevo / Sendinblue REST API (Runs over HTTPS Port 443)
-    const brevoKey = process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY;
-    if (brevoKey) {
-        console.log(`[EMAIL_DISPATCH] Dispatching via Brevo HTTPS API to ${toEmail}`);
-        const senderEmail = process.env.SMTP_FROM || 'noreply@votify.edu';
-        const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-            method: 'POST',
-            headers: {
-                'api-key': brevoKey.trim(),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                sender: { name: "VOTIFY Security", email: senderEmail },
-                to: [{ email: toEmail, name: toName || 'User' }],
-                subject: subject,
-                htmlContent: htmlContent
-            })
-        });
-        const data = await res.json();
-        if (res.ok) {
-            console.log(`[EMAIL_DISPATCH] ✅ Delivered via Brevo (MessageId: ${data.messageId})`);
-            return { success: true, provider: 'brevo', messageId: data.messageId };
+    let lastError = null;
+    for (const strat of strategies) {
+        try {
+            console.log(`[SMTP_DISPATCH] Trying ${strat.name}...`);
+            const transporter = nodemailer.createTransport(strat.config);
+            const result = await transporter.sendMail(mailOptions);
+            console.log(`[SMTP_DISPATCH] ✅ Email sent via ${strat.name}! MessageId: ${result.messageId}`);
+            if (transporter.close) transporter.close();
+            return { success: true, messageId: result.messageId, strategy: strat.name };
+        } catch (err) {
+            console.warn(`[SMTP_DISPATCH] ${strat.name} attempt failed:`, err.message);
+            lastError = err;
         }
-        console.warn(`[EMAIL_DISPATCH] Brevo API error:`, data);
-        throw new Error(`Brevo API: ${data.message || JSON.stringify(data)}`);
     }
-
-    return null;
+    throw lastError || new Error("All SMTP connection strategies timed out.");
 }
 
 app.post('/api/auth/send-otp', async (req, res) => {
@@ -1314,22 +1302,14 @@ app.post('/api/auth/send-otp', async (req, res) => {
             <p style="color:#6B7280;font-size:13px;margin-bottom:0;">This verification code will expire in 10 minutes. If you did not make this request, please ignore this email.</p>
         </div>`;
 
-        // ─── METHOD 1: HTTPS REST API (Bypasses Render SMTP port firewall blocks) ───
-        const httpsResult = await sendEmailViaHttpsApi(email, name, subject, htmlContent);
-        if (httpsResult && httpsResult.success) {
-            return res.json({ success: true, delivered: true, provider: httpsResult.provider });
-        }
-
-        // ─── METHOD 2: Direct SMTP (Gmail Port 587) ───
         const smtp = getSmtpConfig();
         if (!smtp) {
-            console.error(`[OTP_DISPATCH] No email provider configured (Neither HTTPS API nor SMTP).`);
+            console.error(`[OTP_DISPATCH] SMTP credentials missing in environment variables.`);
             return res.status(500).json({ 
-                error: "Email service is not configured. Please add RESEND_API_KEY or SMTP credentials in Render." 
+                error: "SMTP email service is not configured. Please ensure SMTP_FROM and GMAIL_APP_PASSWORD are set in Render." 
             });
         }
 
-        const transporter = await createSmtpTransporter(smtp);
         const mailOptions = {
             from: `"VOTIFY Security" <${smtp.user}>`,
             to: email,
@@ -1337,8 +1317,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
             html: htmlContent
         };
 
-        await transporter.sendMail(mailOptions);
-        console.log(`[OTP_DISPATCH] ✅ Email successfully sent via SMTP to ${email}`);
+        await sendEmailViaGmailSmtp(smtp, mailOptions);
         res.json({ success: true, delivered: true });
 
     } catch (e) {
@@ -1350,11 +1329,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
             });
         } catch(err) {}
         
-        let errMsg = e.message;
-        if (e.message && e.message.includes('Connection timeout')) {
-            errMsg = 'Render Free Tier blocked outbound SMTP port 587. Please add a free RESEND_API_KEY in Render environment variables for instant HTTPS delivery.';
-        }
-        res.status(500).json({ error: errMsg });
+        res.status(500).json({ error: `SMTP Delivery Error: ${e.message}` });
     }
 });
 
