@@ -542,18 +542,14 @@ const StorageManager = {
             const otp = Math.floor(100000 + Math.random() * 900000).toString();
             const maskedEmail = userData.email.replace(/^(.{2})(.*)(@.*)$/, "$1***$3");
             
-            try {
-                await this.sendEmailOtp(userData.email, userData.name, otp, "Password Reset Request");
-                return { success: true, otp: otp, maskedEmail: maskedEmail };
-            } catch (emailErr) {
-                console.error("[StorageManager] Email sending failed, providing fallback:", emailErr);
-                return { 
-                    success: true, 
-                    otp: otp, 
-                    maskedEmail: maskedEmail, 
-                    warning: "Email Delivery Failed. Check Browser Console for Login Code (F12)." 
-                };
-            }
+            const sendRes = await this.sendEmailOtp(userData.email, userData.name, otp, "Password Reset Request");
+            return { 
+                success: true, 
+                otp: otp, 
+                maskedEmail: maskedEmail,
+                delivered: sendRes.delivered !== false,
+                warning: sendRes.warning
+            };
         } catch (err) {
             console.error("[StorageManager] sendResetOtp Critical Error:", err);
             return { success: false, error: err.message };
@@ -573,16 +569,17 @@ const StorageManager = {
                  })
              }, 0); // 0 retries to avoid long stalls
 
-             if (response && response.warning) {
-                 console.warn("[EmailSystem] Backend Warning:", response.warning);
-                 return { success: true, warning: response.warning, fallbackOtp: response.fallbackOtp };
-             }
-
-             console.log("[EmailSystem] Success: OTP request processed by backend");
-             return { success: true, delivered: response ? response.delivered : true };
+             const delivered = response && response.delivered === true;
+             return { 
+                 success: true, 
+                 delivered: delivered, 
+                 warning: response ? response.warning : null, 
+                 otp: otp,
+                 fallbackOtp: response ? response.fallbackOtp : otp
+             };
          } catch (error) {
              console.warn("[EmailSystem] Send OTP network issue, continuing with fallback:", error.message);
-             return { success: true, warning: error.message, fallbackOtp: otp };
+             return { success: true, delivered: false, warning: error.message, otp: otp, fallbackOtp: otp };
          }
     },
 

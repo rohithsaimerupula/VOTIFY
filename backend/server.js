@@ -1192,10 +1192,15 @@ app.post('/api/deviceFingerprints', async (req, res) => {
 const otpRateLimit = new Map();
 
 function getSmtpConfig() {
-    const user = process.env.SMTP_USER || process.env.SMTP_FROM;
-    const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+    const user = process.env.SMTP_USER || process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.GMAIL_USER;
+    const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS;
     if (!user || !pass) return null;
-    return { user, pass };
+    return { 
+        user, 
+        pass,
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '465')
+    };
 }
 
 app.post('/api/auth/send-otp', async (req, res) => {
@@ -1203,30 +1208,30 @@ app.post('/api/auth/send-otp', async (req, res) => {
         const { email, name, otp, context } = req.body;
         if (!email || !otp) return res.status(400).json({ error: "Email and OTP required" });
 
-        // Rate Limiting (15s backoff)
+        // Rate Limiting (10s backoff)
         const now = Date.now();
-        if (otpRateLimit.has(email) && (now - otpRateLimit.get(email)) < 15000) {
-            return res.status(429).json({ error: "Please wait 15 seconds before requesting another OTP." });
+        if (otpRateLimit.has(email) && (now - otpRateLimit.get(email)) < 10000) {
+            return res.status(429).json({ error: "Please wait 10 seconds before requesting another OTP." });
         }
         otpRateLimit.set(email, now);
 
         const smtp = getSmtpConfig();
         if (!smtp) {
-            console.warn(`[OTP_DISPATCH] SMTP not configured. OTP for ${email}: ${otp}`);
+            console.warn(`[OTP_DISPATCH] SMTP not configured. Active OTP for ${email}: ${otp}`);
             try {
                 await db.execute({
                     sql: "INSERT INTO system_alerts (type, message, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
                     args: ["SMTP_WARNING", `SMTP credentials not configured. OTP generated for ${email}.`, `OTP: ${otp} | Context: ${context || 'General'}`, String(Date.now()), "Global"]
                 });
             } catch(err) {}
-            return res.json({ success: true, delivered: false, warning: "SMTP not configured. OTP logged to system.", fallbackOtp: otp });
+            return res.json({ success: true, delivered: false, warning: "SMTP email credentials not configured on server. Use on-screen/master code.", fallbackOtp: otp });
         }
 
+        const isSecure = smtp.port === 465;
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true,
+            host: smtp.host,
+            port: smtp.port,
+            secure: isSecure,
             auth: {
                 user: smtp.user,
                 pass: smtp.pass
@@ -1253,10 +1258,10 @@ app.post('/api/auth/send-otp', async (req, res) => {
         try {
             await Promise.race([
                 transporter.sendMail(mailOptions),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP timeout")), 5000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP timeout after 5s")), 5000))
             ]);
             delivered = true;
-            console.log(`[OTP_DISPATCH] Email delivered to ${email}`);
+            console.log(`[OTP_DISPATCH] Email successfully delivered to ${email}`);
         } catch (sendErr) {
             console.warn(`[OTP_DISPATCH] Mail send failed (${sendErr.message}), saving system alert.`);
             try {
@@ -1270,7 +1275,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
         res.json({ 
             success: true, 
             delivered: delivered, 
-            warning: delivered ? null : "Email delivery delayed or SMTP unavailable.",
+            warning: delivered ? null : "Email delivery delayed or SMTP unavailable. Backup code provided.",
             fallbackOtp: delivered ? null : otp
         });
     } catch (e) {
