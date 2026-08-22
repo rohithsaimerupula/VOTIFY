@@ -524,63 +524,42 @@ const StorageManager = {
 
     async sendResetOtp(regNum, institution) {
         console.log(`[StorageManager] Attempting password reset for: ${regNum} @ ${institution}`);
-        try {
-            const inst = institution || localStorage.getItem('ovs_inst_name') || 'Unknown';
-            let userData;
-            try { userData = await fetchApi(`/users/${regNum}?institution=${encodeURIComponent(inst)}`); } catch(e) { }
-            
-            if (!userData) {
-                console.warn(`[StorageManager] Reset failed: User ID ${regNum} not found in institution ${inst}.`);
-                return { success: false, error: `ID "${regNum}" is not registered in this institution.` };
-            }
-
-            if (!userData.email) {
-                console.warn(`[StorageManager] Reset failed: User ${regNum} has no email.`);
-                return { success: false, error: "Account exists but has no recovery email." };
-            }
-
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            const maskedEmail = userData.email.replace(/^(.{2})(.*)(@.*)$/, "$1***$3");
-            
-            const sendRes = await this.sendEmailOtp(userData.email, userData.name, otp, "Password Reset Request");
-            return { 
-                success: true, 
-                otp: otp, 
-                maskedEmail: maskedEmail,
-                delivered: sendRes.delivered !== false,
-                warning: sendRes.warning
-            };
-        } catch (err) {
-            console.error("[StorageManager] sendResetOtp Critical Error:", err);
-            return { success: false, error: err.message };
+        const inst = institution || localStorage.getItem('ovs_inst_name') || 'Unknown';
+        let userData;
+        try { userData = await fetchApi(`/users/${regNum}?institution=${encodeURIComponent(inst)}`); } catch(e) { }
+        
+        if (!userData) {
+            console.warn(`[StorageManager] Reset failed: User ID ${regNum} not found in institution ${inst}.`);
+            return { success: false, error: `ID "${regNum}" is not registered in this institution.` };
         }
+
+        if (!userData.email) {
+            console.warn(`[StorageManager] Reset failed: User ${regNum} has no email.`);
+            return { success: false, error: "Account exists but has no recovery email registered." };
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const maskedEmail = userData.email.replace(/^(.{2})(.*)(@.*)$/, "$1***$3");
+        
+        await this.sendEmailOtp(userData.email, userData.name, otp, "Password Reset Request");
+        return { 
+            success: true, 
+            otp: otp, 
+            maskedEmail: maskedEmail
+        };
     },
 
     async sendEmailOtp(email, name, otp, context) {
          console.log(`[EmailSystem] Sending ${context} OTP Request to Backend: ${email}`);
-         try {
-             const response = await fetchApi('/auth/send-otp', {
-                 method: 'POST',
-                 body: JSON.stringify({
-                     email: email,
-                     name: name,
-                     otp: otp,
-                     context: context
-                 })
-             }, 0); // 0 retries to avoid long stalls
-
-             const delivered = response && response.delivered === true;
-             return { 
-                 success: true, 
-                 delivered: delivered, 
-                 warning: response ? response.warning : null, 
+         return await fetchApi('/auth/send-otp', {
+             method: 'POST',
+             body: JSON.stringify({
+                 email: email,
+                 name: name,
                  otp: otp,
-                 fallbackOtp: response ? response.fallbackOtp : otp
-             };
-         } catch (error) {
-             console.warn("[EmailSystem] Send OTP network issue, continuing with fallback:", error.message);
-             return { success: true, delivered: false, warning: error.message, otp: otp, fallbackOtp: otp };
-         }
+                 context: context
+             })
+         }, 0);
     },
 
     // --- VOTING ---

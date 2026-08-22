@@ -1277,28 +1277,14 @@
                     document.getElementById('rec-step-1').classList.add('hidden');
                     document.getElementById('rec-step-2').classList.remove('hidden');
                     
-                    const hintEl = document.getElementById('rec-email-hint');
-                    setText('rec-email-hint', `Enter code sent to ${res.maskedEmail}`);
-                    
-                    const warnEl = document.getElementById('rec-email-warn') || document.createElement('div');
-                    warnEl.id = 'rec-email-warn';
-                    warnEl.style.fontSize = '0.82rem';
-                    warnEl.style.marginTop = '0.5rem';
-                    warnEl.style.fontWeight = '600';
-
-                    if (res.delivered === false || res.warning) {
-                        warnEl.style.color = '#D97706';
-                        warnEl.innerHTML = `⚠️ Email service delayed. <strong>Verification Code: <span style="background:rgba(217,119,6,0.15);padding:2px 6px;border-radius:6px;font-family:monospace;font-size:1rem;">${res.otp}</span></strong>`;
-                    } else {
-                        warnEl.style.color = '#16A34A';
-                        warnEl.innerText = "✅ OTP dispatched to your registered email.";
-                    }
-                    if (!document.getElementById('rec-email-warn')) hintEl.parentNode.insertBefore(warnEl, hintEl.nextSibling);
+                    setText('rec-email-hint', `Enter 6-digit code sent to ${res.maskedEmail} (check inbox & spam)`);
+                    const warnEl = document.getElementById('rec-email-warn');
+                    if (warnEl) warnEl.remove();
                 } else {
                     alert("Failure: " + (res.error || "User not found."));
                 }
             } catch (e) {
-                alert("System Error: " + e.message);
+                alert("System Error: " + (e.message || "Failed to send reset code."));
             }
             setText('rec-btn-1', "Send Reset Code");
             btn.disabled = false;
@@ -1320,8 +1306,9 @@
             const newPass = recNewPassInput.value;
             const btn = document.getElementById('rec-btn-2');
 
-            const isOtpValid = (otpIn === recoveryOtp || otpIn === '123456' || otpIn === '999999');
-            if (!otpIn || !isOtpValid) return alert("Invalid Code. Please enter the OTP sent to your email or on-screen backup code.");
+            if (!otpIn || otpIn !== recoveryOtp) {
+                return alert("Invalid Code. Please enter the 6-digit OTP sent to your registered email.");
+            }
             
             if (recoveryTargetRole === 'voter') {
                 const pwdError = validatePassword(newPass, 6, 10);
@@ -1535,42 +1522,35 @@
                 document.getElementById('sa-otp-err').textContent = '';
                 document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#D97706,#B45309)';
 
-                // Send email in background / parallel
-                StorageManager.sendEmailOtp(user.email, user.name || 'Super Admin', otp, 'Super Admin Login').then(res => {
-                    const errEl = document.getElementById('sa-otp-err');
-                    if (!errEl) return;
-                    if (res && (res.delivered === false || res.warning)) {
-                        console.warn("[SuperAdmin Login]", res.warning);
-                        errEl.style.color = '#D97706';
-                        errEl.innerHTML = `⚠️ Email service delayed. <strong>Verification Code: <span style="background:rgba(217,119,6,0.15);padding:2px 8px;border-radius:6px;font-family:monospace;font-size:1.1rem;color:#D97706;">${otp}</span></strong>`;
-                    } else {
-                        errEl.style.color = '#16A34A';
-                        errEl.textContent = '✅ Code dispatched to your registered email.';
-                    }
-                }).catch(err => {
-                    console.warn("[SuperAdmin Login] Email delivery warning:", err);
-                    const errEl = document.getElementById('sa-otp-err');
-                    if (errEl) {
-                        errEl.style.color = '#D97706';
-                        errEl.innerHTML = `⚠️ Email service delayed. <strong>Verification Code: <span style="background:rgba(217,119,6,0.15);padding:2px 8px;border-radius:6px;font-family:monospace;font-size:1.1rem;color:#D97706;">${otp}</span></strong>`;
-                    }
-                });
+                // Send real email OTP
+                await StorageManager.sendEmailOtp(user.email, user.name || 'Super Admin', otp, 'Super Admin Login');
+
+                // Switch to OTP modal
+                document.getElementById('sa-login-modal').style.display = 'none';
+                const otpModal = document.getElementById('sa-otp-modal');
+                otpModal.style.display = 'flex';
+                document.getElementById('sa-otp-sent-to').textContent = `OTP sent to ${user.email || 'your registered email'}`;
+                document.getElementById('sa-modal-otp').value = '';
+                document.getElementById('sa-modal-otp').focus();
+                document.getElementById('sa-otp-err').textContent = '';
+                document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#D97706,#B45309)';
+                btn.textContent = 'Send OTP & Continue →';
+                btn.disabled = false;
 
             } catch(e) {
                 btn.textContent = 'Send OTP & Continue →';
                 btn.disabled = false;
                 err.style.color = '#DC2626';
-                err.textContent = e.message || 'Access Denied';
+                err.textContent = e.message || 'Failed to send OTP to email.';
             }
         }
 
         async function saModalVerifyOtp() {
             const entered = document.getElementById('sa-modal-otp').value.trim();
             const err = document.getElementById('sa-otp-err');
-            const isValid = (entered === window._saModalOtp || entered === '123456' || entered === '999999');
-            if (!entered || !isValid) {
+            if (!entered || entered !== window._saModalOtp) {
                 err.style.color = '#DC2626';
-                err.textContent = '❌ Invalid OTP. Please enter the 6-digit code sent to your email or on-screen backup code.';
+                err.textContent = '❌ Invalid OTP. Please enter the 6-digit code sent to your email.';
                 document.getElementById('sa-modal-otp').style.borderColor = 'rgba(220,38,38,0.6)';
                 document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#DC2626,#B91C1C)';
                 return;
@@ -1600,19 +1580,14 @@
             try {
                 const otp = Math.floor(100000 + Math.random() * 900000).toString();
                 window._saModalOtp = otp;
-                const res = await StorageManager.sendEmailOtp(window._saModalUser.email, window._saModalUser.name || 'Super Admin', otp, 'Super Admin Login');
+                await StorageManager.sendEmailOtp(window._saModalUser.email, window._saModalUser.name || 'Super Admin', otp, 'Super Admin Login');
                 const errEl = document.getElementById('sa-otp-err');
-                if (res && (res.delivered === false || res.warning)) {
-                    errEl.style.color = '#D97706';
-                    errEl.innerHTML = `⚠️ Email service delayed. <strong>New Code: <span style="background:rgba(217,119,6,0.15);padding:2px 8px;border-radius:6px;font-family:monospace;font-size:1.1rem;color:#D97706;">${otp}</span></strong>`;
-                } else {
-                    errEl.style.color = '#16A34A';
-                    errEl.textContent = '✅ New OTP sent to email!';
-                }
+                errEl.style.color = '#16A34A';
+                errEl.textContent = '✅ New OTP sent to your email! (Check inbox & spam)';
             } catch(e) {
                 const errEl = document.getElementById('sa-otp-err');
-                errEl.style.color = '#D97706';
-                errEl.innerHTML = `⚠️ Email service delayed. <strong>Backup Code: <span style="background:rgba(217,119,6,0.15);padding:2px 8px;border-radius:6px;font-family:monospace;font-size:1.1rem;color:#D97706;">${window._saModalOtp}</span></strong>`;
+                errEl.style.color = '#DC2626';
+                errEl.textContent = 'Failed to resend OTP: ' + (e.message || 'Email delivery failed');
             }
             setTimeout(() => { resendBtn.textContent = 'Resend OTP'; resendBtn.style.pointerEvents = ''; }, 15000);
         }

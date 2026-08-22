@@ -1196,11 +1196,29 @@ function getSmtpConfig() {
     const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS;
     if (!user || !pass) return null;
     return { 
-        user, 
-        pass,
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '465')
+        user: user.trim(), 
+        pass: pass.trim().replace(/\s+/g, '') // remove spaces from 16-char app passwords
     };
+}
+
+async function createSmtpTransporter(smtp) {
+    // Port 587 with STARTTLS is the industry standard for cloud environments (Render, AWS, Heroku)
+    return nodemailer.createTransport({
+        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // true for 465, false for 587 with STARTTLS
+        auth: {
+            user: smtp.user,
+            pass: smtp.pass
+        },
+        tls: {
+            rejectUnauthorized: false
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000
+    });
 }
 
 app.post('/api/auth/send-otp', async (req, res) => {
@@ -1208,38 +1226,22 @@ app.post('/api/auth/send-otp', async (req, res) => {
         const { email, name, otp, context } = req.body;
         if (!email || !otp) return res.status(400).json({ error: "Email and OTP required" });
 
-        // Rate Limiting (10s backoff)
+        // Rate Limiting (5s backoff)
         const now = Date.now();
-        if (otpRateLimit.has(email) && (now - otpRateLimit.get(email)) < 10000) {
-            return res.status(429).json({ error: "Please wait 10 seconds before requesting another OTP." });
+        if (otpRateLimit.has(email) && (now - otpRateLimit.get(email)) < 5000) {
+            return res.status(429).json({ error: "Please wait 5 seconds before requesting another OTP." });
         }
         otpRateLimit.set(email, now);
 
         const smtp = getSmtpConfig();
         if (!smtp) {
-            console.warn(`[OTP_DISPATCH] SMTP not configured. Active OTP for ${email}: ${otp}`);
-            try {
-                await db.execute({
-                    sql: "INSERT INTO system_alerts (type, message, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
-                    args: ["SMTP_WARNING", `SMTP credentials not configured. OTP generated for ${email}.`, `OTP: ${otp} | Context: ${context || 'General'}`, String(Date.now()), "Global"]
-                });
-            } catch(err) {}
-            return res.json({ success: true, delivered: false, warning: "SMTP email credentials not configured on server. Use on-screen/master code.", fallbackOtp: otp });
+            console.error(`[OTP_DISPATCH] SMTP credentials missing in environment variables.`);
+            return res.status(500).json({ 
+                error: "Email service is not configured on the server. Please ensure SMTP_USER and SMTP_PASS are set in Render." 
+            });
         }
 
-        const isSecure = smtp.port === 465;
-        const transporter = nodemailer.createTransport({
-            host: smtp.host,
-            port: smtp.port,
-            secure: isSecure,
-            auth: {
-                user: smtp.user,
-                pass: smtp.pass
-            },
-            connectionTimeout: 4000,
-            greetingTimeout: 4000,
-            socketTimeout: 5000
-        });
+        const transporter = await createSmtpTransporter(smtp);
 
         const mailOptions = {
             from: `"VOTIFY Security" <${smtp.user}>`,
@@ -1254,33 +1256,19 @@ app.post('/api/auth/send-otp', async (req, res) => {
             </div>`
         };
 
-        let delivered = false;
-        try {
-            await Promise.race([
-                transporter.sendMail(mailOptions),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP timeout after 5s")), 5000))
-            ]);
-            delivered = true;
-            console.log(`[OTP_DISPATCH] Email successfully delivered to ${email}`);
-        } catch (sendErr) {
-            console.warn(`[OTP_DISPATCH] Mail send failed (${sendErr.message}), saving system alert.`);
-            try {
-                await db.execute({
-                    sql: "INSERT INTO system_alerts (type, message, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
-                    args: ["SMTP_FAILURE", `Email delivery failed for ${email}: ${sendErr.message}`, `OTP: ${otp} | Context: ${context || 'General'}`, String(Date.now()), "Global"]
-                });
-            } catch(err) {}
-        }
+        await transporter.sendMail(mailOptions);
+        console.log(`[OTP_DISPATCH] ✅ Email successfully sent to ${email}`);
+        res.json({ success: true, delivered: true });
 
-        res.json({ 
-            success: true, 
-            delivered: delivered, 
-            warning: delivered ? null : "Email delivery delayed or SMTP unavailable. Backup code provided.",
-            fallbackOtp: delivered ? null : otp
-        });
     } catch (e) {
         console.error("[NODEMAILER_FAIL]", e);
-        res.json({ success: true, delivered: false, warning: e.message, fallbackOtp: req.body.otp });
+        try {
+            await db.execute({
+                sql: "INSERT INTO system_alerts (type, message, details, timestamp, institution) VALUES (?, ?, ?, ?, ?)",
+                args: ["SMTP_FAILURE", `Email delivery failed for ${req.body.email || 'unknown'}: ${e.message}`, `Context: ${req.body.context || 'General'}`, String(Date.now()), "Global"]
+            });
+        } catch(err) {}
+        res.status(500).json({ error: `Failed to send email: ${e.message}` });
     }
 });
 

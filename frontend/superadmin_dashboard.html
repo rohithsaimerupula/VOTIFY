@@ -1581,27 +1581,20 @@
           _sv_u = user;
           setText('auth-btn-step1', 'Sending OTP...');
 
-          // Show Step 2 immediately
+          await StorageManager.sendEmailOtp(user.email, "Super Admin", otp, "Super Admin 2FA Login");
+
+          // Show Step 2
           document.getElementById('auth-id').disabled = true;
           document.getElementById('auth-pass').disabled = true;
           btn.style.display = 'none';
           document.getElementById('otp-section').style.display = 'block';
           document.getElementById('auth-otp').focus();
-
-          StorageManager.sendEmailOtp(user.email, "Super Admin", otp, "Super Admin 2FA Login").then(res => {
-            if (res && (res.delivered === false || res.warning)) {
-              setText('auth-err', `⚠️ Email service delayed. Verification Code: ${otp}`);
-            } else {
-              setText('auth-err', `✅ OTP sent to your email! Enter it below.`);
-            }
-          }).catch(emailErr => {
-            setText('auth-err', `⚠️ Email service delayed. Backup Code: ${otp}`);
-          });
+          setText('auth-err', `✅ OTP sent to ${user.email}! (Check inbox & spam)`);
 
         } catch (e) {
           setText('auth-btn-step1', '📧 Send OTP & Continue');
           btn.disabled = false;
-          setText('auth-err', e.message);
+          setText('auth-err', 'Failed to send OTP: ' + (e.message || 'Email delivery failed'));
         }
       }
 
@@ -1610,8 +1603,10 @@
         setText('auth-err', '');
 
         const enteredOtp = document.getElementById('auth-otp').value.trim();
-        const isOtpValid = (enteredOtp === _sv_o || enteredOtp === '123456' || enteredOtp === '999999');
-        if (!enteredOtp || !isOtpValid) { setText('auth-err', '❌ Invalid OTP. Enter the 6-digit code or on-screen backup code.'); return; }
+        if (!enteredOtp || enteredOtp !== _sv_o) { 
+          setText('auth-err', '❌ Invalid OTP. Please enter the 6-digit code from your email.'); 
+          return; 
+        }
 
         setText('auth-btn-step2', 'Logging in...');
         btn.disabled = true;
@@ -1672,21 +1667,13 @@
           _saForgotOtp = otp;
           setText('sa-forgot-btn1', 'Sending OTP...');
 
+          await StorageManager.sendEmailOtp(user.email, user.name || 'Super Admin', otp, 'Master Password Recovery');
+
           const masked = user.email.replace(/^(.{2})(.*)(@.*)$/, '$1***$3');
           setText('sa-forgot-hint', '— sent to ' + masked);
           document.getElementById('sa-forgot-step1').style.display = 'none';
           document.getElementById('sa-forgot-step2').style.display = 'block';
-
-          StorageManager.sendEmailOtp(user.email, user.name || 'Super Admin', otp, 'Master Password Recovery').then(res => {
-            if (res && (res.delivered === false || res.warning)) {
-              setText('sa-forgot-err', `⚠️ Email service delayed. Recovery Code: ${otp}`);
-            } else {
-              setText('sa-forgot-err', '✅ OTP sent! Check your email inbox.');
-            }
-          }).catch(emailErr => {
-            setText('sa-forgot-err', `⚠️ Email service delayed. Recovery Code: ${otp}`);
-          });
-
+          setText('sa-forgot-err', '✅ OTP sent! Check your email inbox & spam.');
         } catch (e) {
           setText('sa-forgot-err', e.message || 'Failed to send OTP');
           setText('sa-forgot-btn1', '📧 Send Recovery OTP');
@@ -1700,8 +1687,10 @@
         const newPass = document.getElementById('sa-forgot-newpass').value;
         setText('sa-forgot-err', '');
 
-        const isOtpValid = (otp === _saForgotOtp || otp === '123456' || otp === '999999');
-        if (!otp || !isOtpValid) { setText('sa-forgot-err', '❌ Invalid OTP. Enter the 6-digit code or on-screen backup code.'); return; }
+        if (!otp || otp !== _saForgotOtp) { 
+          setText('sa-forgot-err', '❌ Invalid OTP. Enter the 6-digit code from your email.'); 
+          return; 
+        }
 
         // Validate new password
         if (newPass.length !== 10) { setText('sa-forgot-err', 'Password must be exactly 10 characters.'); return; }
