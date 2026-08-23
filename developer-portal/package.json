@@ -1,8 +1,0 @@
-{
-  "name": "votify-developer-portal",
-  "version": "1.0.0",
-  "description": "VOTIFY Infrastructure & Partner Console",
-  "scripts": {
-    "build": "echo Developer Portal Ready"
-  }
-}
