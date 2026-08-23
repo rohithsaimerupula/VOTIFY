@@ -10,10 +10,10 @@ const SESSION_TOKEN_KEY = 'ovs_session_token';
 function getSessionGuardApiBase() {
     if (typeof API !== 'undefined' && API) return API;
     if (typeof PROD_API_URL !== 'undefined' && PROD_API_URL) return PROD_API_URL;
-    if (typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+    if (typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1') && location.port === '5500') {
         return 'http://localhost:3001/api';
     }
-    return 'https://votify-kttt.onrender.com/api';
+    return (typeof location !== 'undefined' && location.origin) ? location.origin + '/api' : '/api';
 }
 
 /**
