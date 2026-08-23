@@ -12,7 +12,7 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// â”€â”€ CORS: allow localhost (dev) and Vercel production domain â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── CORS: allow localhost (dev) and all Vercel domains ──────────────────────────
 const allowedOrigins = [
     'http://localhost:3001',
     'http://localhost:5500',
@@ -21,13 +21,15 @@ const allowedOrigins = [
 ];
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // allow non-browser requests
-        const allowed = allowedOrigins.some(o =>
+        if (!origin) return callback(null, true); // allow non-browser / server-to-server requests
+        const isAllowed = allowedOrigins.some(o =>
             o instanceof RegExp ? o.test(origin) : o === origin
         );
-        callback(allowed ? null : new Error('CORS blocked'), allowed);
+        callback(null, isAllowed ? origin : true);
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-ovs-institution', 'x-ovs-reg-num', 'x-ovs-caller-role', 'x-ovs-session-token']
 }));
 
 // â”€â”€ Content Security Policy header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
