@@ -1,6 +1,6 @@
 // Configuration for the Online Voting System Frontend
 
-var PROD_API_URL = "https://votify-backend-gamma.vercel.app/api";
+var PROD_API_URL = "https://votify-backend-delta.vercel.app/api";
 
 var API = (typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1') && location.port === '5500') 
     ? 'http://localhost:3001/api' 
