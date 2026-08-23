@@ -13,7 +13,7 @@ function getSessionGuardApiBase() {
     if (typeof location !== 'undefined' && (location.hostname === 'localhost' || location.hostname === '127.0.0.1') && location.port === '5500') {
         return 'http://localhost:3001/api';
     }
-    return (typeof location !== 'undefined' && location.origin) ? location.origin + '/api' : '/api';
+    return 'https://votify-backend-gamma.vercel.app/api';
 }
 
 /**
