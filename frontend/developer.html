@@ -3,6 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Portal — VOTIFY</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0505;
+      --card: rgba(25, 10, 10, 0.7);
+      --border: rgba(255, 42, 77, 0.2);
+      --red: #ff2a4d;
+      --red-glow: rgba(255, 42, 77, 0.3);
+      --green: #22c55e;
+      --text: #f0f0f0;
+      --muted: #888;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    #auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .auth-box {
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 20px;
       padding: 3rem;
       width: 100%;
@@ -15,7 +53,7 @@
       font-weight: 900;
       color: var(--red);
       margin-bottom: 0.5rem;
-      font-family:'Playfair Display', serif;
+      font-family: 'Playfair Display', serif;
     }
 
     .auth-box p {
@@ -55,6 +93,7 @@
     }
 
     .btn-red {
+
       background: linear-gradient(135deg, #ff2a4d, #cc223e);
       color: white;
     }
