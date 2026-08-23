@@ -1308,7 +1308,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
         if (!smtp) {
             console.error(`[OTP_DISPATCH] SMTP credentials missing in environment variables.`);
             return res.status(500).json({ 
-                error: "SMTP email service is not configured. Please ensure SMTP_FROM and GMAIL_APP_PASSWORD are set in Render." 
+                error: "SMTP email service is not configured. Please ensure SMTP_FROM and GMAIL_APP_PASSWORD are set in Vercel environment variables." 
             });
         }
 
