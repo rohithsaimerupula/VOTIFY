@@ -5,7 +5,8 @@
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
-        "build": "node build-www.js && npx cap sync android",
+        "build": "echo Backend build ready",
+        "android:build": "node build-www.js && npx cap sync android",
         "cap:sync": "npx cap sync android",
         "cap:open": "npx cap open android"
     },
