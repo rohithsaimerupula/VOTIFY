@@ -1716,13 +1716,18 @@
         });
 
         function closeSAModal() {
+            if (typeof _saOtpTimer !== 'undefined' && _saOtpTimer) clearInterval(_saOtpTimer);
             document.getElementById('sa-login-modal').style.display = 'none';
+            const otpModal = document.getElementById('sa-otp-modal');
+            if (otpModal) otpModal.style.display = 'none';
             setText('sa-modal-err', '');
             document.getElementById('sa-modal-id').value = '';
             document.getElementById('sa-modal-pass').value = '';
             const otpInput = document.getElementById('sa-modal-otp');
             if (otpInput) otpInput.value = '';
             document.getElementById('sa-modal-btn').innerHTML = 'Send OTP & Continue →';
+            // Redirect cleanly to Admin & Sub Admin login page
+            window.location.href = 'login.html?admin=true';
         }
 
         async function saModalLogin() {
@@ -1764,6 +1769,7 @@
                 document.getElementById('sa-login-modal').style.display = 'none';
                 const otpModal = document.getElementById('sa-otp-modal');
                 otpModal.style.display = 'flex';
+                history.pushState({ modal: 'sa_otp' }, document.title, window.location.href);
                 document.getElementById('sa-otp-sent-to').innerHTML = `We've sent a 6-digit security code to your registered email.<br><span style="color:#D97706; font-weight:700;">It'll auto-verify once entered.</span>`;
                 document.getElementById('sa-otp-err').textContent = '';
                 
@@ -1978,11 +1984,9 @@
         function saOtpBack() {
             if (_saOtpTimer) clearInterval(_saOtpTimer);
             document.getElementById('sa-otp-modal').style.display = 'none';
-            document.getElementById('sa-login-modal').style.display = 'flex';
-            const btn = document.getElementById('sa-modal-btn');
-            btn.textContent = 'Send OTP & Continue →';
-            btn.disabled = false;
-            document.getElementById('sa-modal-err').textContent = '';
+            document.getElementById('sa-login-modal').style.display = 'none';
+            // Redirect directly to Admin & Sub Admin login page
+            window.location.href = 'login.html?admin=true';
         }
 
         async function saResendOtp() {
@@ -2005,6 +2009,15 @@
             }
             setTimeout(() => { resendBtn.textContent = 'Resend Code'; resendBtn.style.pointerEvents = ''; }, 15000);
         }
+
+        // Intercept browser back button when in Super Admin OTP modal -> Direct to Admin & Sub Admin login page
+        window.addEventListener('popstate', (e) => {
+            const otpModal = document.getElementById('sa-otp-modal');
+            const saModal = document.getElementById('sa-login-modal');
+            if ((otpModal && otpModal.style.display === 'flex') || (saModal && saModal.style.display === 'flex')) {
+                saOtpBack();
+            }
+        });
 
         document.getElementById('sa-modal-id').addEventListener('input', function() {
             this.value = this.value.replace(/\s/g, '').toUpperCase().slice(0, 9);
