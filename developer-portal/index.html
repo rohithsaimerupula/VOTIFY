@@ -1090,16 +1090,18 @@
     <div class="auth-box" id="dev-auth-creds-box">
       <h1><span style="color:#ffffff">DEVELOPER</span> LOGIN</h1>
       <p style="color:#ff2a4d; font-weight:700; letter-spacing:1px;">CORE INFRASTRUCTURE ACCESS</p>
-      <div>
-        <label>Developer ID</label>
-        <input type="text" id="dev-id" placeholder="Enter Developer ID" autocomplete="off" maxlength="15">
+      <div style="text-align:left; margin-bottom:1rem;">
+        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--muted); font-weight:700; text-transform:uppercase;">Developer ID</label>
+        <input type="text" id="dev-id" placeholder="Enter Developer ID" autocomplete="off" maxlength="20" style="margin-bottom:0;" onkeydown="if(event.key==='Enter') devLogin()">
       </div>
-      <div style="position:relative;">
-        <label>Password</label>
-        <input type="password" id="dev-pass" placeholder="Enter Password" maxlength="12">
-        <button type="button" onclick="toggleDevPass()" style="position:absolute; right:12px; top:36px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.1rem; padding:4px;">👁️</button>
+      <div style="text-align:left; margin-bottom:1.2rem;">
+        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--muted); font-weight:700; text-transform:uppercase;">Password</label>
+        <div style="position:relative; width:100%;">
+          <input type="password" id="dev-pass" placeholder="Enter Password" maxlength="25" style="width:100%; padding:0.9rem 3rem 0.9rem 1.2rem; margin-bottom:0;" onkeydown="if(event.key==='Enter') devLogin()">
+          <button type="button" id="dev-pass-eye" onclick="toggleDevPass()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.25rem; padding:6px; z-index:100; display:flex; align-items:center; justify-content:center; outline:none;">👁️</button>
+        </div>
       </div>
-      <button class="btn btn-red" id="dev-login-btn" onclick="devLogin()">Verify Developer Access</button>
+      <button class="btn btn-red" id="dev-login-btn" onclick="devLogin()" style="margin-top:0.5rem;">Verify Developer Access</button>
       <div id="auth-error" style="color:var(--red); font-size:0.88rem; margin-top:0.8rem; min-height:1.2rem; font-weight:600;"></div>
       <div style="font-size:0.65rem; color:rgba(255,255,255,0.2); margin-top:1.5rem;">Infrastructure Node v2.2.5 — 2FA & Rate-Limit Protected</div>
     </div>
@@ -2137,7 +2139,8 @@
         btn.innerText = 'Verifying Credentials...';
 
         try {
-            const res = await fetch(API + '/users/' + encodeURIComponent(id), {
+            const apiBase = (typeof API !== 'undefined' && API) ? API : 'https://votify-backend-delta.vercel.app/api';
+            const res = await fetch(apiBase + '/users/' + encodeURIComponent(id), {
                 headers: { 'Content-Type': 'application/json' }
             });
 
@@ -2153,13 +2156,14 @@
             }
 
             // Validate password with SHA-256
-            const sha256pass = await StorageManager.hashPassword(pass);
+            const sha256pass = (typeof StorageManager !== 'undefined' && StorageManager.hashPassword) 
+                ? await StorageManager.hashPassword(pass)
+                : pass;
             const btoapass = btoa(pass);
             if (userData.password !== sha256pass && userData.password !== btoapass && userData.password !== pass) {
                 recordDevFailedAttempt();
-                // Log failed attempt audit
                 try {
-                    await fetch(API + '/auditLogs', {
+                    await fetch(apiBase + '/auditLogs', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -2183,7 +2187,19 @@
             const targetEmail = userData.email || 'rohithsaimerupula01@gmail.com';
             btn.innerText = 'Sending 2FA OTP...';
 
-            await StorageManager.sendEmailOtp(targetEmail, userData.name || 'Developer', _devLoginOtp, 'Developer Root Access 2FA');
+            try {
+                if (typeof StorageManager !== 'undefined' && StorageManager.sendEmailOtp) {
+                    await StorageManager.sendEmailOtp(targetEmail, userData.name || 'Developer', _devLoginOtp, 'Developer Root Access 2FA');
+                } else {
+                    await fetch(apiBase + '/auth/send-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: targetEmail, name: userData.name || 'Developer', otp: _devLoginOtp, context: 'Developer Root Access 2FA' })
+                    });
+                }
+            } catch(mailErr) {
+                console.warn('[OVS] Email dispatch notice:', mailErr.message);
+            }
 
             // Switch to OTP Screen
             document.getElementById('dev-auth-creds-box').style.display = 'none';
@@ -2519,13 +2535,14 @@
 
     function toggleDevPass() {
       const p = document.getElementById('dev-pass');
-      const btn = p.nextElementSibling;
+      const btn = document.getElementById('dev-pass-eye');
+      if (!p) return;
       if (p.type === 'password') {
         p.type = 'text';
-        if (btn) btn.textContent = 'ðŸ™ˆ';
+        if (btn) btn.textContent = '🙈';
       } else {
         p.type = 'password';
-        if (btn) btn.textContent = 'ðŸ‘ï¸';
+        if (btn) btn.textContent = '👁️';
       }
     }
 
