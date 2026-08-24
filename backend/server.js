@@ -255,7 +255,18 @@ app.post('/api/institutions/verify', async (req, res) => {
         // Step 2: Validate institution exists in dynamic config table
         if (!institution) return res.status(401).json({ error: "Invalid access code." });
 
-        // Step 3: Verify the institution still has an active Super Admin in the database
+        // Step 3: Check if institution is suspended
+        try {
+            const statusResult = await db.execute({ sql: "SELECT value FROM config WHERE key = 'institution_status'", args: [] });
+            if (statusResult.rows.length > 0) {
+                const statusMap = JSON.parse(statusResult.rows[0].value || '{}');
+                if (statusMap[institution] === 'suspended') {
+                    return res.status(403).json({ error: "This institution is currently suspended by core administration." });
+                }
+            }
+        } catch(e) {}
+
+        // Step 4: Verify the institution still has an active Super Admin in the database
         const saCheck = await db.execute({ 
             sql: "SELECT regNum FROM users WHERE role = 'superadmin' AND institution = ? LIMIT 1", 
             args: [institution] 
@@ -274,14 +285,25 @@ app.get('/api/institutions/validate', async (req, res) => {
         const name = req.query.name;
         if (!name) return res.status(400).json({ error: "Name required" });
         
-        // Step 1: Check if Super Admin exists
+        // Step 1: Check if institution is suspended
+        try {
+            const statusResult = await db.execute({ sql: "SELECT value FROM config WHERE key = 'institution_status'", args: [] });
+            if (statusResult.rows.length > 0) {
+                const statusMap = JSON.parse(statusResult.rows[0].value || '{}');
+                if (statusMap[name] === 'suspended') {
+                    return res.status(403).json({ error: "This institution is currently suspended by core administration." });
+                }
+            }
+        } catch(e) {}
+
+        // Step 2: Check if Super Admin exists
         const saCheck = await db.execute({ 
             sql: "SELECT regNum FROM users WHERE role = 'superadmin' AND institution = ? LIMIT 1", 
             args: [name] 
         });
         if (saCheck.rows.length === 0) return res.status(401).json({ error: "Institution no longer active." });
 
-        // Step 2: Check if institution still has a mapping in codes config
+        // Step 3: Check if institution still has a mapping in codes config
         const configResult = await db.execute({ sql: "SELECT value FROM config WHERE key = 'institution_codes'", args: [] });
         if (configResult.rows.length > 0) {
             const codeMap = JSON.parse(configResult.rows[0].value);
@@ -321,6 +343,27 @@ app.post('/api/config/institution_codes', async (req, res) => {
         if (!data || typeof data !== 'object') return res.status(400).json({ error: 'Invalid data' });
         await db.execute({ 
             sql: "INSERT INTO config (key, value) VALUES ('institution_codes', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", 
+            args: [JSON.stringify(data)] 
+        });
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Dedicated institution status endpoint (Active / Suspended killswitch)
+app.get('/api/config/institution_status', async (req, res) => {
+    try {
+        const result = await db.execute({ sql: "SELECT value FROM config WHERE key = 'institution_status'", args: [] });
+        if (result.rows.length === 0) return res.json({});
+        res.json(JSON.parse(result.rows[0].value));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/config/institution_status', async (req, res) => {
+    try {
+        const { data } = req.body;
+        if (!data || typeof data !== 'object') return res.status(400).json({ error: 'Invalid data' });
+        await db.execute({ 
+            sql: "INSERT INTO config (key, value) VALUES ('institution_status', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", 
             args: [JSON.stringify(data)] 
         });
         res.json({ success: true });

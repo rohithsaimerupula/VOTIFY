@@ -681,6 +681,51 @@
       color: #ef4444;
     }
 
+  
+    /* ── INSTITUTION MANAGEMENT SUITE STYLES ── */
+    .code-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .code-badge:hover {
+      background: rgba(6, 182, 212, 0.25);
+      border-color: #38bdf8;
+      transform: translateY(-1px);
+    }
+    .capacity-meter {
+      font-size: 0.8rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .capacity-bar-wrap {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .capacity-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #38bdf8);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .capacity-bar-fill.warning {
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+    }
+
   </style>
 <script src="config.js"></script>
     <script src="storage.js"></script>
@@ -918,6 +963,26 @@
     </div>
   </div>
   <div class="toast" id="toast"></div>
+
+  <!-- EDIT ACCESS CODE MODAL -->
+  <div class="modal-overlay" id="edit-code-modal">
+    <div class="modal-box" style="max-width:440px;">
+      <button class="modal-close" onclick="closeEditCodeModal()">✕</button>
+      <h3 style="color:#38bdf8;">🏷️ Update Gateway Access Code</h3>
+      <p class="sub">Institution: <strong id="edit-code-inst-name" style="color:white;"></strong></p>
+      <input type="hidden" id="edit-code-old-code">
+      <input type="hidden" id="edit-code-target-inst">
+      <div class="modal-field">
+        <label>Gateway Access Code <small style="text-transform:none">(max 10 chars, uppercase letters & numbers)</small></label>
+        <input type="text" id="edit-code-new-input" placeholder="e.g. VIIT2027" maxlength="10" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+      </div>
+      <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(6,182,212,0.06); border:1px solid rgba(6,182,212,0.2); border-radius:8px; font-size:0.82rem; color:var(--muted); margin-bottom:1rem;">
+        ℹ️ Changing this code immediately updates the live gateway. Students and staff will use the new code to unlock their institution.
+      </div>
+      <div id="edit-code-err" style="color:var(--red); font-size:0.85rem; margin-bottom:0.8rem; min-height:1rem;"></div>
+      <button class="modal-save" style="background:linear-gradient(135deg,#06b6d4,#0284c7);" onclick="saveEditAccessCode()">💾 Update Access Code</button>
+    </div>
+  </div>
 
   <!-- ASSIGN PACK MODAL -->
   <div class="modal-overlay" id="assign-pack-modal" style="display:none; align-items:center; justify-content:center;">
@@ -1824,7 +1889,7 @@
         setText('stat-inst', counts.instCount || 0);
         setText('stat-users', counts.studentCount || 0);
         
-        renderSaTable(window.saCache);
+        renderEnhancedSaTable(window.saCache);
         renderPackRequests(window.saCache);
         renderPacksTable(window.packsCache);
         populatePackDropdown(window.packsCache);
@@ -1854,33 +1919,242 @@
       }
     }
 
-    function renderSaTable(list) {
-      if (!list.length) { 
-          setHTML('sa-table-body', '<tr><td colspan="7" class="empty">No Super Admins yet</td></tr>'); 
-          return; 
-      }
-      const packsMap = {};
-      (window.packsCache || []).forEach(p => { packsMap[p.id] = p; });
-      setHTML('sa-table-body', list.map(sa => {
-          const pack = sa.packId ? packsMap[sa.packId] : null;
-          const packBadge = pack 
-              ? `<span style="background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);padding:0.2rem 0.6rem;border-radius:20px;font-size:0.72rem;font-weight:600;">${pack.name}</span>`
-              : `<span style="color:var(--muted);font-size:0.78rem;">No Pack</span>`;
-          return `
-    <tr>
-      <td><strong>${sa.regNum}</strong></td>
-      <td>${sa.name}</td>
-      <td>${sa.institution || '-'}</td>
-      <td>${packBadge}</td>
-      <td>${sa.email || '-'}</td>
-      <td><span class="badge badge-sa">${sa.status}</span></td>
-      <td style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-        <button class="btn-sm" style="background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);" onclick="openAssignPack('${sa.regNum}','${(sa.institution||'').replace(/'/g,"\\'")}')">ðŸ“¦ Pack</button>
-        <button class="btn-sm" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);" onclick="editSA('${sa.regNum}')">Edit</button>
-        <button class="btn-sm btn-danger" onclick="deleteSuperAdmin('${sa.regNum}')">Remove</button>
-      </td>
-    </tr>`;
-      }).join(''));
+    // ══════════════════════════════════════════════════════════════════
+    // ── INSTITUTION MANAGEMENT SUITE ENGINE ───────────────────────────
+    // ══════════════════════════════════════════════════════════════════
+
+    let _instStatusCache = {};
+
+    // ── 1. DYNAMIC ACCESS CODE MANAGER & DIRECT LINKS ──
+    function openEditCodeModal(instName, currentCode) {
+        document.getElementById('edit-code-target-inst').value = instName;
+        document.getElementById('edit-code-old-code').value = currentCode || '';
+        document.getElementById('edit-code-inst-name').textContent = instName;
+        document.getElementById('edit-code-new-input').value = currentCode || '';
+        document.getElementById('edit-code-err').textContent = '';
+        document.getElementById('edit-code-modal').classList.add('open');
+    }
+
+    function closeEditCodeModal() {
+        document.getElementById('edit-code-modal').classList.remove('open');
+    }
+
+    async function saveEditAccessCode() {
+        const instName = document.getElementById('edit-code-target-inst').value;
+        const oldCode = document.getElementById('edit-code-old-code').value;
+        const newCode = document.getElementById('edit-code-new-input').value.trim().toUpperCase();
+        const err = document.getElementById('edit-code-err');
+
+        if (!newCode || newCode.length < 3) {
+            err.textContent = 'Access code must be at least 3 characters.';
+            return;
+        }
+
+        try {
+            // Fetch current codes map
+            const currentCodes = await api('/config/institution_codes');
+            
+            // If code changed and new code is already assigned to a different institution
+            if (currentCodes[newCode] && currentCodes[newCode].toLowerCase() !== instName.toLowerCase()) {
+                err.textContent = `Code "${newCode}" is already assigned to "${currentCodes[newCode]}".`;
+                return;
+            }
+
+            // Remove old mapping if exists
+            if (oldCode && currentCodes[oldCode]) {
+                delete currentCodes[oldCode];
+            }
+
+            // Assign new mapping
+            currentCodes[newCode] = instName;
+
+            // Save to DB
+            await api('/config/institution_codes', {
+                method: 'POST',
+                body: JSON.stringify({ data: currentCodes })
+            });
+
+            // Log security audit event
+            try {
+                await api('/auditLogs', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'ACCESS_CODE_UPDATED',
+                        user: devSession.regNum,
+                        details: `Updated access code for "${instName}" from [${oldCode || 'None'}] to [${newCode}]`,
+                        timestamp: new Date().toISOString(),
+                        institution: instName
+                    })
+                });
+            } catch(e) {}
+
+            closeEditCodeModal();
+            showToast(`Access Code updated to [${newCode}] for ${instName}!`);
+            loadConsole();
+        } catch(e) {
+            err.textContent = 'Failed to update access code: ' + e.message;
+        }
+    }
+
+    function copyDirectUnlockLink(code, instName) {
+        if (!code) {
+            showToast('No access code assigned yet.', false);
+            return;
+        }
+        const directUrl = `https://votify-two.vercel.app/?inst_code=${code}`;
+        navigator.clipboard.writeText(directUrl).then(() => {
+            showToast(`📋 Copied auto-unlock link for ${code}!`);
+        }).catch(() => {
+            prompt('Copy this auto-unlock link:', directUrl);
+        });
+    }
+
+    // ── 2. INSTITUTION FREEZE / SUSPEND KILLSWITCH ──
+    async function toggleInstitutionSuspend(instName, currentStatus) {
+        const isSuspended = currentStatus === 'suspended';
+        const actionText = isSuspended ? 'ACTIVATE' : 'SUSPEND';
+        const confirmMsg = isSuspended 
+            ? `▶️ Are you sure you want to ACTIVATE ${instName}?\n\nStudents and staff will be able to log in and vote immediately.`
+            : `⏸️ Are you sure you want to SUSPEND ${instName}?\n\nLogins and voting will be instantly frozen for this institution until re-activated.`;
+        
+        if (!confirm(confirmMsg)) return;
+
+        try {
+            const statusMap = await api('/config/institution_status').catch(() => ({}));
+            const newStatus = isSuspended ? 'active' : 'suspended';
+            statusMap[instName] = newStatus;
+
+            await api('/config/institution_status', {
+                method: 'POST',
+                body: JSON.stringify({ data: statusMap })
+            });
+
+            // Log security audit event
+            try {
+                await api('/auditLogs', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: isSuspended ? 'INSTITUTION_ACTIVATED' : 'INSTITUTION_SUSPENDED',
+                        user: devSession.regNum,
+                        details: `Institution "${instName}" was ${newStatus.toUpperCase()} by Developer`,
+                        timestamp: new Date().toISOString(),
+                        institution: instName
+                    })
+                });
+            } catch(e) {}
+
+            showToast(`Institution "${instName}" is now ${newStatus.toUpperCase()}!`);
+            loadConsole();
+        } catch(e) {
+            showToast('Failed to update status: ' + e.message, false);
+        }
+    }
+
+    // ── 3. RENDER ALL INSTITUTIONS TABLE WITH CAPACITY METERS & CODES ──
+    async function renderEnhancedSaTable(list) {
+        const tbody = document.getElementById('sa-table-body');
+        if (!tbody) return;
+
+        if (!list || !list.length) { 
+            tbody.innerHTML = '<tr><td colspan="5" class="empty">No Institutions created yet. Create one above.</td></tr>'; 
+            return; 
+        }
+
+        // Fetch codes and status
+        const codesMap = window.instCodesCache || {};
+        const statusMap = await api('/config/institution_status').catch(() => ({}));
+        _instStatusCache = statusMap;
+
+        // Fetch all users to calculate accurate real-time student and admin counts
+        let allUsers = [];
+        try {
+            const res = await api('/users');
+            allUsers = res || [];
+        } catch(e) {}
+
+        const packsMap = {};
+        (window.packsCache || []).forEach(p => { packsMap[p.id] = p; });
+
+        // Map reverse code lookup: institution name -> code
+        const instToCode = {};
+        Object.entries(codesMap).forEach(([code, inst]) => {
+            if (inst) instToCode[inst.toLowerCase()] = code;
+        });
+
+        tbody.innerHTML = list.map(sa => {
+            const instName = sa.institution || '';
+            const code = instToCode[instName.toLowerCase()] || '';
+            const pack = sa.packId ? packsMap[sa.packId] : null;
+            const status = (statusMap[instName] || 'active').toLowerCase();
+            const isSuspended = status === 'suspended';
+
+            // Calculate usage
+            const instUsers = allUsers.filter(u => u && u.institution && u.institution.toLowerCase() === instName.toLowerCase());
+            const studentCount = instUsers.filter(u => u.role === 'voter').length;
+            const adminCount = instUsers.filter(u => u.role === 'admin' || u.role === 'subadmin').length;
+
+            const maxStudents = pack ? pack.maxStudents : '∞';
+            const maxAdmins = pack ? (Number(pack.maxAdmins) + Number(pack.maxSubAdmins || 0)) : '∞';
+
+            const studentPct = (pack && pack.maxStudents) ? Math.min(100, Math.round((studentCount / pack.maxStudents) * 100)) : 0;
+            const isStudentWarning = studentPct >= 85;
+
+            const statusBadge = isSuspended 
+                ? '<span class="security-badge danger">🔴 Suspended</span>' 
+                : '<span class="security-badge success">🟢 Active</span>';
+
+            const suspendBtn = isSuspended
+                ? `<button class="btn-sm" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);" onclick="toggleInstitutionSuspend('${instName.replace(/'/g, "\\'")}', 'suspended')">▶️ Activate</button>`
+                : `<button class="btn-sm" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);" onclick="toggleInstitutionSuspend('${instName.replace(/'/g, "\\'")}', 'active')">⏸️ Suspend</button>`;
+
+            const codeDisplay = code 
+                ? `<span class="code-badge" onclick="openEditCodeModal('${instName.replace(/'/g, "\\'")}', '${code}')" title="Click to edit code">🏷️ ${code}</span>
+                   <button class="btn-sm" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid rgba(255,255,255,0.15);padding:0.25rem 0.6rem;" onclick="copyDirectUnlockLink('${code}', '${instName.replace(/'/g, "\\'")}')" title="Copy auto-unlock link">📋 Copy Link</button>`
+                : `<button class="btn-sm" style="background:rgba(6,182,212,0.15);color:#38bdf8;border:1px solid rgba(6,182,212,0.3);" onclick="openEditCodeModal('${instName.replace(/'/g, "\\'")}', '')">➕ Set Code</button>`;
+
+            const packName = pack ? pack.name : 'Unlimited Tier';
+
+            return `
+            <tr>
+              <td>
+                <strong style="color:white;font-size:0.95rem;">${sa.name || 'Super Admin'}</strong><br>
+                <small style="color:var(--gold);font-family:'JetBrains Mono',monospace;">ID: ${sa.regNum}</small><br>
+                <small style="color:var(--muted)">${sa.email || '-'}</small>
+              </td>
+              <td>
+                <strong style="color:white;font-size:1rem;">${instName || '-'}</strong><br>
+                <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.4rem;flex-wrap:wrap;">
+                  ${codeDisplay}
+                </div>
+              </td>
+              <td>
+                <div class="capacity-meter">
+                  <div style="display:flex;justify-content:space-between;gap:1rem;">
+                    <span>🎓 Students:</span> <strong>${studentCount} / ${maxStudents}</strong>
+                  </div>
+                  <div class="capacity-bar-wrap">
+                    <div class="capacity-bar-fill ${isStudentWarning ? 'warning' : ''}" style="width:${studentPct}%;"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;gap:1rem;margin-top:4px;">
+                    <span>👥 Admins:</span> <strong>${adminCount} / ${maxAdmins}</strong>
+                  </div>
+                  <small style="color:#a855f7;font-weight:600;display:block;margin-top:2px;">📦 ${packName}</small>
+                </div>
+              </td>
+              <td>
+                ${statusBadge}
+              </td>
+              <td>
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                  ${suspendBtn}
+                  <button class="btn-sm" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);" onclick="openResetSAModal('${sa.regNum}','${instName.replace(/'/g,"\\'")}')">🔑 Reset Pass</button>
+                  <button class="btn-sm" style="background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);" onclick="openAssignPack('${sa.regNum}','${instName.replace(/'/g,"\\'")}')">📦 Pack</button>
+                  <button class="btn-sm" style="background:rgba(255,255,255,0.08);color:white;border:1px solid rgba(255,255,255,0.2);" onclick="editSA('${sa.regNum}')">✏️ Edit</button>
+                  <button class="btn-sm btn-danger" onclick="deleteSuperAdmin('${sa.regNum}', '${instName.replace(/'/g,"\\'")}')">🗑️ Delete</button>
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
     }
 
     function renderPackRequests(list) {
