@@ -1154,7 +1154,10 @@
       
       <div style="text-align:left; margin-bottom:1rem;">
         <label>Developer Password</label>
-        <input type="password" id="dev-unlock-pass" placeholder="Enter Developer Password" maxlength="12" style="margin-bottom:0.5rem;" onkeydown="if(event.key==='Enter') devUnlockConsole()">
+        <div style="position:relative;">
+          <input type="password" id="dev-unlock-pass" placeholder="Enter Developer Password" maxlength="12" style="margin-bottom:0.5rem; padding-right:2.8rem;" onkeydown="if(event.key==='Enter') devUnlockConsole()">
+          <button type="button" onclick="toggleUnlockDevPass()" style="position:absolute; right:12px; top:12px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.1rem; padding:4px;">👁️</button>
+        </div>
       </div>
       <button class="btn btn-red" onclick="devUnlockConsole()" style="margin-bottom:0.8rem;">🔓 Unlock Console</button>
       <button class="btn btn-red-outline" style="width:100%; border-color:rgba(255,255,255,0.2); color:var(--muted);" onclick="devLogout()">Sign Out Completely</button>
@@ -1670,58 +1673,6 @@
     </div>
   </div>
 
-  <!-- DB LOADING OVERLAY -->
-  <div id="db-loading" style="display:none; position:fixed; inset:0; background:rgba(5,10,20,0.92); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:1.5rem;">
-    <div style="width:56px;height:56px;border:4px solid rgba(255, 42, 77, 0.2);border-top-color:#ff2a4d;border-radius:50%;animation:spin 1s linear infinite;"></div>
-    <p id="db-loading-msg" style="color:white;font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:600;">Connecting to core engine...</p>
-    <p style="color:#64748b;font-size:0.85rem;">System waking up â€” this may take up to 30 seconds</p>
-    <button id="db-retry-btn" onclick="loadConsole()" style="display:none;padding:0.7rem 2rem;background:linear-gradient(135deg,#ff2a4d,#cc223e);border:none;border-radius:10px;color:white;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">🔄 Retry</button>
-  </div>
-  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-
-  <script>
-    
-    let devSession = null;
-    
-    // Force clear any stale sessions on each load
-    localStorage.removeItem('ovs_currentUser');
-    localStorage.removeItem('ovs_inst_name');
-    localStorage.removeItem('ovs_inst_code');
-
-    console.log('[OVS Dev Portal] v2.2.4 loaded at', new Date().toISOString());
-
-    // Force clear any stale scripts or states
-    if (!window.location.search.includes('v=')) {
-        window.history.replaceState(null, '', window.location.pathname + '?v=' + Date.now());
-    }
-
-    // Safe DOM Utilities
-    function setText(id, val) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = val;
-    }
-    function setHTML(id, html) {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = html;
-    }
-
-    // --- SESSION RECOVERY ---
-    (async function() {
-        const stored = localStorage.getItem('ovs_currentUser');
-        if (stored && stored !== 'null') {
-            try {
-                const user = JSON.parse(stored);
-                if (user && user.role === 'developer') {
-                    devSession = user;
-                    const authS = document.getElementById('auth-screen');
-                    const consS = document.getElementById('console-screen');
-                    if (authS) authS.style.display = 'none';
-                    if (consS) consS.style.display = 'block';
-                    setText('dev-name-label', user.name || 'Developer');
-                    loadConsole();
-                }
-            } catch(e) {
-                console.error("Session Recovery Failed:", e);
                 localStorage.removeItem('ovs_currentUser');
             }
         }
@@ -2390,13 +2341,39 @@
         }
 
         try {
+            // Re-hydrate devSession if needed
+            let masterUser = devSession;
+            if (!masterUser || !masterUser.password) {
+                try {
+                    const stored = localStorage.getItem('ovs_currentUser');
+                    if (stored && stored !== 'null') {
+                        masterUser = JSON.parse(stored);
+                    }
+                } catch(e) {}
+            }
+
+            // Fallback: fetch OVS-CORE-ROOT from API if needed
+            if (!masterUser || !masterUser.password) {
+                const res = await fetch(API + '/users/OVS-CORE-ROOT');
+                if (res.ok) {
+                    masterUser = await res.json();
+                }
+            }
+
+            if (!masterUser || !masterUser.password) {
+                throw new Error('Developer session expired. Please sign out and log in.');
+            }
+
             const sha256pass = await StorageManager.hashPassword(pass);
             const btoapass = btoa(pass);
-            if (devSession.password !== sha256pass && devSession.password !== btoapass && devSession.password !== pass) {
+            if (masterUser.password !== sha256pass && masterUser.password !== btoapass && masterUser.password !== pass) {
                 err.textContent = '❌ Incorrect password.';
                 return;
             }
-            // Password confirmed! Unlock console
+
+            // Password confirmed! Re-activate session
+            devSession = masterUser;
+            localStorage.setItem('ovs_currentUser', JSON.stringify(masterUser));
             document.getElementById('dev-lock-screen').style.display = 'none';
             err.textContent = '';
             showToast('🔓 Console Resumed');
