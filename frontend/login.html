@@ -1764,7 +1764,7 @@
                 document.getElementById('sa-login-modal').style.display = 'none';
                 const otpModal = document.getElementById('sa-otp-modal');
                 otpModal.style.display = 'flex';
-                document.getElementById('sa-otp-sent-to').innerHTML = `We've sent a 6-digit security code to <strong>${user.email || 'your registered email'}</strong>.<br><span style="color:#ff2a4d; font-weight:600;">It'll auto-verify once entered.</span>`;
+                document.getElementById('sa-otp-sent-to').innerHTML = `We've sent a 6-digit security code to your registered email.<br><span style="color:#D97706; font-weight:700;">It'll auto-verify once entered.</span>`;
                 document.getElementById('sa-otp-err').textContent = '';
                 
                 // Initialize OTP V5 state
@@ -1966,6 +1966,9 @@
             localStorage.setItem('ovs_currentUser', JSON.stringify(sessionUser));
             localStorage.setItem('ovs_user', JSON.stringify(sessionUser));
             localStorage.setItem('ovs_token', 'sa_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9));
+            
+            // Clear any previously saved tab so dashboard opens Overview by default
+            sessionStorage.removeItem('ovs_last_page_super');
             
             const rawToken = btoa(unescape(encodeURIComponent(JSON.stringify(sessionUser))));
             const token = encodeURIComponent(rawToken);

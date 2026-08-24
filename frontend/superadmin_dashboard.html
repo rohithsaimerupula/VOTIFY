@@ -1500,12 +1500,17 @@
           setText('sa-inst-label', saSession.institution || 'Super Admin');
           setText('inst-name-sub', saSession.institution || '');
           loadAll().then(() => {
-              const lastPage = sessionStorage.getItem('ovs_last_page_super');
-              if(lastPage) showPage(lastPage);
+              showPage('overview');
           });
         }
 
         // Listen for remote session updates (e.g. from developer approval)
+        // Intercept browser back button -> Redirect to Staff (Admin & Sub Admin) login page
+        history.pushState({ page: 'superadmin_dashboard' }, document.title, window.location.href);
+        window.addEventListener('popstate', function(event) {
+            window.location.href = 'login.html?admin=true';
+        });
+
         window.addEventListener('ovs_session_updated', (e) => {
            console.log("[OVS] Remote session update detected. Refreshing dashboard...");
            saSession = e.detail;
