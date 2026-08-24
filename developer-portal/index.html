@@ -726,6 +726,297 @@
       background: linear-gradient(90deg, #f59e0b, #ef4444);
     }
 
+  
+    /* ── ADVANCED OBSIDIAN CYBER UI & SPRING ANIMATIONS ── */
+    :root {
+      --bg: #070404;
+      --card: rgba(20, 8, 8, 0.75);
+      --card-hover: rgba(30, 12, 12, 0.9);
+      --border: rgba(255, 42, 77, 0.22);
+      --border-cyan: rgba(56, 189, 248, 0.25);
+      --red: #ff2a4d;
+      --red-glow: rgba(255, 42, 77, 0.35);
+      --cyan: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.35);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.35);
+      --green: #22c55e;
+      --green-glow: rgba(34, 197, 94, 0.35);
+      --gold: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.35);
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, rgba(255, 42, 77, 0.08) 0%, rgba(7, 4, 4, 1) 70%), #070404;
+      background-attachment: fixed;
+    }
+
+    /* Floating Header HUD */
+    header {
+      backdrop-filter: blur(20px);
+      background: rgba(15, 6, 6, 0.85);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .node-hud-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.15);
+    }
+
+    .node-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+      animation: pulseDot 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* 4-Tile Dynamic Metric Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .metric-tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.8rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .metric-tile:hover {
+      transform: translateY(-5px);
+      background: var(--card-hover);
+      border-color: rgba(255, 42, 77, 0.4);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px var(--red-glow);
+    }
+
+    .metric-tile.tile-cyan:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px var(--cyan-glow);
+    }
+
+    .metric-tile.tile-purple:hover {
+      border-color: rgba(168, 85, 247, 0.5);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px var(--purple-glow);
+    }
+
+    .metric-tile.tile-gold:hover {
+      border-color: rgba(245, 158, 11, 0.5);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px var(--gold-glow);
+    }
+
+    .metric-icon-wrap {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .metric-number {
+      font-size: 2.8rem;
+      font-weight: 900;
+      line-height: 1;
+      font-family: 'Outfit', sans-serif;
+      margin-bottom: 0.4rem;
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    .metric-sub {
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* Table Controls & Search Filter Bar */
+    .table-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .search-input-wrap input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.6rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(15, 6, 6, 0.6);
+      color: white;
+      font-size: 0.92rem;
+      margin-bottom: 0;
+      transition: all 0.3s;
+    }
+
+    .search-input-wrap input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px var(--cyan-glow);
+      background: rgba(20, 8, 8, 0.85);
+    }
+
+    .search-icon-fixed {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.95rem;
+      pointer-events: none;
+    }
+
+    .filter-chips-wrap {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .filter-chip {
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.25s;
+    }
+
+    .filter-chip:hover {
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
+
+    .filter-chip.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    /* Spring-Physics Modals */
+    .modal-box {
+      animation: modalSpringIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.85), 0 0 40px var(--red-glow);
+    }
+
+    @keyframes modalSpringIn {
+      0% { opacity: 0; transform: scale(0.88) translateY(20px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Shimmer Skeleton Loading */
+    .skeleton-row td {
+      padding: 1.2rem 1rem;
+    }
+    .skeleton-line {
+      height: 16px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 200% 100%;
+      border-radius: 6px;
+      animation: skeletonShimmer 1.5s infinite;
+    }
+    @keyframes skeletonShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Modern Toast HUD with countdown bar */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: 14px;
+      background: rgba(15, 6, 6, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      color: white;
+      font-size: 0.92rem;
+      font-weight: 600;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.7), 0 0 25px rgba(255, 42, 77, 0.2);
+      z-index: 100000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      min-width: 280px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .toast-progress {
+      height: 3px;
+      width: 100%;
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .toast-progress-fill {
+      height: 100%;
+      background: var(--red);
+      width: 100%;
+      transition: width 3s linear;
+    }
+
   </style>
 <script src="config.js"></script>
     <script src="storage.js"></script>
@@ -812,22 +1103,55 @@
   <!-- CONSOLE -->
   <div id="console-screen">
     <header>
-      <h1>CORE INFRASTRUCTURE PRIME</h1>
-      <div style="display:flex;align-items:center;gap:1rem;">
+      <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+        <h1 style="margin:0;">CORE INFRASTRUCTURE PRIME</h1>
+        <div class="node-hud-badge" id="node-hud">
+          <span class="node-pulse-dot"></span>
+          <span id="node-hud-text">Turso AWS Mumbai • Latency ~38ms</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem; flex-wrap:wrap;">
         <span id="dev-name-label" style="color:#ff2a4d; font-weight:900; letter-spacing:1px;">DEVELOPER OPERATOR</span>
-        <button class="btn btn-red-outline" style="border-color: var(--cyan); color: var(--cyan);" onclick="loadConsole()">🔄 Refresh Data</button>
-        <button class="btn btn-red-outline" style="border-color:#f59e0b;color:#f59e0b;" onclick="openDevProfile()">âš™ï¸ My Profile</button>
-        <button class="btn btn-red-outline" style="border-color:#eab308; color:#eab308;" onclick="devLockConsole()">🔒 Lock Console</button>
-        <button class="btn btn-red-outline" onclick="devLogout()">Sign Out</button>
+        <button class="btn btn-red-outline" style="border-color: var(--cyan); color: var(--cyan); width:auto; padding:0.5rem 1rem;" onclick="loadConsole()">🔄 Refresh Data</button>
+        <button class="btn btn-red-outline" style="border-color:#f59e0b;color:#f59e0b; width:auto; padding:0.5rem 1rem;" onclick="openDevProfile()">⚙️ My Profile</button>
+        <button class="btn btn-red-outline" style="border-color:#eab308; color:#eab308; width:auto; padding:0.5rem 1rem;" onclick="devLockConsole()">🔒 Lock Console</button>
+        <button class="btn btn-red-outline" style="width:auto; padding:0.5rem 1rem;" onclick="devLogout()">Sign Out</button>
       </div>
     </header>
     <div class="container">
-      <!-- Single Hero Stat -->
-      <div style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 20px; padding: 2.5rem; text-align: center; margin-bottom: 2.5rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05);" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 50px rgba(6,182,212,0.15), inset 0 0 0 1px rgba(6,182,212,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05)';" onclick="showInstDetails()">
-        <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2)); color: #fff; font-size: 2rem; margin-bottom: 1rem; border: 1px solid rgba(6, 182, 212, 0.4); box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);">ðŸ›ï¸</div>
-        <div class="number" id="stat-inst" style="color:white; font-size: 4rem; font-weight: 900; line-height: 1; text-shadow: 0 0 30px rgba(6,182,212,0.4); font-family: 'Outfit', sans-serif;">-</div>
-        <div class="label" style="color: var(--cyan); font-size: 1.1rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 0.8rem;">Active Institutions</div>
-        <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; font-weight: 500;">Click to view detailed infrastructure analytics, super admin contacts, and member distribution.</p>
+      <!-- 4-TILE DYNAMIC METRIC GRID -->
+      <div class="metric-grid">
+        <!-- Card 1: Active Institutions -->
+        <div class="metric-tile tile-cyan" onclick="showInstDetails()" style="cursor:pointer;" title="Click for deep institution analytics">
+          <div class="metric-icon-wrap" style="color:#38bdf8; background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.3);">🏛️</div>
+          <div class="metric-number" id="stat-inst" style="color:#38bdf8;">0</div>
+          <div class="metric-label" style="color:#38bdf8;">Total Institutions</div>
+          <div class="metric-sub" id="stat-inst-sub">Loading live status...</div>
+        </div>
+
+        <!-- Card 2: Registered Voters -->
+        <div class="metric-tile tile-purple">
+          <div class="metric-icon-wrap" style="color:#a855f7; background:rgba(168,85,247,0.1); border-color:rgba(168,85,247,0.3);">🎓</div>
+          <div class="metric-number" id="stat-users" style="color:#a855f7;">0</div>
+          <div class="metric-label" style="color:#a855f7;">Registered Voters</div>
+          <div class="metric-sub">Across all connected campuses</div>
+        </div>
+
+        <!-- Card 3: Provisioned Staff & Admins -->
+        <div class="metric-tile tile-gold">
+          <div class="metric-icon-wrap" style="color:#f59e0b; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3);">👥</div>
+          <div class="metric-number" id="stat-admins" style="color:#f59e0b;">0</div>
+          <div class="metric-label" style="color:#f59e0b;">Staff & Admins</div>
+          <div class="metric-sub">Super Admins & Sub-Admins</div>
+        </div>
+
+        <!-- Card 4: Active Packs -->
+        <div class="metric-tile">
+          <div class="metric-icon-wrap" style="color:#ff2a4d; background:rgba(255,42,77,0.1); border-color:rgba(255,42,77,0.3);">📦</div>
+          <div class="metric-number" id="stat-packs" style="color:#ff2a4d;">0</div>
+          <div class="metric-label" style="color:#ff2a4d;">Membership Packs</div>
+          <div class="metric-sub">Active capacity tiers</div>
+        </div>
       </div>
 
       <!-- ROOT SECURITY & AUDIT TRAIL -->
@@ -937,9 +1261,22 @@
 
       <!-- Super Admins Table -->
       <div class="section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap:wrap; gap:1rem;">
             <h2 style="margin-bottom: 0;">📋 All Institutions</h2>
-            <button class="btn btn-red-outline" style="border-color: #f59e0b; color: #f59e0b;" onclick="purgeOrphanedUsers()">ðŸ§¹ Purge Orphaned Users</button>
+            <button class="btn btn-red-outline" style="border-color: #f59e0b; color: #f59e0b; width:auto; padding:0.5rem 1rem;" onclick="purgeOrphanedUsers()">🧹 Purge Orphaned Users</button>
+        </div>
+
+        <!-- Instant Search & Status Filter Bar -->
+        <div class="table-controls-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon-fixed">🔍</span>
+            <input type="text" id="inst-search-input" placeholder="Search by institution name, gateway code, or admin ID..." oninput="filterInstitutionsTable()">
+          </div>
+          <div class="filter-chips-wrap">
+            <button class="filter-chip active" id="chip-all" onclick="setInstStatusFilter('all')">All (<span id="count-chip-all">0</span>)</button>
+            <button class="filter-chip" id="chip-active" onclick="setInstStatusFilter('active')">🟢 Active (<span id="count-chip-active">0</span>)</button>
+            <button class="filter-chip" id="chip-suspended" onclick="setInstStatusFilter('suspended')">🔴 Suspended (<span id="count-chip-suspended">0</span>)</button>
+          </div>
         </div>
         <table>
           <thead>
@@ -1282,6 +1619,140 @@
     // ══════════════════════════════════════════════════════════════════
     // ── ROOT AUTHENTICATION & SECURITY ENGINE v2.2.5 ──────────────────
     // ══════════════════════════════════════════════════════════════════
+
+    // ══════════════════════════════════════════════════════════════════
+    // ── ADVANCED UI, ANIMATIONS & SEARCH FILTER ENGINE ───────────────
+    // ══════════════════════════════════════════════════════════════════
+
+    // ── 1. SMOOTH ROLLING COUNT-UP ANIMATION ──
+    function animateCounter(id, targetValue, duration = 800) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const target = Number(targetValue) || 0;
+        const start = 0;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(start + (target - start) * easeOut);
+            el.textContent = current.toLocaleString();
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                el.textContent = target.toLocaleString();
+            }
+        }
+        requestAnimationFrame(update);
+    }
+
+    // ── 2. REAL-TIME DATABASE LATENCY PING HUD ──
+    let _lastLatencyPing = 38;
+    async function updateLatencyPing() {
+        const hudText = document.getElementById('node-hud-text');
+        if (!hudText) return;
+        const start = performance.now();
+        try {
+            await fetch(API + '/health', { method: 'GET', cache: 'no-store' });
+            const latency = Math.round(performance.now() - start);
+            _lastLatencyPing = latency;
+            hudText.textContent = `Turso AWS Mumbai • Latency ~${latency}ms`;
+        } catch(e) {
+            hudText.textContent = `Turso AWS Mumbai • Latency ~${_lastLatencyPing}ms`;
+        }
+    }
+    setInterval(updateLatencyPing, 20000);
+
+    // ── 3. INSTANT SEARCH & STATUS FILTER ENGINE ──
+    let _activeStatusFilter = 'all';
+
+    function setInstStatusFilter(filter) {
+        _activeStatusFilter = filter;
+        ['all', 'active', 'suspended'].forEach(f => {
+            const chip = document.getElementById('chip-' + f);
+            if (chip) chip.classList.toggle('active', f === filter);
+        });
+        filterInstitutionsTable();
+    }
+
+    function filterInstitutionsTable() {
+        const query = (document.getElementById('inst-search-input')?.value || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('#sa-table-body tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (row.querySelector('.empty')) return;
+            const text = row.textContent.toLowerCase();
+            const isSuspended = text.includes('suspended');
+            
+            let matchesStatus = true;
+            if (_activeStatusFilter === 'active' && isSuspended) matchesStatus = false;
+            if (_activeStatusFilter === 'suspended' && !isSuspended) matchesStatus = false;
+
+            const matchesQuery = !query || text.includes(query);
+
+            if (matchesStatus && matchesQuery) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function updateFilterChipCounts(list, statusMap) {
+        if (!list) return;
+        const total = list.length;
+        let activeCount = 0;
+        let suspendedCount = 0;
+
+        list.forEach(sa => {
+            const instName = sa.institution || '';
+            const status = (statusMap[instName] || 'active').toLowerCase();
+            if (status === 'suspended') suspendedCount++;
+            else activeCount++;
+        });
+
+        setText('count-chip-all', total);
+        setText('count-chip-active', activeCount);
+        setText('count-chip-suspended', suspendedCount);
+
+        const subEl = document.getElementById('stat-inst-sub');
+        if (subEl) {
+            subEl.textContent = `${activeCount} Active • ${suspendedCount} Suspended`;
+        }
+    }
+
+    // ── 4. MODERN TOAST HUD WITH COUNTDOWN PROGRESS BAR ──
+    let _toastTimeout = null;
+    function showToast(msg, success = true) {
+        const t = document.getElementById('toast');
+        if (!t) return;
+        if (_toastTimeout) clearTimeout(_toastTimeout);
+
+        t.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span>${success ? '✅' : '❌'}</span>
+                <span>${msg}</span>
+            </div>
+            <div class="toast-progress">
+                <div class="toast-progress-fill" style="background:${success ? '#22c55e' : '#ff2a4d'}"></div>
+            </div>
+        `;
+        t.style.borderColor = success ? 'rgba(34,197,94,0.4)' : 'rgba(255,42,77,0.4)';
+        t.classList.add('show');
+
+        // Trigger progress animation
+        const fill = t.querySelector('.toast-progress-fill');
+        setTimeout(() => { if (fill) fill.style.width = '0%'; }, 50);
+
+        _toastTimeout = setTimeout(() => {
+            t.classList.remove('show');
+            _toastTimeout = null;
+        }, 3000);
+    }
 
     // ── 1. RATE LIMITING & BRUTE FORCE DEFENSE ──
     const DEV_MAX_ATTEMPTS = 5;
@@ -2064,6 +2535,7 @@
         const codesMap = window.instCodesCache || {};
         const statusMap = await api('/config/institution_status').catch(() => ({}));
         _instStatusCache = statusMap;
+        updateFilterChipCounts(list, statusMap);
 
         // Fetch all users to calculate accurate real-time student and admin counts
         let allUsers = [];
