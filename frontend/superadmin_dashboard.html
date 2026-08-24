@@ -1500,9 +1500,17 @@
           if (layout) layout.style.display = 'flex';
           setText('sa-inst-label', saSession.institution || 'Super Admin');
           setText('inst-name-sub', saSession.institution || '');
+
+          // Synchronously activate target page immediately (0 flicker/fading)
+          const targetPage = sessionStorage.getItem('ovs_last_page_super') || 'overview';
+          showPage(targetPage);
+
           loadAll().then(() => {
-              const targetPage = sessionStorage.getItem('ovs_last_page_super') || 'overview';
-              showPage(targetPage);
+            const curPage = sessionStorage.getItem('ovs_last_page_super') || 'overview';
+            if (curPage === 'students') renderStudents(allStudents);
+            if (curPage === 'voting') loadVoting();
+            if (curPage === 'audit') loadAudit();
+            if (curPage === 'health') loadSystemHealth();
           });
         }
       }
