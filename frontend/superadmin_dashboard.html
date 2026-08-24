@@ -699,7 +699,612 @@
       <div id="sa-forgot-err"
         style="color:var(--red); margin-top:1rem; font-size:0.85rem; min-height:1rem; font-weight:600; text-align:center;">
       </div>
-    
+    </div>
+  </div>
+
+  <div class="layout" id="main-layout" style="display:none">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-brand">VOTIFY</div>
+      <div class="sidebar-role" id="sa-inst-label">Super Authority</div>
+      <div class="nav-item active" id="nav-overview" onclick="showPage('overview', event)"><span class="nav-icon">📊</span> Overview</div>
+      <div class="nav-item" id="nav-admins" onclick="showPage('admins', event)"><span class="nav-icon">👥</span> Manage Admins</div>
+      <div class="nav-item" id="nav-subadmins" onclick="showPage('subadmins', event)"><span class="nav-icon">👥</span> Class Admins</div>
+      <div class="nav-item" id="nav-students" onclick="showPage('students', event)"><span class="nav-icon">🎓</span> All Students</div>
+      <div class="nav-item" id="nav-voting" onclick="showPage('voting', event)"><span class="nav-icon">🗳️</span> Voting Control</div>
+      <div class="nav-item" id="nav-health" onclick="showPage('health', event)"><span class="nav-icon">🛡️</span> System Health</div>
+      <div class="nav-item" id="nav-audit" onclick="showPage('audit', event)"><span class="nav-icon">📜</span> Audit Log</div>
+      <div class="sidebar-footer" style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border);">
+        <div class="nav-item" onclick="refreshAll()" style="color:var(--forest-green)"><span class="nav-icon">🔄</span> Refresh Data</div>
+        <div class="nav-item" onclick="saLogout()" style="color:var(--red)"><span class="nav-icon">🚪</span> Logout</div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- OVERVIEW -->
+      <div class="page active" id="page-overview">
+        <div class="page-title">📊 Overview</div>
+        <div class="page-sub" id="inst-name-sub">Your Institution Dashboard</div>
+        <div class="stats-grid">
+          <div class="stat" style="border-bottom: 4px solid var(--forest-green);">
+            <div class="num" id="s-students" style="color:var(--forest-green)">-</div>
+            <div class="lbl">Students</div>
+          </div>
+          <div class="stat" style="border-bottom: 4px solid var(--gold);">
+            <div class="num" id="s-admins" style="color:var(--gold)">-</div>
+            <div class="lbl">Admins</div>
+          </div>
+          <div class="stat" style="border-bottom: 4px solid var(--purple);">
+            <div class="num" id="s-subadmins" style="color:var(--purple)">-</div>
+            <div class="lbl">Sub-Admins</div>
+          </div>
+        </div>
+        <div class="card"
+          style="background: rgba(255, 253, 249, 0.98); border: 1px solid var(--border);">
+          <h3 style="color:white; display:flex; align-items:center; gap:0.5rem;">⭐ Institution Access Code</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1rem;">This is the public gateway code you
+            give to voters/staff so they can access your specific portal.</p>
+          <div style="display:flex; gap:1rem; align-items:center;">
+            <input type="text" id="inst-access-code" placeholder="Loading..."
+              style="flex:1; max-width:250px; font-size:1.4rem; font-family:monospace; font-weight:bold; letter-spacing:2px; text-transform:uppercase; background:#FFFDF9; border:1px solid var(--border); color:var(--forest-green); padding:0.8rem; border-radius:8px;"
+              oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+            <button class="btn btn-gold" onclick="updateInstitutionCode()"
+              style="padding:0.8rem 2rem; font-size:1.1rem; height:auto;">Set Code</button>
+            <button class="btn" onclick="copyGatewayLink()"
+              style="padding:0.8rem 1.5rem; font-size:1rem; height:auto; background:rgba(65,91,6,0.08); border:1px solid var(--border); color:var(--forest-green);">Copy Link 🔗</button>
+          </div>
+        </div>
+
+        <div class="card" id="pack-request-card" style="background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2);">
+          <h3 style="color:var(--gold);">🚀 Update Your Pack</h3>
+          <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;">Request a plan upgrade to increase your institution's capacity for admins, sub-admins, and students.</p>
+          <div style="display:flex; gap:1rem; align-items:center;">
+             <select id="request-pack-id" style="max-width:250px; background:#FFFDF9; border:1px solid var(--border); color:var(--forest-green);"></select>
+             <button class="btn btn-gold" onclick="requestPackUpgrade()" id="request-pack-btn">Request Upgrade</button>
+          </div>
+          <div id="pack-request-status" style="margin-top:0.8rem; font-size:0.85rem; font-weight:600;"></div>
+        </div>
+
+        <div class="card">
+          <h3>🗳️ Election Status</h3>
+          <div id="election-status-info">Loading...</div>
+        </div>
+
+        <div class="card" id="pack-usage-card" style="display:none; background:rgba(168,85,247,0.04); border:1px solid rgba(168,85,247,0.2);">
+          <h3 style="color:#a855f7;">📦 Plan Usage</h3>
+          <div id="pack-usage-inner" style="display:flex; flex-direction:column; gap:1rem;"></div>
+        </div>
+      </div>
+
+      <!-- ADMINS -->
+      <div class="page" id="page-admins">
+        <div class="page-title">⭐ Manage Admins</div>
+        <div class="page-sub">Create and manage branch admins for your institution</div>
+
+        <div class="card">
+          <h3>➕ Create Admin</h3>
+          <div class="form-grid">
+            <div class="form-field"><label>Admin ID <small style="color:var(--muted)">(7 chars · A-Z &
+                  0-9)</small></label><input type="text" id="a-id" placeholder="ADMCSE01" maxlength="7"></div>
+            <div class="form-field"><label>Full Name <small style="color:var(--muted)">(max 30)</small></label><input
+                type="text" id="a-name" placeholder="Mr. Ramesh"></div>
+            <div class="form-field"><label>Email</label><input type="email" id="a-email" placeholder="admin@inst.edu">
+            </div>
+            <div class="form-field"><label>Assigned Branch</label>
+              <select id="a-branch">
+                <option value="">-- Select Branch --</option>
+                <option>CIVIL</option>
+                <option>EEE</option>
+                <option>MECH</option>
+                <option>ECE</option>
+                <option>CSE</option>
+                <option>IT</option>
+                <option>CAI</option>
+                <option>CSD</option>
+                <option>CSC</option>
+                <option>AIDS</option>
+              </select>
+            </div>
+            <div class="form-field"><label>Password <small style="color:var(--muted);text-transform:none">(Exactly 8
+                  chars · 3 letters · 1 special · 1 number)</small></label><input type="password" id="a-pass"
+                placeholder="e.g. Adm@in12" maxlength="8"></div>
+          </div>
+          <button class="btn btn-gold" style="margin-top:1rem" onclick="createAdmin()">Create Admin</button>
+        </div>
+
+        <div class="card">
+          <h3>📋 Branch Admins</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Branch</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SUBADMINS -->
+      <div class="page" id="page-subadmins">
+        <div class="page-title">👥 Sub-Admins</div>
+        <div class="page-sub">View, manage, and create sub-admins across all branches</div>
+        <div class="card">
+          <h3>➕ Create Sub-Admin</h3>
+          <div class="form-grid">
+            <div class="form-field"><label>Sub-Admin ID <small style="color:var(--muted)">(9 chars · A-Z &
+                  0-9)</small></label><input type="text" id="sa-id" placeholder="SADMIN101" maxlength="9"></div>
+            <div class="form-field"><label>Full Name <small style="color:var(--muted)">(max 30)</small></label><input
+                type="text" id="sa-name" placeholder="Mr. Suresh"></div>
+            <div class="form-field"><label>Email</label><input type="email" id="sa-email" placeholder="sa@inst.edu">
+            </div>
+            <div class="form-field"><label>Branch</label>
+              <select id="sa-branch">
+                <option value="">-- Select Branch --</option>
+                <option>CIVIL</option>
+                <option>EEE</option>
+                <option>MECH</option>
+                <option>ECE</option>
+                <option>CSE</option>
+                <option>IT</option>
+                <option>CAI</option>
+                <option>CSD</option>
+                <option>CSC</option>
+                <option>AIDS</option>
+              </select>
+            </div>
+            <div class="form-field"><label>Class</label><input type="text" id="sa-class" placeholder="CSE-5"
+                oninput="this.value=this.value.toUpperCase()"></div>
+            <div class="form-field"><label>Year</label>
+              <select id="sa-year">
+                <option value="1st">1st Year</option>
+                <option value="2nd">2nd Year</option>
+                <option value="3rd">3rd Year</option>
+                <option value="4th">4th Year</option>
+              </select>
+            </div>
+            <div class="form-field"><label>Password <small style="color:var(--muted);text-transform:none">(Exactly 6
+                  chars · 3 letters · 1 special · 1 number)</small></label><input type="password" id="sa-pass"
+                placeholder="e.g. Sa@ab1" maxlength="6"></div>
+          </div>
+          <button class="btn btn-purple" style="margin-top:1rem" onclick="createSubAdminSA()">Create Sub-Admin</button>
+        </div>
+        <div class="card">
+          <h3>📋 All Sub-Admins</h3>
+          <div style="display:flex;gap:1rem;margin-bottom:1rem;align-items:center;flex-wrap:wrap;">
+            <label style="margin:0;white-space:nowrap;">Filter by Branch:</label>
+            <select id="sa-filter-branch" onchange="applySubAdminFilter()" style="max-width:160px;margin:0">
+              <option value="">All Branches</option>
+              <option>CIVIL</option>
+              <option>EEE</option>
+              <option>MECH</option>
+              <option>ECE</option>
+              <option>CSE</option>
+              <option>IT</option>
+              <option>CAI</option>
+              <option>CSD</option>
+              <option>CSC</option>
+              <option>AIDS</option>
+            </select>
+            <label style="margin:0;white-space:nowrap;">Year:</label>
+            <select id="sa-filter-year" onchange="applySubAdminFilter()" style="max-width:140px;margin:0">
+              <option value="">All Years</option>
+              <option value="1st">1st Year</option>
+              <option value="2nd">2nd Year</option>
+              <option value="3rd">3rd Year</option>
+              <option value="4th">4th Year</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Branch</th>
+                <th>Class</th>
+                <th>Year</th>
+                <th>Managed By</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="subadmin-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div class="page" id="page-students">
+        <div class="page-title">🎓 All Students</div>
+        <div class="page-sub">Full student list for your institution</div>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
+          <input class="search-bar" style="flex:1;min-width:200px;margin:0" placeholder="🔍 Search by name, ID..."
+            oninput="applyStudentFilters()" id="student-search">
+          <select id="sf-branch" onchange="applyStudentFilters()"
+            style="flex:1;min-width:140px;max-width:180px;margin:0">
+            <option value="">All Branches</option>
+            <option>CIVIL</option>
+            <option>EEE</option>
+            <option>MECH</option>
+            <option>ECE</option>
+            <option>CSE</option>
+            <option>IT</option>
+            <option>CAI</option>
+            <option>CSD</option>
+            <option>CSC</option>
+            <option>AIDS</option>
+          </select>
+          <input type="text" id="sf-class" onchange="applyStudentFilters()" placeholder="Class (e.g. CSE-5)"
+            style="flex:1;min-width:140px;max-width:180px;margin:0"
+            oninput="this.value=this.value.toUpperCase();applyStudentFilters();">
+          <select id="sf-year" onchange="applyStudentFilters()" style="flex:1;min-width:120px;max-width:160px;margin:0">
+            <option value="">All Years</option>
+            <option value="1st">1st Year</option>
+            <option value="2nd">2nd Year</option>
+            <option value="3rd">3rd Year</option>
+            <option value="4th">4th Year</option>
+          </select>
+          <button class="btn btn-purple" onclick="promoteSemester()"
+            style="min-width:140px;margin:0;padding:0.6rem 1rem;font-size:0.85rem;border-radius:10px;font-weight:700;">📈
+            Promote Semester</button>
+        </div>
+        <div class="card" style="padding:0.5rem">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Reg No</th>
+                <th>Name</th>
+                <th>Year</th>
+                <th>Branch</th>
+                <th>Class</th>
+              </tr>
+            </thead>
+            <tbody id="student-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VOTING CONTROL -->
+      <div class="page" id="page-voting">
+        <div class="page-title">🗳️ Voting Control</div>
+        <div class="page-sub" id="voting-inst-sub">Election management for your institution</div>
+
+        <!-- Grand Winner Announcement -->
+        <div id="winner-banner" class="winner-card winner-reveal-anim" style="display:none;">
+          <div class="winner-badge">⭐</div>
+          <div class="winner-label">Official Election Result</div>
+          <div id="winner-name" class="winner-name">CANDIDATE NAME</div>
+          <div id="winner-stats" class="winner-stats">Elected with 0 Votes</div>
+        </div>
+
+        <!-- Status Banner -->
+        <div id="election-banner"
+          style="padding:1rem 1.5rem; border-radius:12px; margin-bottom:1.5rem; font-weight:700; font-size:1rem; display:flex; align-items:center; gap:0.75rem; border:1px solid var(--border); background:var(--surface);">
+          ⚪ Loading election status...
+        </div>
+
+        <!-- Controls Grid -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:1.5rem; margin-bottom:1.5rem;">
+
+          <!-- ••• MAIN SCHEDULE / CREATE CARD ••• -->
+          <div class="card" id="election-schedule-card">
+            <h3 id="schedule-card-title">±ï¸ Create Election</h3>
+
+            <!-- -- STATE B: COUNTDOWN VIEW (shown when election is active) -- -->
+            <div id="v-countdown-container" style="display:none;">
+              <!-- Election Name Pill -->
+              <div id="v-election-name-pill"
+                style="text-align:center; background:rgba(255,42,77,0.1); border:1px solid rgba(255,42,77,0.25); border-radius:10px; padding:0.6rem 1rem; margin-bottom:1rem; font-weight:700; font-size:1rem; color:var(--gold);">
+                🗳️ Election
+              </div>
+
+              <!-- Countdown digits -->
+              <div style="text-align:center; padding:1rem 0; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.05); margin-bottom:1rem;">
+                <div style="font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:0.8rem;">³ Time Remaining</div>
+                <div style="display:flex; justify-content:center; gap:1.2rem;">
+                  <div>
+                    <div id="cd-days" style="font-size:1.8rem; font-weight:900; color:var(--gold); line-height:1;">00</div>
+                    <div style="font-size:0.65rem; color:var(--muted); margin-top:0.3rem;">Days</div>
+                  </div>
+                  <div style="font-size:1.5rem; opacity:0.3; margin-top:-0.2rem;">:</div>
+                  <div>
+                    <div id="cd-hours" style="font-size:1.8rem; font-weight:900; color:var(--gold); line-height:1;">00</div>
+                    <div style="font-size:0.65rem; color:var(--muted); margin-top:0.3rem;">Hours</div>
+                  </div>
+                  <div style="font-size:1.5rem; opacity:0.3; margin-top:-0.2rem;">:</div>
+                  <div>
+                    <div id="cd-mins" style="font-size:1.8rem; font-weight:900; color:var(--gold); line-height:1;">00</div>
+                    <div style="font-size:0.65rem; color:var(--muted); margin-top:0.3rem;">Mins</div>
+                  </div>
+                  <div style="font-size:1.5rem; opacity:0.3; margin-top:-0.2rem;">:</div>
+                  <div>
+                    <div id="cd-secs" style="font-size:1.8rem; font-weight:900; color:var(--gold); line-height:1;">00</div>
+                    <div style="font-size:0.65rem; color:var(--muted); margin-top:0.3rem;">Secs</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons: Modify + End side-by-side -->
+              <div style="display:flex; gap:0.75rem;">
+                <button class="btn-sm" style="flex:1; padding:0.55rem 0; background:rgba(255,255,255,0.06); color:var(--muted); border:1px solid rgba(255,255,255,0.12); border-radius:8px; font-size:0.85rem; cursor:pointer;"
+                  onclick="toggleScheduleMode(true)">š™ï¸ Modify Schedule</button>
+                <button class="btn-sm" id="v-stop-btn" style="flex:1; padding:0.55rem 0; background:rgba(255,42,77,0.15); color:var(--red); border:1px solid rgba(255,42,77,0.3); border-radius:8px; font-size:0.85rem; cursor:pointer;"
+                  onclick="stopElection()">¹ End Election</button>
+                <button class="btn-sm" id="v-restart-btn" style="flex:1; display:none; padding:0.55rem 0; background:rgba(34,197,94,0.15); color:var(--green); border:1px solid rgba(34,197,94,0.3); border-radius:8px; font-size:0.85rem; cursor:pointer;"
+                  onclick="restartElection()">🔄 Restart Election</button>
+                <button class="btn-sm" id="v-delete-btn" style="flex:0.5; padding:0.55rem 0; background:rgba(255,42,77,0.1); color:var(--red); border:1px solid rgba(255,42,77,0.2); border-radius:8px; font-size:0.85rem; cursor:pointer;"
+                  onclick="deleteElection()">⭐</button>
+              </div>
+            </div>
+
+            <!-- -- STATE A / B-EDIT: CREATION & MODIFY FORM -- -->
+            <div id="v-scheduler-inner" style="display:flex; flex-direction:column; gap:1rem;">
+
+              <!-- Always-visible fields -->
+              <div class="form-field">
+                <label>Election Name <small style="color:var(--muted)">(e.g., Student Council 2026)</small></label>
+                <input type="text" id="v-name" placeholder="Enter Election Name">
+              </div>
+              <div class="form-field">
+                <label>Start Date &amp; Time</label>
+                <input type="datetime-local" id="v-start">
+              </div>
+              <div class="form-field">
+                <label>End Date &amp; Time</label>
+                <input type="datetime-local" id="v-end">
+              </div>
+              <div class="form-field">
+                <label>Result Visibility <small style="color:var(--muted)">(Who can see the results?)</small></label>
+                <select id="v-result-visibility">
+                  <option value="all">Entire College</option>
+                  <option value="voters_only">Only Eligible Voters</option>
+                </select>
+              </div>
+
+              <!-- -- WHO CAN VOTE? (Scope Selector) -- -->
+              <div id="v-scope-section">
+                <h4 style="margin: 0.5rem 0 0.8rem; color:var(--text); font-size: 0.95rem;">👥 Who Can Vote?</h4>
+                <div style="display:flex; flex-direction:column; gap:0.6rem;">
+
+                  <!-- Option 1: Everyone -->
+                  <label style="display:flex; align-items:center; gap:0.75rem; padding:0.85rem 1rem; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; cursor:pointer; transition:all 0.2s;" id="scope-all-label">
+                    <input type="radio" name="v-scope-mode" id="sa-scope-all" value="all" checked onchange="onScopeModeChange()" style="width:16px;height:16px;accent-color:var(--gold);margin:0;">
+                    <div>
+                      <div style="font-weight:700; color:var(--gold); font-size:0.92rem;">🎓 All Students</div>
+                      <div style="font-size:0.78rem; color:var(--muted); margin-top:0.15rem;">Every student in your institution can vote</div>
+                    </div>
+                  </label>
+
+                  <!-- Option 2: Specific Classes -->
+                  <label style="display:flex; align-items:center; gap:0.75rem; padding:0.85rem 1rem; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; cursor:pointer; transition:all 0.2s;" id="scope-specific-label">
+                    <input type="radio" name="v-scope-mode" id="sa-scope-specific" value="specific" onchange="onScopeModeChange()" style="width:16px;height:16px;accent-color:var(--gold);margin:0;">
+                    <div>
+                      <div style="font-weight:700; color:var(--text); font-size:0.92rem;">🎯 Specific Classes Only</div>
+                      <div style="font-size:0.78rem; color:var(--muted); margin-top:0.15rem;">Restrict voting to selected branches or sections</div>
+                    </div>
+                  </label>
+
+                  <!-- Class picker (shown only when Specific is selected) -->
+                  <div id="sa-scope-class-picker" style="display:none; margin-top:0.3rem;">
+                    <div id="sa-scope-hierarchy" style="max-height:280px; overflow-y:auto; padding:1rem; background:rgba(0,0,0,0.25); border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                      <div id="sa-scope-empty-msg" style="color:var(--muted); font-size:0.85rem; text-align:center; padding:1.5rem;">
+                        <div style="font-size:1.8rem; margin-bottom:0.5rem;">📋</div>
+                        <strong style="color:var(--text);">No class data found</strong><br>
+                        <small style="opacity:0.7;">Students need Year, Branch &amp; Class filled in to appear here.<br>Go to <strong>Students</strong> tab to check student data, or choose <strong>All Students</strong> above.</small>
+                      </div>
+                    </div>
+                    <!-- Inline scope validation error -->
+                    <div id="v-scope-error" style="display:none; margin-top:0.6rem; color:var(--red); font-size:0.82rem; font-weight:600;">
+                      š ï¸ Please select at least one class from the list above.
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- -- CATEGORIES & CANDIDATES (hidden during Modify Schedule edit) -- -->
+              <div id="v-categories-section" style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:1.2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                  <h4 style="margin:0; font-size:1rem; color:var(--gold);">📁 Categories &amp; Candidates</h4>
+                  <button class="btn-sm" style="background:var(--gold); border:none; color:white;" onclick="addCreationCategory()">+ Add Category</button>
+                </div>
+                <div id="creation-categories-container" style="display:flex; flex-direction:column; gap:1.2rem;">
+                  <!-- Category items rendered by JS -->
+                </div>
+                <div style="margin-top:1rem; font-size:0.75rem; color:var(--muted);">
+                  „¹ï¸ Min. 1 category required. Each category needs at least 2 candidates.
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display:flex; gap:0.5rem;">
+                <button class="btn btn-green" style="flex:2" id="v-start-btn" onclick="startNewElection()">🚀 Create &amp; Start Election</button>
+                <button class="btn-sm" id="v-cancel-edit"
+                  style="flex:1; display:none; background:rgba(255,255,255,0.05); color:white; border:1px solid var(--border); border-radius:8px; padding:0.5rem;"
+                  onclick="toggleScheduleMode(false)">✕ Cancel</button>
+              </div>
+            </div>
+          </div>
+
+
+
+          <!-- Election Structure -->
+          <div class="card" id="integrated-structure-card" style="display:none; border-color: rgba(168,85,247,0.2);">
+            <h3 style="color:var(--gold);">⭐ Election Structure</h3>
+            <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">Categories included in this election:</p>
+            <div id="integrated-categories-list" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Chart (shown only when election is active) -->
+        <div class="card" id="results-chart-card" style="display:none;">
+          <h3>⭐ Live Vote Results</h3>
+          <button class="btn btn-gold" onclick="loadVoting()"
+            style="margin-bottom:1.5rem; padding:0.5rem 1.4rem; font-size:0.9rem;">🔄 Refresh Results</button>
+          <div style="position:relative; height:280px;">
+            <canvas id="results-chart"></canvas>
+          </div>
+          <div id="candidate-tally" style="margin-top:1.5rem;"></div>
+        </div>
+
+      </div>
+
+    <!-- SYSTEM HEALTH -->
+    <div class="page" id="page-health">
+      <div class="page-title">⭐ System Health</div>
+      <div class="page-sub">Real-time status of SMTP, OTP delivery, and system alerts</div>
+
+      <div class="stats-grid">
+        <div class="stat" id="stat-smtp-box" style="border-bottom: 4px solid var(--muted);">
+          <div class="num" id="stat-smtp-status">OFFLINE</div>
+          <div class="lbl">SMTP Connection</div>
+        </div>
+        <div class="stat" style="border-bottom: 4px solid var(--gold);">
+          <div class="num" id="stat-alert-count">0</div>
+          <div class="lbl">Recent Alerts</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📧 SMTP & OTP Configuration</h3>
+        <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1.5rem;">
+          Your current SMTP service is used to deliver voter OTPs and admin 2FA codes.
+          If you see "OFFLINE", please check your Vercel Environment Variables.
+        </p>
+        <div style="display:flex; gap:1rem;">
+          <button class="btn btn-gold" onclick="testSmtpConnection()">📧 Send Test Email</button>
+          <button class="btn-sm" style="border:1px solid var(--border); background:rgba(255,255,255,0.05); color:white;"
+            onclick="loadSystemHealth()">🔄 Refresh Status</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🚨 Diagnostic Alerts</h3>
+        <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1rem;">These are the last 20 critical system
+          events recorded by the backend.</p>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Type</th>
+                <th>Message</th>
+                <th>Error Details</th>
+              </tr>
+            </thead>
+            <tbody id="health-alerts-table">
+              <tr>
+                <td colspan="4" class="empty">³ Loading system health...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- AUDIT LOG -->
+    <div class="page" id="page-audit">
+      <div class="page-title">📜 Audit Log</div>
+      <div class="page-sub" style="display:flex; justify-content:space-between; align-items:center; gap:1.5rem;">
+        <span>All activity log across the institution</span>
+        <button class="btn btn-red-outline" style="padding:0.4rem 1rem; font-size:0.85rem;"
+          onclick="clearAuditLogs()">⭐ Clear Audit Log</button>
+      </div>
+      <div class="card" style="padding:0.5rem">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Action</th>
+              <th>User</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="audit-table">
+            <tr>
+              <td colspan="4" class="empty">³ Loading activity logs...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div> <!-- End Card -->
+    </div> <!-- End Audit Page -->
+
+  </div> <!-- End Main Content -->
+</div> <!-- End Main Layout -->
+
+<div class="toast" id="toast"></div>
+
+  <!-- EDIT MODAL (Admin & Subadmin) -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+      <h3 id="edit-modal-title">œï¸ Edit Details</h3>
+      <p style="color:var(--muted); font-size:0.8rem; margin-bottom:1rem;">ID: <strong id="edit-regnum-display"
+          style="color:var(--gold);"></strong></p>
+      <input type="hidden" id="edit-regnum">
+      <input type="hidden" id="edit-role">
+
+      <div class="form-grid" style="margin-bottom:1rem;">
+        <div class="form-field"><label>Full Name</label><input type="text" id="edit-name"></div>
+        <div class="form-field"><label>Email</label><input type="email" id="edit-email"></div>
+      </div>
+
+      <div class="form-grid" style="margin-bottom:1rem;">
+        <div class="form-field">
+          <label>Branch</label>
+          <select id="edit-branch">
+            <option>CIVIL</option>
+            <option>EEE</option>
+            <option>MECH</option>
+            <option>ECE</option>
+            <option>CSE</option>
+            <option>IT</option>
+            <option>CAI</option>
+            <option>CSD</option>
+            <option>CSC</option>
+            <option>AIDS</option>
+          </select>
+        </div>
+        <div class="form-field" id="edit-class-group">
+          <label>Class (e.g. CSE-5)</label>
+          <input type="text" id="edit-class" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div class="form-field" id="edit-year-group">
+          <label>Year</label>
+          <select id="edit-year">
+            <option value="1st">1st Year</option>
+            <option value="2nd">2nd Year</option>
+            <option value="3rd">3rd Year</option>
+            <option value="4th">4th Year</option>
+          </select>
+        </div>
+        <div class="form-field" id="edit-section-group">
+          <label>Section</label>
+          <input type="text" id="edit-section" placeholder="e.g. A, B, C" maxlength="1" oninput="this.value=this.value.toUpperCase()">
+        </div>
+      </div>
+
+      <div class="form-field" style="margin-bottom:1.5rem;">
+        <label>Password <small style="text-transform:none">(Leave blank to keep current)</small></label>
+        <input type="password" id="edit-pass" placeholder="Enter new password to change">
+      </div>
+
+      <button class="btn btn-gold" style="width:100%" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+
+
+    <script>
       
 
       // Safe DOM Utilities
@@ -718,9 +1323,10 @@
         if (saToken) {
           saSession = JSON.parse(decodeURIComponent(escape(atob(saToken))));
           localStorage.setItem('ovs_currentUser', JSON.stringify(saSession));
+          localStorage.setItem('ovs_user', JSON.stringify(saSession));
           window.history.replaceState({}, document.title, window.location.pathname);
         } else {
-          saSession = JSON.parse(localStorage.getItem('ovs_currentUser') || "null");
+          saSession = JSON.parse(localStorage.getItem('ovs_currentUser') || localStorage.getItem('ovs_user') || "null");
         }
       } catch(e) {}
 
@@ -886,202 +1492,7 @@
         regCountdownInterval = setInterval(update, 1000);
       }
 
-      document.addEventListener('DOMContentLoaded', () => {
-        if (saSession && saSession.role === 'superadmin') {
-          const overlay = document.getElementById('auth-overlay');
-          const layout = document.getElementById('main-layout');
-    </div>
-  </div>
-
-
-    <script>
-      
-
-      // Safe DOM Utilities
-      function setText(id, val) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = val;
-      }
-      function setHTML(id, html) {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = html;
-      }
-      let saSession = null;
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const saToken = urlParams.get('sa_auth');
-        if (saToken) {
-          saSession = JSON.parse(decodeURIComponent(escape(atob(saToken))));
-          localStorage.setItem('ovs_currentUser', JSON.stringify(saSession));
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else {
-          saSession = JSON.parse(localStorage.getItem('ovs_currentUser') || "null");
-        }
-      } catch(e) {}
-
-      if (!saSession || saSession.role !== 'superadmin') {
-        window.location.href = 'login.html?admin=true';
-      }
-      let allStudents = [];
-      let chartInstance = null;
-      let countdownInterval = null;
-      let regCountdownInterval = null;
-      let currentElectionConfig = null;
-      let currentRegistrationConfig = null;
-      let electionCategories = [];
-
-      async function clearAuditLogs() {
-        if (!confirm('Are you sure you want to permanently clear ALL audit logs for your institution? This action cannot be undone.')) return;
-        try {
-          // Pointing to the new DELETE endpoint added in server.js
-          await apiFetch(`/auditLogs?institution=${encodeURIComponent(saSession.institution)}`, { method: 'DELETE' });
-          toast('Institution audit logs cleared');
-          loadAudit();
-        } catch (e) { toast(e.message, false); }
-      }
-
-      function toggleSidebar() {
-      const sidebar = document.querySelector('.sidebar');
-      const btn = document.getElementById('sa-toggle-btn');
-      sidebar.classList.toggle('open');
-      btn.classList.toggle('active');
-    }
-
-      function toggleScheduleMode(isEditing) {
-        const scheduler    = document.getElementById('v-scheduler-inner');
-        const countdown    = document.getElementById('v-countdown-container');
-        const cancelBtn    = document.getElementById('v-cancel-edit');
-        const scopeSection = document.getElementById('v-scope-section');
-        const catSection   = document.getElementById('v-categories-section');
-
-        if (isEditing) {
-          // Pre-fill name/time from current election
-          if (currentElectionConfig) {
-            document.getElementById('v-name').value  = currentElectionConfig.name || '';
-            document.getElementById('v-start').value = currentElectionConfig.startTime ? currentElectionConfig.startTime.slice(0, 16) : '';
-            document.getElementById('v-end').value   = currentElectionConfig.endTime ? currentElectionConfig.endTime.slice(0, 16) : '';
-          }
-          scheduler.style.display = 'flex';
-          countdown.style.display = 'none';
-          cancelBtn.style.display = 'block';
-          // Hide scope & categories during mid-election edit (only name/time editable)
-          if (scopeSection) scopeSection.style.display = 'none';
-          if (catSection)   catSection.style.display   = 'none';
-          setText('v-start-btn', '💾 Save Changes');
-          setText('schedule-card-title', 'š™ï¸  Modify Schedule');
-        } else {
-          // Cancel — go back to countdown view
-          scheduler.style.display = 'none';
-          countdown.style.display = 'block';
-          cancelBtn.style.display = 'none';
-          // Restore scope & categories visibility for next fresh creation
-          if (scopeSection) scopeSection.style.display = '';
-          if (catSection)   catSection.style.display   = '';
-          setText('schedule-card-title', ' ³ ' + (currentElectionConfig ? currentElectionConfig.name : 'Election'));
-        }
-      }
-
-      function toggleRegScheduleMode(isEditing) {
-        const scheduler = document.getElementById('r-scheduler-inner');
-        const countdown = document.getElementById('r-countdown-container');
-        const cancelBtn = document.getElementById('r-cancel-edit');
-        const startBtn = document.getElementById('r-start-btn');
-        const title = document.getElementById('r-schedule-card-title');
-
-        if (isEditing) {
-          scheduler.style.display = 'flex';
-          countdown.style.display = 'none';
-          cancelBtn.style.display = 'block';
-          setText('r-start-btn', '💾 Update Schedule');
-          setText('r-schedule-card-title', 'š™ï¸  Modify Reg Schedule (Rr)');
-        } else {
-          scheduler.style.display = 'none';
-          countdown.style.display = 'block';
-          setText('r-schedule-card-title', ' ³ Registration Live Countdown (Rr)');
-        }
-      }
-
-      function startCountdown(endTimeStr) {
-        if (countdownInterval) clearInterval(countdownInterval);
-        const endTime = new Date(endTimeStr).getTime();
-
-        function update() {
-          const now = new Date().getTime();
-          const distance = endTime - now;
-
-          if (distance < 0) {
-            clearInterval(countdownInterval);
-            setText('cd-days', '00');
-            setText('cd-hours', '00');
-            setText('cd-mins', '00');
-            setText('cd-secs', '00');
-
-            // Auto-update backend to mark election as completed
-            apiFetch(`/config/election_${saSession.institution}`, {
-              method: 'POST',
-              body: JSON.stringify({ merge: true, data: { isActive: false, isCompleted: true } })
-            }).then(() => {
-              loadVoting();
-              loadAll();
-            }).catch(e => console.error("Auto-stop failed", e));
-            return;
-          }
-
-          const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-          const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((distance % (1000 * 60)) / 1000);
-
-          setText('cd-days', String(d).padStart(2, '0'));
-          setText('cd-hours', String(h).padStart(2, '0'));
-          setText('cd-mins', String(m).padStart(2, '0'));
-          setText('cd-secs', String(s).padStart(2, '0'));
-        }
-
-        update();
-        countdownInterval = setInterval(update, 1000);
-      }
-
-      function startRegCountdown(endTimeStr) {
-        if (regCountdownInterval) clearInterval(regCountdownInterval);
-        const endTime = new Date(endTimeStr).getTime();
-
-        function update() {
-          const now = new Date().getTime();
-          const distance = endTime - now;
-
-          if (distance < 0) {
-            clearInterval(regCountdownInterval);
-            setText('r-cd-days', '00');
-            setText('r-cd-hours', '00');
-            setText('r-cd-mins', '00');
-            setText('r-cd-secs', '00');
-
-            apiFetch(`/config/registration_${saSession.institution}`, {
-              method: 'POST',
-              body: JSON.stringify({ merge: true, data: { isActive: false, isCompleted: true } })
-            }).then(() => {
-              loadVoting();
-            }).catch(e => console.error("Auto-stop reg failed", e));
-            return;
-          }
-
-          const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-          const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-          const s = Math.floor((distance % (1000 * 60)) / 1000);
-
-          setText('r-cd-days', String(d).padStart(2, '0'));
-          setText('r-cd-hours', String(h).padStart(2, '0'));
-          setText('r-cd-mins', String(m).padStart(2, '0'));
-          setText('r-cd-secs', String(s).padStart(2, '0'));
-        }
-
-        update();
-        regCountdownInterval = setInterval(update, 1000);
-      }
-
-      document.addEventListener('DOMContentLoaded', () => {
+      function initSuperAdminDashboard() {
         if (saSession && saSession.role === 'superadmin') {
           const overlay = document.getElementById('auth-overlay');
           const layout = document.getElementById('main-layout');
@@ -1094,19 +1505,24 @@
               showPage(targetPage);
           });
         }
+      }
 
-        // Listen for remote session updates (e.g. from developer approval)
-        // Intercept browser back button -> Redirect to Staff (Admin & Sub Admin) login page
-        history.pushState({ page: 'superadmin_dashboard' }, document.title, window.location.href);
-        window.addEventListener('popstate', function(event) {
-            window.location.href = 'login.html?admin=true';
-        });
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSuperAdminDashboard);
+      } else {
+        initSuperAdminDashboard();
+      }
 
-        window.addEventListener('ovs_session_updated', (e) => {
-           console.log("[OVS] Remote session update detected. Refreshing dashboard...");
-           saSession = e.detail;
-           loadAll(); // Re-fetch all data with new pack context
-        });
+      // Intercept browser back button -> Redirect to Staff (Admin & Sub Admin) login page
+      window.addEventListener('popstate', function(event) {
+          window.location.href = 'login.html?admin=true';
+      });
+
+      // Listen for remote session updates (e.g. from developer approval)
+      window.addEventListener('ovs_session_updated', (e) => {
+         console.log("[OVS] Remote session update detected. Refreshing dashboard...");
+         saSession = e.detail;
+         loadAll(); // Re-fetch all data with new pack context
       });
 
       // Safety: Logout if institution is deleted
@@ -1334,7 +1750,7 @@
         if (id === 'health') loadSystemHealth();
       }
 
-            async function refreshAll() { 
+      async function refreshAll() { 
         toast('🔄 Refreshing Data...'); 
         const activePageEl = document.querySelector('.page.active');
         let currentPage = 'overview';
