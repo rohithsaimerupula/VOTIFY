@@ -618,6 +618,69 @@
     .dev-otp-boxes-grid.success .dev-otp-digit::after {
       border-color: #22c55e !important;
     }
+  
+    /* ── DEVELOPER LOCK SCREEN & 2FA STYLING ── */
+    #dev-lock-screen {
+      display: none;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 5, 5, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 100000;
+    }
+    .lock-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 3rem 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.8), 0 0 35px var(--red-glow);
+    }
+    .lock-icon-wrap {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1.2rem auto;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 42, 77, 0.15), rgba(255, 42, 77, 0.05));
+      border: 1.5px solid rgba(255, 42, 77, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(255, 42, 77, 0.2);
+    }
+    .security-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .security-badge.success {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+    .security-badge.warning {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+    }
+    .security-badge.danger {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
   </style>
 <script src="config.js"></script>
     <script src="storage.js"></script>
@@ -625,7 +688,8 @@
     <div id="tsparticles" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;"></div>
   <!-- AUTH -->
   <div id="auth-screen">
-    <div class="auth-box">
+    <!-- STEP 1: CREDENTIALS BOX -->
+    <div class="auth-box" id="dev-auth-creds-box">
       <h1><span style="color:#ffffff">DEVELOPER</span> LOGIN</h1>
       <p style="color:#ff2a4d; font-weight:700; letter-spacing:1px;">CORE INFRASTRUCTURE ACCESS</p>
       <div>
@@ -635,11 +699,68 @@
       <div style="position:relative;">
         <label>Password</label>
         <input type="password" id="dev-pass" placeholder="Enter Password" maxlength="12">
-        <button type="button" onclick="toggleDevPass()" style="position:absolute; right:12px; top:36px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.1rem; padding:4px;">ðŸ‘ï¸</button>
+        <button type="button" onclick="toggleDevPass()" style="position:absolute; right:12px; top:36px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.1rem; padding:4px;">👁️</button>
       </div>
-      <button class="btn btn-red" onclick="devLogin()">Verify Developer Access</button>
-      <div id="auth-error"></div>
-      <div style="font-size:0.65rem; color:rgba(255,255,255,0.2); margin-top:1.5rem;">Infrastructure Node v2.2.4 â€” Updated 20:25</div>
+      <button class="btn btn-red" id="dev-login-btn" onclick="devLogin()">Verify Developer Access</button>
+      <div id="auth-error" style="color:var(--red); font-size:0.88rem; margin-top:0.8rem; min-height:1.2rem; font-weight:600;"></div>
+      <div style="font-size:0.65rem; color:rgba(255,255,255,0.2); margin-top:1.5rem;">Infrastructure Node v2.2.5 — 2FA & Rate-Limit Protected</div>
+    </div>
+
+    <!-- STEP 2: 2FA OTP MODAL -->
+    <div class="auth-box" id="dev-auth-otp-box" style="display:none;">
+      <div class="lock-icon-wrap">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff2a4d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; background:rgba(255,42,77,0.1); border:1px solid rgba(255,42,77,0.3); font-size:0.75rem; color:#ff2a4d; font-weight:700; margin-bottom:1rem;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#ff2a4d;box-shadow:0 0 8px #ff2a4d;"></span>
+        <span id="dev-otp-timer-txt">EXPIRES IN 10:00</span>
+      </div>
+      <h2 style="font-size:1.6rem; font-weight:900; color:#fff; font-family:'Playfair Display',serif; margin-bottom:0.3rem;">2-Factor Security</h2>
+      <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.2rem;">We've sent a 6-digit security code to your registered email.<br><span style="color:#ff2a4d; font-weight:700;">It'll auto-verify once entered.</span></p>
+
+      <div class="dev-otp-boxes-stage">
+        <div class="dev-otp-boxes-grid" id="dev-login-otp-grid">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="0">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="1">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="2">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="3">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="4">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="5">
+        </div>
+      </div>
+
+      <button class="btn btn-red" id="dev-otp-verify-btn" onclick="devVerify2FA()">Verify & Unlock Console</button>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem;">
+        <button type="button" onclick="dev2FABack()" style="background:none; border:none; color:var(--muted); font-size:0.86rem; cursor:pointer; font-weight:600;">← Back</button>
+        <button type="button" id="dev-resend-btn" onclick="devResend2FA()" style="background:none; border:none; color:#ff2a4d; font-size:0.86rem; cursor:pointer; font-weight:700; text-decoration:underline;">Resend Code</button>
+      </div>
+      <div id="dev-otp-auth-err" style="color:var(--red); font-size:0.86rem; margin-top:0.8rem; min-height:1.2rem; font-weight:600;"></div>
+    </div>
+  </div>
+
+  <!-- INACTIVITY LOCK SCREEN MODAL -->
+  <div id="dev-lock-screen">
+    <div class="lock-box">
+      <div class="lock-icon-wrap">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff2a4d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h2 style="font-size:1.6rem; font-weight:900; color:#fff; font-family:'Playfair Display',serif; margin-bottom:0.4rem;">Console Locked</h2>
+      <p style="color:var(--muted); font-size:0.86rem; margin-bottom:1.5rem;">Session locked for security. Enter your password to resume.</p>
+      
+      <div style="text-align:left; margin-bottom:1rem;">
+        <label>Developer Password</label>
+        <input type="password" id="dev-unlock-pass" placeholder="Enter Developer Password" maxlength="12" style="margin-bottom:0.5rem;" onkeydown="if(event.key==='Enter') devUnlockConsole()">
+      </div>
+      <button class="btn btn-red" onclick="devUnlockConsole()" style="margin-bottom:0.8rem;">🔓 Unlock Console</button>
+      <button class="btn btn-red-outline" style="width:100%; border-color:rgba(255,255,255,0.2); color:var(--muted);" onclick="devLogout()">Sign Out Completely</button>
+      <div id="dev-unlock-err" style="color:var(--red); font-size:0.85rem; margin-top:0.8rem; min-height:1.2rem; font-weight:600;"></div>
     </div>
   </div>
 
@@ -651,7 +772,8 @@
         <span id="dev-name-label" style="color:#ff2a4d; font-weight:900; letter-spacing:1px;">DEVELOPER OPERATOR</span>
         <button class="btn btn-red-outline" style="border-color: var(--cyan); color: var(--cyan);" onclick="loadConsole()">🔄 Refresh Data</button>
         <button class="btn btn-red-outline" style="border-color:#f59e0b;color:#f59e0b;" onclick="openDevProfile()">âš™ï¸ My Profile</button>
-        <button class="btn btn-red-outline" onclick="devLogout()">Authorize Session</button>
+        <button class="btn btn-red-outline" style="border-color:#eab308; color:#eab308;" onclick="devLockConsole()">🔒 Lock Console</button>
+        <button class="btn btn-red-outline" onclick="devLogout()">Sign Out</button>
       </div>
     </header>
     <div class="container">
@@ -661,6 +783,32 @@
         <div class="number" id="stat-inst" style="color:white; font-size: 4rem; font-weight: 900; line-height: 1; text-shadow: 0 0 30px rgba(6,182,212,0.4); font-family: 'Outfit', sans-serif;">-</div>
         <div class="label" style="color: var(--cyan); font-size: 1.1rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 0.8rem;">Active Institutions</div>
         <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; font-weight: 500;">Click to view detailed infrastructure analytics, super admin contacts, and member distribution.</p>
+      </div>
+
+      <!-- ROOT SECURITY & AUDIT TRAIL -->
+      <div class="section">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+          <h2 style="margin:0;">🛡️ Security & Access Audit Trail</h2>
+          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <button class="btn btn-red-outline" style="border-color:#38bdf8;color:#38bdf8;width:auto;padding:0.5rem 1rem;" onclick="loadSecurityLogs()">🔄 Refresh Logs</button>
+            <button class="btn btn-red-outline" style="border-color:#f59e0b;color:#f59e0b;width:auto;padding:0.5rem 1rem;" onclick="exportAuditLogs()">📥 Export JSON</button>
+            <button class="btn btn-danger btn-sm" style="padding:0.5rem 1rem;" onclick="clearRootAuditLogs()">⭐ Clear Logs</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Action / Event</th>
+              <th>Operator</th>
+              <th>Institution / Scope</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="security-logs-body">
+            <tr><td colspan="5" class="empty">Loading security logs...</td></tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- PACKS MANAGER -->
@@ -889,6 +1037,29 @@
     </div>
   </div>
 
+  <!-- EMERGENCY SUPER ADMIN RESET MODAL -->
+  <div class="modal-overlay" id="reset-sa-modal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeResetSAModal()">✕</button>
+      <h3 style="color:#f59e0b;">🔑 Emergency Master Password Reset</h3>
+      <p class="sub">Reset Super Admin credentials for institution recovery.</p>
+      <div class="modal-field">
+        <label>Super Admin ID</label>
+        <input type="text" id="reset-sa-id" disabled style="opacity:0.6;">
+      </div>
+      <div class="modal-field">
+        <label>Institution Name</label>
+        <input type="text" id="reset-sa-inst" disabled style="opacity:0.6;">
+      </div>
+      <div class="modal-field">
+        <label>New Master Password <small style="text-transform:none">(max 10 chars, letters/numbers/special)</small></label>
+        <input type="password" id="reset-sa-pass" placeholder="Enter new password" maxlength="10">
+      </div>
+      <div id="reset-sa-err" style="color:var(--red);font-size:0.85rem;margin-bottom:0.8rem;min-height:1rem;"></div>
+      <button class="modal-save" style="background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="executeResetSAPassword()">🔑 Confirm & Save New Password</button>
+    </div>
+  </div>
+
   <!-- EDIT SUPER ADMIN MODAL -->
   <div class="modal-overlay" id="edit-sa-modal">
     <div class="modal-box">
@@ -1043,56 +1214,548 @@
       setTimeout(() => t.classList.remove('show'), 3000);
     }
 
-    async function devLogin() {
-      const id = document.getElementById('dev-id').value.trim().toUpperCase();
-      const pass = document.getElementById('dev-pass').value;
-      const errEl = document.getElementById('auth-error');
-      const btn = document.querySelector('.auth-box .btn-red');
-      
-      errEl.textContent = '';
-      if(!id || !pass) return errEl.textContent = 'Identifiers required.';
+    // ══════════════════════════════════════════════════════════════════
+    // ── ROOT AUTHENTICATION & SECURITY ENGINE v2.2.5 ──────────────────
+    // ══════════════════════════════════════════════════════════════════
 
-      btn.disabled = true;
-      btn.innerText = 'Initializing Developer Access...';
+    // ── 1. RATE LIMITING & BRUTE FORCE DEFENSE ──
+    const DEV_MAX_ATTEMPTS = 5;
+    const DEV_LOCKOUT_MS = 3 * 60 * 1000; // 3 minutes
+    let _devRateLimitTimer = null;
 
-      try {
-        // Fetch user directly without institution context
-        const res = await fetch(API + '/users/' + encodeURIComponent(id), {
-            headers: { 'Content-Type': 'application/json' }
+    function getDevRateLimit() {
+        try {
+            const data = JSON.parse(localStorage.getItem('ovs_dev_rate_limit') || '{}');
+            return data;
+        } catch(e) { return {}; }
+    }
+
+    function checkDevRateLimit() {
+        const rl = getDevRateLimit();
+        const now = Date.now();
+        if (rl.lockedUntil && rl.lockedUntil > now) {
+            const remainingSec = Math.ceil((rl.lockedUntil - now) / 1000);
+            const btn = document.getElementById('dev-login-btn');
+            const err = document.getElementById('auth-error');
+            if (btn) btn.disabled = true;
+            if (err) {
+                err.innerHTML = `⚠️ <strong>Security Lockout:</strong> Too many failed attempts. Try again in ${remainingSec}s.`;
+            }
+            if (!_devRateLimitTimer) {
+                _devRateLimitTimer = setInterval(() => {
+                    const rNow = Date.now();
+                    if (rl.lockedUntil <= rNow) {
+                        clearInterval(_devRateLimitTimer);
+                        _devRateLimitTimer = null;
+                        localStorage.removeItem('ovs_dev_rate_limit');
+                        if (btn) { btn.disabled = false; btn.innerText = 'Verify Developer Access'; }
+                        if (err) err.textContent = '';
+                    } else {
+                        const sec = Math.ceil((rl.lockedUntil - rNow) / 1000);
+                        if (err) err.innerHTML = `⚠️ <strong>Security Lockout:</strong> Too many failed attempts. Try again in ${sec}s.`;
+                    }
+                }, 1000);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    function recordDevFailedAttempt() {
+        const rl = getDevRateLimit();
+        const attempts = (rl.attempts || 0) + 1;
+        if (attempts >= DEV_MAX_ATTEMPTS) {
+            const lockedUntil = Date.now() + DEV_LOCKOUT_MS;
+            localStorage.setItem('ovs_dev_rate_limit', JSON.stringify({ attempts: 0, lockedUntil }));
+            checkDevRateLimit();
+        } else {
+            localStorage.setItem('ovs_dev_rate_limit', JSON.stringify({ attempts, lockedUntil: 0 }));
+        }
+    }
+
+    function clearDevRateLimit() {
+        localStorage.removeItem('ovs_dev_rate_limit');
+        if (_devRateLimitTimer) { clearInterval(_devRateLimitTimer); _devRateLimitTimer = null; }
+    }
+
+    // ── 2. DEVELOPER 2FA LOGIN FLOW (OTP ANIMATION V5) ──
+    let _devLoginOtp = null;
+    let _devLoginOtpTimer = null;
+    let _devPendingUser = null;
+    let _devLoginInputsInit = false;
+
+    function startDevOtpTimer() {
+        if (_devLoginOtpTimer) clearInterval(_devLoginOtpTimer);
+        let timeLeft = 600; // 10 minutes
+        const timerEl = document.getElementById('dev-otp-timer-txt');
+        
+        function updateDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            if (timerEl) timerEl.textContent = `EXPIRES IN ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            if (timeLeft <= 0) {
+                clearInterval(_devLoginOtpTimer);
+                if (timerEl) timerEl.textContent = 'EXPIRED';
+                const err = document.getElementById('dev-otp-auth-err');
+                if (err) err.textContent = 'Security code expired. Click Resend Code.';
+                const btn = document.getElementById('dev-otp-verify-btn');
+                if (btn) btn.disabled = true;
+            }
+            timeLeft--;
+        }
+        updateDisplay();
+        _devLoginOtpTimer = setInterval(updateDisplay, 1000);
+    }
+
+    function initDevLoginOtpInputs() {
+        if (_devLoginInputsInit) return;
+        _devLoginInputsInit = true;
+        const grid = document.getElementById('dev-login-otp-grid');
+        if (!grid) return;
+        const inputs = grid.querySelectorAll('.dev-otp-digit');
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                const val = input.value.replace(/[^0-9]/g, '');
+                input.value = val ? val[val.length - 1] : '';
+                if (input.value) {
+                    input.classList.add('filled');
+                    if (index < inputs.length - 1) inputs[index + 1].focus();
+                } else {
+                    input.classList.remove('filled');
+                }
+                checkDevLoginAutoVerify();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace') {
+                    if (!input.value && index > 0) {
+                        inputs[index - 1].focus();
+                        inputs[index - 1].value = '';
+                        inputs[index - 1].classList.remove('filled');
+                    } else {
+                        input.value = '';
+                        input.classList.remove('filled');
+                    }
+                    e.preventDefault();
+                    checkDevLoginAutoVerify();
+                } else if (e.key === 'ArrowLeft' && index > 0) {
+                    inputs[index - 1].focus();
+                } else if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                } else if (e.key === 'Enter') {
+                    devVerify2FA();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                if (pasted) {
+                    for (let i = 0; i < inputs.length && i < pasted.length; i++) {
+                        inputs[i].value = pasted[i];
+                        inputs[i].classList.add('filled');
+                    }
+                    const nextIdx = Math.min(pasted.length, inputs.length - 1);
+                    inputs[nextIdx].focus();
+                    checkDevLoginAutoVerify();
+                }
+            });
         });
-        
-        if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error || 'Developer ID not found.');
+    }
+
+    function getDevLoginEnteredOtp() {
+        const inputs = document.querySelectorAll('#dev-login-otp-grid .dev-otp-digit');
+        let otp = '';
+        inputs.forEach(i => { otp += i.value.trim(); });
+        return otp;
+    }
+
+    function clearDevLoginOtpInputs() {
+        const inputs = document.querySelectorAll('#dev-login-otp-grid .dev-otp-digit');
+        inputs.forEach(i => {
+            i.value = '';
+            i.classList.remove('filled');
+        });
+        const grid = document.getElementById('dev-login-otp-grid');
+        if (grid) grid.classList.remove('orbiting', 'shake', 'success');
+        if (inputs.length > 0) setTimeout(() => inputs[0].focus(), 150);
+    }
+
+    function checkDevLoginAutoVerify() {
+        const otp = getDevLoginEnteredOtp();
+        if (otp.length === 6) {
+            devVerify2FA();
         }
-        
-        const userData = await res.json();
-        
-        if (!userData || userData.role !== 'developer') {
-            throw new Error('Unauthorized Access Level or Invalid Developer ID.');
-        }
-        
-        // Password check: SHA-256 (primary), btoa (legacy), plain (dev fallback)
-        const sha256pass = await StorageManager.hashPassword(pass);
-        const btoapass = btoa(pass);
-        if (userData.password !== sha256pass && userData.password !== btoapass && userData.password !== pass) {
-            throw new Error('Invalid Developer Password.');
+    }
+
+    async function devLogin() {
+        if (!checkDevRateLimit()) return;
+        const id = document.getElementById('dev-id').value.trim().toUpperCase();
+        const pass = document.getElementById('dev-pass').value;
+        const errEl = document.getElementById('auth-error');
+        const btn = document.getElementById('dev-login-btn');
+
+        errEl.textContent = '';
+        if (!id || !pass) {
+            errEl.textContent = 'Developer ID and password required.';
+            return;
         }
 
-        devSession = userData;
-        localStorage.setItem('ovs_currentUser', JSON.stringify(userData));
+        btn.disabled = true;
+        btn.innerText = 'Verifying Credentials...';
+
+        try {
+            const res = await fetch(API + '/users/' + encodeURIComponent(id), {
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!res.ok) {
+                recordDevFailedAttempt();
+                throw new Error('Developer ID not recognized.');
+            }
+
+            const userData = await res.json();
+            if (!userData || userData.role !== 'developer') {
+                recordDevFailedAttempt();
+                throw new Error('Unauthorized access level.');
+            }
+
+            // Validate password with SHA-256
+            const sha256pass = await StorageManager.hashPassword(pass);
+            const btoapass = btoa(pass);
+            if (userData.password !== sha256pass && userData.password !== btoapass && userData.password !== pass) {
+                recordDevFailedAttempt();
+                // Log failed attempt audit
+                try {
+                    await fetch(API + '/auditLogs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'DEV_LOGIN_FAILED_PASSWORD',
+                            user: id,
+                            details: 'Invalid password attempt on Developer Root access',
+                            timestamp: new Date().toISOString(),
+                            institution: 'Global'
+                        })
+                    });
+                } catch(e) {}
+                throw new Error('Invalid Developer Password.');
+            }
+
+            // Credentials Valid! Generate 2FA OTP
+            clearDevRateLimit();
+            _devPendingUser = userData;
+            _devLoginOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            console.warn("🔐 DEV 2FA OTP DISPATCHED:", _devLoginOtp);
+
+            const targetEmail = userData.email || 'rohithsaimerupula01@gmail.com';
+            btn.innerText = 'Sending 2FA OTP...';
+
+            await StorageManager.sendEmailOtp(targetEmail, userData.name || 'Developer', _devLoginOtp, 'Developer Root Access 2FA');
+
+            // Switch to OTP Screen
+            document.getElementById('dev-auth-creds-box').style.display = 'none';
+            const otpBox = document.getElementById('dev-auth-otp-box');
+            otpBox.style.display = 'block';
+
+            initDevLoginOtpInputs();
+            clearDevLoginOtpInputs();
+            startDevOtpTimer();
+
+            btn.disabled = false;
+            btn.innerText = 'Verify Developer Access';
+            showToast('2FA Security Code sent to email!');
+
+        } catch (e) {
+            errEl.textContent = e.message;
+            btn.disabled = false;
+            btn.innerText = 'Verify Developer Access';
+            checkDevRateLimit();
+        }
+    }
+
+    async function devVerify2FA() {
+        const entered = getDevLoginEnteredOtp();
+        const grid = document.getElementById('dev-login-otp-grid');
+        const errEl = document.getElementById('dev-otp-auth-err');
+        const btn = document.getElementById('dev-otp-verify-btn');
+
+        if (entered.length < 6) {
+            errEl.textContent = 'Please enter all 6 digits.';
+            return;
+        }
+
+        errEl.textContent = '';
+        if (grid) grid.classList.add('orbiting');
+        if (btn) { btn.disabled = true; btn.textContent = 'Verifying Security Token...'; }
+
+        await new Promise(r => setTimeout(r, 700));
+
+        if (!_devLoginOtp || entered !== _devLoginOtp) {
+            if (grid) {
+                grid.classList.remove('orbiting');
+                grid.classList.add('shake');
+                setTimeout(() => grid.classList.remove('shake'), 500);
+            }
+            if (btn) { btn.disabled = false; btn.textContent = 'Verify & Unlock Console'; }
+            errEl.textContent = '❌ Invalid Security Code. Try again.';
+            return;
+        }
+
+        // 2FA Verified Successfully!
+        if (grid) {
+            grid.classList.remove('orbiting');
+            grid.classList.add('success');
+        }
+        if (btn) btn.textContent = '✅ Verified! Initializing Root Console...';
+
+        devSession = _devPendingUser;
+        localStorage.setItem('ovs_currentUser', JSON.stringify(_devPendingUser));
+
+        // Log successful 2FA login
+        try {
+            await fetch(API + '/auditLogs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'DEV_LOGIN_2FA_SUCCESS',
+                    user: devSession.regNum,
+                    details: 'Developer successfully authenticated with 2-Factor verification',
+                    timestamp: new Date().toISOString(),
+                    institution: 'Global'
+                })
+            });
+        } catch(e) {}
+
+        await new Promise(r => setTimeout(r, 600));
+
+        if (_devLoginOtpTimer) clearInterval(_devLoginOtpTimer);
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('console-screen').style.display = 'block';
+        setText('dev-name-label', devSession.name || 'DEVELOPER OPERATOR');
         
-        const authS = document.getElementById('auth-screen');
-        const consS = document.getElementById('console-screen');
-        if (authS) authS.style.display = 'none';
-        if (consS) consS.style.display = 'block';
-        setText('dev-name-label', userData.name || 'Developer');
+        startInactivityTimer();
         loadConsole();
-      } catch (e) { 
-          setText('auth-error', e.message); 
-          btn.disabled = false;
-          btn.innerText = 'Verify Developer Access';
-      }
+        loadSecurityLogs();
+    }
+
+    function dev2FABack() {
+        if (_devLoginOtpTimer) clearInterval(_devLoginOtpTimer);
+        document.getElementById('dev-auth-otp-box').style.display = 'none';
+        document.getElementById('dev-auth-creds-box').style.display = 'block';
+        document.getElementById('auth-error').textContent = '';
+        _devLoginOtp = null;
+    }
+
+    async function devResend2FA() {
+        const resendBtn = document.getElementById('dev-resend-btn');
+        resendBtn.textContent = 'Sending...';
+        resendBtn.style.pointerEvents = 'none';
+        try {
+            _devLoginOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            console.warn("🔐 DEV 2FA RESENT OTP:", _devLoginOtp);
+            const targetEmail = (_devPendingUser && _devPendingUser.email) || 'rohithsaimerupula01@gmail.com';
+            await StorageManager.sendEmailOtp(targetEmail, (_devPendingUser && _devPendingUser.name) || 'Developer', _devLoginOtp, 'Developer Root Access 2FA');
+            showToast('New 2FA Code dispatched to email!');
+            clearDevLoginOtpInputs();
+            startDevOtpTimer();
+            document.getElementById('dev-otp-auth-err').textContent = '';
+        } catch(e) {
+            document.getElementById('dev-otp-auth-err').textContent = 'Failed to resend: ' + e.message;
+        }
+        setTimeout(() => {
+            if (resendBtn) { resendBtn.textContent = 'Resend Code'; resendBtn.style.pointerEvents = ''; }
+        }, 15000);
+    }
+
+    // ── 3. INACTIVITY AUTO-LOCK WATCHDOG ──
+    const DEV_IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+    let _devInactivityTimer = null;
+
+    function resetInactivityTimer() {
+        if (!devSession) return;
+        if (_devInactivityTimer) clearTimeout(_devInactivityTimer);
+        _devInactivityTimer = setTimeout(() => {
+            console.warn('[OVS Dev] Idle timeout reached. Locking console...');
+            devLockConsole(true);
+        }, DEV_IDLE_TIMEOUT_MS);
+    }
+
+    function startInactivityTimer() {
+        ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+            window.addEventListener(evt, resetInactivityTimer, { passive: true });
+        });
+        resetInactivityTimer();
+    }
+
+    function devLockConsole(isAuto = false) {
+        if (_devInactivityTimer) clearTimeout(_devInactivityTimer);
+        const lockScreen = document.getElementById('dev-lock-screen');
+        if (lockScreen) lockScreen.style.display = 'flex';
+        const passInput = document.getElementById('dev-unlock-pass');
+        if (passInput) { passInput.value = ''; passInput.focus(); }
+        const err = document.getElementById('dev-unlock-err');
+        if (err) err.textContent = isAuto ? 'Console locked due to 15 minutes of inactivity.' : '';
+    }
+
+    async function devUnlockConsole() {
+        const pass = document.getElementById('dev-unlock-pass').value;
+        const err = document.getElementById('dev-unlock-err');
+        if (!pass) {
+            err.textContent = 'Password required.';
+            return;
+        }
+
+        try {
+            const sha256pass = await StorageManager.hashPassword(pass);
+            const btoapass = btoa(pass);
+            if (devSession.password !== sha256pass && devSession.password !== btoapass && devSession.password !== pass) {
+                err.textContent = '❌ Incorrect password.';
+                return;
+            }
+            // Password confirmed! Unlock console
+            document.getElementById('dev-lock-screen').style.display = 'none';
+            err.textContent = '';
+            showToast('🔓 Console Resumed');
+            startInactivityTimer();
+        } catch(e) {
+            err.textContent = 'Verification failed: ' + e.message;
+        }
+    }
+
+    // ── 4. ROOT SECURITY & AUDIT TRAIL LOGGING ──
+    async function loadSecurityLogs() {
+        const tbody = document.getElementById('security-logs-body');
+        if (!tbody) return;
+        try {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty">🔄 Refreshing security audit records...</td></tr>';
+            const logs = await api('/auditLogs?institution=Global');
+            
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">No security audit logs recorded yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = logs.map(l => {
+                const ts = l.timestamp ? new Date(l.timestamp).toLocaleString() : 'Just now';
+                let badgeClass = 'success';
+                if (l.action && (l.action.includes('FAILED') || l.action.includes('DELETE') || l.action.includes('RESET'))) {
+                    badgeClass = 'danger';
+                } else if (l.action && (l.action.includes('UPDATE') || l.action.includes('MODIFY') || l.action.includes('LOCK'))) {
+                    badgeClass = 'warning';
+                }
+                return `
+                    <tr>
+                        <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--muted);white-space:nowrap;">${ts}</td>
+                        <td><span class="security-badge ${badgeClass}">${l.action || 'EVENT'}</span></td>
+                        <td style="font-weight:700;color:#fff;">${l.user || 'Root'}</td>
+                        <td style="color:#38bdf8;">${l.institution || 'Global'}</td>
+                        <td style="font-size:0.85rem;color:var(--text);">${l.details || '-'}</td>
+                    </tr>`;
+            }).join('');
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty" style="color:var(--red);">Failed to load audit logs: ${e.message}</td></tr>`;
+        }
+    }
+
+    async function clearRootAuditLogs() {
+        if (!confirm('⚠️ Are you sure you want to permanently clear ALL global security and audit records?')) return;
+        try {
+            await api('/auditLogs?institution=Global', { method: 'DELETE' });
+            showToast('Global audit logs cleared');
+            loadSecurityLogs();
+        } catch(e) {
+            showToast('Failed to clear logs: ' + e.message, false);
+        }
+    }
+
+    function exportAuditLogs() {
+        api('/auditLogs?institution=Global').then(logs => {
+            const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `votify_security_audit_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📥 Audit JSON Exported');
+        }).catch(e => showToast('Export failed: ' + e.message, false));
+    }
+
+    // ── 5. EMERGENCY SUPER ADMIN MASTER PASSWORD RESET ──
+    let _resetSaTargetId = null;
+    let _resetSaTargetInst = null;
+
+    function openResetSAModal(regNum, institution) {
+        _resetSaTargetId = regNum;
+        _resetSaTargetInst = institution;
+        document.getElementById('reset-sa-id').value = regNum;
+        document.getElementById('reset-sa-inst').value = institution;
+        document.getElementById('reset-sa-pass').value = '';
+        document.getElementById('reset-sa-err').textContent = '';
+        document.getElementById('reset-sa-modal').classList.add('open');
+    }
+
+    function closeResetSAModal() {
+        document.getElementById('reset-sa-modal').classList.remove('open');
+        _resetSaTargetId = null;
+        _resetSaTargetInst = null;
+    }
+
+    async function executeResetSAPassword() {
+        const newPass = document.getElementById('reset-sa-pass').value;
+        const err = document.getElementById('reset-sa-err');
+
+        if (!newPass || newPass.length !== 10) {
+            err.textContent = 'Password must be exactly 10 characters.';
+            return;
+        }
+        if (/\s/.test(newPass)) { err.textContent = 'Password cannot contain spaces.'; return; }
+        if ((newPass.match(/[a-zA-Z]/g)||[]).length < 3) { err.textContent = 'Password needs at least 3 letters.'; return; }
+        if (!/[0-9]/.test(newPass)) { err.textContent = 'Password needs at least 1 number.'; return; }
+        if (!/[^a-zA-Z0-9]/.test(newPass)) { err.textContent = 'Password needs at least 1 special character.'; return; }
+
+        err.textContent = '';
+
+        try {
+            // Fetch existing SA record to preserve fields
+            const existing = await api('/users/' + encodeURIComponent(_resetSaTargetId));
+            const sha256Pass = await StorageManager.hashPassword(newPass);
+
+            await api('/users/add', {
+                method: 'POST',
+                body: JSON.stringify({
+                    regNum: _resetSaTargetId,
+                    name: existing.name || 'Super Admin',
+                    email: existing.email || '',
+                    institution: _resetSaTargetInst,
+                    role: 'superadmin',
+                    password: sha256Pass
+                })
+            });
+
+            // Log security audit event
+            try {
+                await api('/auditLogs', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'SUPERADMIN_PASSWORD_RESET_BY_DEV',
+                        user: devSession.regNum,
+                        details: `Emergency password reset for Super Admin ${_resetSaTargetId} (${_resetSaTargetInst})`,
+                        timestamp: new Date().toISOString(),
+                        institution: _resetSaTargetInst
+                    })
+                });
+            } catch(e) {}
+
+            closeResetSAModal();
+            showToast(`Password reset successfully for ${_resetSaTargetId}!`);
+            loadConsole();
+            loadSecurityLogs();
+        } catch(e) {
+            err.textContent = 'Failed to reset password: ' + e.message;
+        }
     }
 
     function toggleDevPass() {

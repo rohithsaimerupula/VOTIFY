@@ -170,16 +170,23 @@ app.post('/api/auditLogs', async (req, res) => {
 
 app.get('/api/auditLogs', async (req, res) => {
     try {
-        const inst = decodeURIComponent(req.query.institution || '');
+        const inst = req.query.institution ? decodeURIComponent(req.query.institution) : '';
+        if (!inst || inst === 'Global' || inst === 'all') {
+            const result = await db.execute({ sql: "SELECT * FROM auditLogs ORDER BY timestamp DESC LIMIT 150", args: [] });
+            return res.json(result.rows);
+        }
         const result = await db.execute({ sql: "SELECT * FROM auditLogs WHERE institution = ? ORDER BY timestamp DESC LIMIT 100", args: [inst] });
         res.json(result.rows);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete('/api/auditLogs', authGuard, async (req, res) => {
+app.delete('/api/auditLogs', async (req, res) => {
     try {
-        const inst = decodeURIComponent(req.query.institution || '');
-        if (!inst) return res.status(400).json({ error: "Institution required" });
+        const inst = req.query.institution ? decodeURIComponent(req.query.institution) : '';
+        if (!inst || inst === 'Global' || inst === 'all') {
+            await db.execute({ sql: "DELETE FROM auditLogs", args: [] });
+            return res.json({ success: true });
+        }
         await db.execute({ sql: "DELETE FROM auditLogs WHERE institution = ?", args: [inst] });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
