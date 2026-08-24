@@ -231,6 +231,217 @@
         .cd-num { font-size: 1.45rem; font-weight: 800; color: #DC2626; line-height: 1; font-family: var(--font-heading); }
         .cd-txt { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; font-weight: 600; }
         .cd-sep { font-size: 1.2rem; color: rgba(220, 38, 38, 0.3); margin-top: -0.2rem; }
+
+        /* ── OTP ANIMATION V5 (Dark Neon Orbital Component) ── */
+        .otp-v5-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(8, 8, 12, 0.88);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .otp-v5-card {
+            background: #111116;
+            border: 1px solid rgba(255, 42, 77, 0.22);
+            border-radius: 28px;
+            padding: 2.8rem 2.2rem;
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 35px 90px rgba(0, 0, 0, 0.85), 0 0 45px rgba(255, 42, 77, 0.12);
+            color: #f3f4f6;
+            animation: otpPopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes otpPopIn {
+            0% { transform: scale(0.92) translateY(18px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .otp-v5-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 14px;
+            background: rgba(255, 42, 77, 0.08);
+            border: 1px solid rgba(255, 42, 77, 0.28);
+            border-radius: 999px;
+            font-size: 0.76rem;
+            color: #ff3366;
+            font-weight: 700;
+            margin-bottom: 1.3rem;
+            letter-spacing: 0.6px;
+        }
+        .otp-v5-pill-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ff2a4d;
+            box-shadow: 0 0 10px #ff2a4d;
+            animation: otpDotBlink 1.2s infinite ease-in-out;
+        }
+        @keyframes otpDotBlink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.7); }
+        }
+        .otp-v5-title {
+            font-size: 1.7rem;
+            font-weight: 900;
+            color: #ffffff;
+            margin-bottom: 0.4rem;
+            font-family: var(--font-heading), 'Outfit', sans-serif;
+            letter-spacing: -0.3px;
+        }
+        .otp-v5-sub {
+            color: #9ca3af;
+            font-size: 0.88rem;
+            margin-bottom: 2rem;
+            line-height: 1.45;
+        }
+        .otp-boxes-stage {
+            position: relative;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.8rem;
+            perspective: 1000px;
+        }
+        .otp-boxes-grid {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-style: preserve-3d;
+        }
+        .otp-box-digit {
+            width: 48px;
+            height: 60px;
+            border-radius: 14px;
+            background: #17171e;
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: #ffffff;
+            font-family: 'JetBrains Mono', 'Outfit', monospace;
+            outline: none;
+            text-align: center;
+            caret-color: #ff2a4d;
+            transition: all 0.25s ease;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+        }
+        .otp-box-digit::after {
+            content: '';
+            position: absolute;
+            top: -1.5px;
+            right: -1.5px;
+            width: 14px;
+            height: 14px;
+            border-top: 2.5px solid #ff2a4d;
+            border-right: 2.5px solid #ff2a4d;
+            border-top-right-radius: 14px;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        .otp-box-digit:focus, .otp-box-digit.active {
+            border-color: rgba(255, 42, 77, 0.85);
+            background: #20202b;
+            box-shadow: 0 0 20px rgba(255, 42, 77, 0.4), inset 0 0 10px rgba(255, 42, 77, 0.15);
+            transform: translateY(-3px) scale(1.05);
+        }
+        .otp-box-digit:focus::after, .otp-box-digit.active::after {
+            opacity: 1;
+            width: 22px;
+            height: 22px;
+            filter: drop-shadow(0 0 6px #ff2a4d);
+        }
+        .otp-box-digit.filled {
+            border-color: rgba(255, 42, 77, 0.5);
+            color: #ffffff;
+        }
+        /* 3D Orbital Twist / Swirling Animation */
+        .otp-boxes-grid.orbiting {
+            animation: otpOrbitalTwist 1.3s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
+        }
+        @keyframes otpOrbitalTwist {
+            0% { transform: rotateY(0deg) rotateZ(0deg) scale(1); }
+            50% { transform: rotateY(180deg) rotateZ(10deg) scale(0.92); }
+            100% { transform: rotateY(360deg) rotateZ(0deg) scale(1); }
+        }
+        .otp-boxes-grid.orbiting .otp-box-digit {
+            animation: otpBoxGlow 1.3s infinite alternate;
+        }
+        @keyframes otpBoxGlow {
+            0% { box-shadow: 0 0 16px rgba(255, 42, 77, 0.5); border-color: #ff2a4d; }
+            100% { box-shadow: 0 0 32px rgba(255, 120, 50, 0.8); border-color: #ff7733; }
+        }
+        /* Shake on error */
+        .otp-boxes-grid.shake {
+            animation: otpShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+        @keyframes otpShake {
+            10%, 90% { transform: translate3d(-3px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+        /* Success check state */
+        .otp-boxes-grid.success .otp-box-digit {
+            border-color: #22c55e !important;
+            color: #22c55e !important;
+            background: rgba(34, 197, 94, 0.12) !important;
+            box-shadow: 0 0 25px rgba(34, 197, 94, 0.45) !important;
+        }
+        .otp-boxes-grid.success .otp-box-digit::after {
+            border-color: #22c55e !important;
+        }
+        .otp-v5-action-btn {
+            width: 100%;
+            height: 52px;
+            border-radius: var(--radius-pill);
+            border: none;
+            background: linear-gradient(135deg, #ff2a4d, #cc223e);
+            color: #FFFFFF;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 28px rgba(255, 42, 77, 0.35);
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.3px;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .otp-v5-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 34px rgba(255, 42, 77, 0.45);
+        }
+        .otp-v5-action-btn.ready {
+            background: linear-gradient(135deg, #16A34A, #15803D);
+            box-shadow: 0 10px 28px rgba(22, 163, 74, 0.4);
+        }
+        .otp-v5-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: otpSpin 0.7s infinite linear;
+        }
+        @keyframes otpSpin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
@@ -287,40 +498,47 @@
       </div>
     </div>
 
-    <!-- ── SUPER ADMIN STEP 2: OTP MODAL ── -->
-    <div id="sa-otp-modal" style="display:none;position:fixed;inset:0;background:rgba(240,230,218,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:10000;align-items:center;justify-content:center;padding:1.5rem;">
-      <div style="background:rgba(255,253,249,0.98);border:1px solid rgba(217,119,6,0.35);border-radius:24px;padding:2.8rem 2.2rem;width:100%;max-width:420px;text-align:center;position:relative;box-shadow:0 35px 80px -20px rgba(26,60,41,0.22);">
+    <!-- ── SUPER ADMIN STEP 2: CYBER OTP ANIMATION V5 MODAL ── -->
+    <div id="sa-otp-modal" class="otp-v5-modal">
+      <div class="otp-v5-card">
         
-        <div style="width:70px;height:70px;margin:0 auto 1.3rem auto;background:linear-gradient(135deg,rgba(217,119,6,0.18),rgba(65,91,6,0.05));border:1.5px solid rgba(217,119,6,0.5);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(217,119,6,0.15);">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2.5"/>
-                <path d="M7 11V7a5 5 0 0110 0v4"/>
-                <circle cx="12" cy="16.5" r="1.5" fill="#D97706"/>
-            </svg>
+        <!-- Live Countdown & Expiry Pill -->
+        <div class="otp-v5-pill">
+            <span class="otp-v5-pill-dot"></span>
+            <span id="sa-otp-timer-txt">EXPIRES IN 10:00</span>
         </div>
 
-        <h2 style="font-family:var(--font-heading);font-size:1.75rem;font-weight:900;color:var(--forest-green);margin-bottom:0.25rem;">Verify Identity</h2>
-        <p id="sa-otp-sent-to" style="color:var(--text-muted);font-size:0.84rem;margin-bottom:0.35rem;font-weight:500;">OTP sent to your registered email</p>
-        <p style="color:#D97706;font-size:0.75rem;margin-bottom:1.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;">⏱ Expires in 10 minutes</p>
+        <h2 class="otp-v5-title">Let's verify your identity</h2>
+        <p id="sa-otp-sent-to" class="otp-v5-sub">We've sent a 6-digit security code to your email.<br><span style="color:#ff2a4d; font-weight:600;">It'll auto-verify once entered.</span></p>
 
-        <!-- OTP Input -->
-        <div style="margin-bottom:1.6rem;">
-          <input type="text" id="sa-modal-otp" placeholder="0 0 0 0 0 0" maxlength="6" autocomplete="one-time-code"
-            style="width:100%;height:64px;border-radius:14px;border:2px solid rgba(217,119,6,0.4);background:rgba(255,253,249,0.95);color:#D97706;font-size:1.9rem;letter-spacing:8px;font-weight:900;text-align:center;font-family:'Outfit',sans-serif;outline:none;"
-            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,6); if(this.value.length===6) { document.getElementById('sa-otp-verify-btn').style.background='linear-gradient(135deg,#16A34A,#15803D)'; } else { document.getElementById('sa-otp-verify-btn').style.background='linear-gradient(135deg,#D97706,#B45309)'; }"
-            onkeydown="if(event.key==='Enter') saModalVerifyOtp()">
+        <!-- 3D Swirling Interactive OTP Stage -->
+        <div class="otp-boxes-stage">
+          <div class="otp-boxes-grid" id="sa-otp-grid">
+            <input type="text" class="otp-box-digit" maxlength="1" inputmode="numeric" autocomplete="one-time-code" data-index="0">
+            <input type="text" class="otp-box-digit" maxlength="1" inputmode="numeric" data-index="1">
+            <input type="text" class="otp-box-digit" maxlength="1" inputmode="numeric" data-index="2">
+            <input type="text" class="otp-box-digit" maxlength="1" inputmode="numeric" data-index="3">
+            <input type="text" class="otp-box-digit" maxlength="1" inputmode="numeric" data-index="4">
+            <input type="text" class="otp-box-digit" maxlength="1" inputmode="numeric" data-index="5">
+          </div>
         </div>
 
-        <!-- Verify button -->
-        <button id="sa-otp-verify-btn" onclick="saModalVerifyOtp()" style="width:100%;height:50px;border-radius:var(--radius-pill);border:none;background:linear-gradient(135deg,#D97706,#B45309);color:#FFFFFF;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 8px 24px rgba(217,119,6,0.3);font-family:'Outfit',sans-serif;letter-spacing:0.2px;transition:all 0.25s;">
-          Verify & Access Dashboard
+        <!-- Verification Status / Action Button -->
+        <button id="sa-otp-verify-btn" onclick="saModalVerifyOtp()" class="otp-v5-action-btn">
+          <span id="sa-otp-btn-text">Verify & Access Dashboard</span>
+          <span id="sa-otp-btn-spinner" class="otp-v5-spinner" style="display:none;"></span>
         </button>
 
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.4rem;">
-          <button onclick="saOtpBack()" style="background:none;border:none;color:var(--text-muted);font-size:0.84rem;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;">← Back</button>
-          <button onclick="saResendOtp()" style="background:none;border:none;color:#D97706;font-size:0.84rem;cursor:pointer;font-weight:700;font-family:'Outfit',sans-serif;text-decoration:underline;" id="sa-resend-btn">Resend OTP</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.5rem;">
+          <button type="button" onclick="saOtpBack()" style="background:none;border:none;color:#9ca3af;font-size:0.86rem;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;display:flex;align-items:center;gap:4px;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#9ca3af'">
+            ← Back
+          </button>
+          <button type="button" onclick="saResendOtp()" style="background:none;border:none;color:#ff2a4d;font-size:0.86rem;cursor:pointer;font-weight:700;font-family:'Outfit',sans-serif;text-decoration:none;display:flex;align-items:center;gap:4px;" id="sa-resend-btn">
+            Resend Code
+          </button>
         </div>
-        <div id="sa-otp-err" style="color:#DC2626;margin-top:0.8rem;font-size:0.86rem;min-height:1.2rem;font-weight:600;"></div>
+
+        <div id="sa-otp-err" style="color:#ff4d4d;margin-top:0.9rem;font-size:0.86rem;min-height:1.2rem;font-weight:600;"></div>
       </div>
     </div>
 
@@ -1522,11 +1740,14 @@
                 document.getElementById('sa-login-modal').style.display = 'none';
                 const otpModal = document.getElementById('sa-otp-modal');
                 otpModal.style.display = 'flex';
-                document.getElementById('sa-otp-sent-to').textContent = `OTP sent to ${user.email || 'your registered email'}`;
-                document.getElementById('sa-modal-otp').value = '';
-                document.getElementById('sa-modal-otp').focus();
+                document.getElementById('sa-otp-sent-to').innerHTML = `We've sent a 6-digit security code to <strong>${user.email || 'your registered email'}</strong>.<br><span style="color:#ff2a4d; font-weight:600;">It'll auto-verify once entered.</span>`;
                 document.getElementById('sa-otp-err').textContent = '';
-                document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#D97706,#B45309)';
+                
+                // Initialize OTP V5 state
+                clearSaOtpInputs();
+                startSaOtpTimer();
+                initSaOtpInputs();
+
                 btn.textContent = 'Send OTP & Continue →';
                 btn.disabled = false;
 
@@ -1538,26 +1759,183 @@
             }
         }
 
+        let _saOtpTimer = null;
+        let _saOtpSecs = 600;
+
+        function startSaOtpTimer() {
+            if (_saOtpTimer) clearInterval(_saOtpTimer);
+            _saOtpSecs = 600;
+            const timerEl = document.getElementById('sa-otp-timer-txt');
+            const tick = () => {
+                const m = Math.floor(_saOtpSecs / 60);
+                const s = _saOtpSecs % 60;
+                if (timerEl) timerEl.textContent = `EXPIRES IN ${m}:${s < 10 ? '0' : ''}${s}`;
+                if (_saOtpSecs <= 0) {
+                    clearInterval(_saOtpTimer);
+                    if (timerEl) timerEl.textContent = 'OTP EXPIRED';
+                }
+                _saOtpSecs--;
+            };
+            tick();
+            _saOtpTimer = setInterval(tick, 1000);
+        }
+
+        let _saOtpInitialized = false;
+        function initSaOtpInputs() {
+            if (_saOtpInitialized) return;
+            _saOtpInitialized = true;
+            const grid = document.getElementById('sa-otp-grid');
+            if (!grid) return;
+            const inputs = grid.querySelectorAll('.otp-box-digit');
+
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', (e) => {
+                    const val = input.value.replace(/[^0-9]/g, '');
+                    input.value = val ? val[val.length - 1] : '';
+                    if (input.value) {
+                        input.classList.add('filled');
+                        if (index < inputs.length - 1) inputs[index + 1].focus();
+                    } else {
+                        input.classList.remove('filled');
+                    }
+                    checkSaAutoVerify();
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace') {
+                        if (!input.value && index > 0) {
+                            inputs[index - 1].focus();
+                            inputs[index - 1].value = '';
+                            inputs[index - 1].classList.remove('filled');
+                        } else {
+                            input.value = '';
+                            input.classList.remove('filled');
+                        }
+                        e.preventDefault();
+                        checkSaAutoVerify();
+                    } else if (e.key === 'ArrowLeft' && index > 0) {
+                        inputs[index - 1].focus();
+                    } else if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    } else if (e.key === 'Enter') {
+                        saModalVerifyOtp();
+                    }
+                });
+
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                    if (pasted) {
+                        for (let i = 0; i < inputs.length && i < pasted.length; i++) {
+                            inputs[i].value = pasted[i];
+                            inputs[i].classList.add('filled');
+                        }
+                        const nextIdx = Math.min(pasted.length, inputs.length - 1);
+                        inputs[nextIdx].focus();
+                        checkSaAutoVerify();
+                    }
+                });
+            });
+        }
+
+        function getSaEnteredOtp() {
+            const inputs = document.querySelectorAll('#sa-otp-grid .otp-box-digit');
+            let otp = '';
+            inputs.forEach(i => { otp += i.value.trim(); });
+            return otp;
+        }
+
+        function clearSaOtpInputs() {
+            const inputs = document.querySelectorAll('#sa-otp-grid .otp-box-digit');
+            inputs.forEach(i => {
+                i.value = '';
+                i.classList.remove('filled');
+                i.disabled = false;
+            });
+            const grid = document.getElementById('sa-otp-grid');
+            if (grid) {
+                grid.classList.remove('orbiting', 'shake', 'success');
+            }
+            const btn = document.getElementById('sa-otp-verify-btn');
+            if (btn) {
+                btn.classList.remove('ready');
+                document.getElementById('sa-otp-btn-text').textContent = 'Verify & Access Dashboard';
+                document.getElementById('sa-otp-btn-spinner').style.display = 'none';
+                btn.disabled = false;
+            }
+            if (inputs.length > 0) setTimeout(() => inputs[0].focus(), 150);
+        }
+
+        function checkSaAutoVerify() {
+            const otp = getSaEnteredOtp();
+            const btn = document.getElementById('sa-otp-verify-btn');
+            if (otp.length === 6) {
+                if (btn) btn.classList.add('ready');
+                // Trigger auto verification with orbital twist animation
+                saModalVerifyOtp();
+            } else {
+                if (btn) btn.classList.remove('ready');
+            }
+        }
+
         async function saModalVerifyOtp() {
-            const entered = document.getElementById('sa-modal-otp').value.trim();
+            const entered = getSaEnteredOtp();
             const err = document.getElementById('sa-otp-err');
-            if (!entered || entered !== window._saModalOtp) {
-                err.style.color = '#DC2626';
-                err.textContent = '❌ Invalid OTP. Please enter the 6-digit code sent to your email.';
-                document.getElementById('sa-modal-otp').style.borderColor = 'rgba(220,38,38,0.6)';
-                document.getElementById('sa-otp-verify-btn').style.background = 'linear-gradient(135deg,#DC2626,#B91C1C)';
+            const grid = document.getElementById('sa-otp-grid');
+            const btn = document.getElementById('sa-otp-verify-btn');
+            const btnTxt = document.getElementById('sa-otp-btn-text');
+            const btnSpn = document.getElementById('sa-otp-btn-spinner');
+
+            if (entered.length < 6) {
+                err.style.color = '#ff4d4d';
+                err.textContent = 'Please enter the complete 6-digit security code.';
                 return;
             }
+
+            err.textContent = '';
+            btnTxt.textContent = 'Verifying Security Token...';
+            btnSpn.style.display = 'inline-block';
+            btn.disabled = true;
+
+            // Trigger 3D Orbital Twist animation
+            if (grid) grid.classList.add('orbiting');
+
+            await new Promise(r => setTimeout(r, 700));
+
+            if (!entered || entered !== window._saModalOtp) {
+                if (grid) {
+                    grid.classList.remove('orbiting');
+                    grid.classList.add('shake');
+                    setTimeout(() => grid.classList.remove('shake'), 500);
+                }
+                err.style.color = '#ff4d4d';
+                err.textContent = '❌ Invalid Code. Please check the 6-digit OTP sent to your email.';
+                btnTxt.textContent = 'Verify & Access Dashboard';
+                btnSpn.style.display = 'none';
+                btn.disabled = false;
+                btn.classList.remove('ready');
+                return;
+            }
+
+            // OTP Matched Successfully!
+            if (grid) {
+                grid.classList.remove('orbiting');
+                grid.classList.add('success');
+            }
+            btnTxt.textContent = '✅ Verified! Redirecting...';
+            btnSpn.style.display = 'none';
+            btn.style.background = 'linear-gradient(135deg, #16A34A, #15803D)';
+
             const sessionUser = { ...window._saModalUser, role: 'superadmin' };
             localStorage.setItem('ovs_currentUser', JSON.stringify(sessionUser));
-            document.getElementById('sa-otp-verify-btn').textContent = '✅ Verified! Redirecting...';
             const rawToken = btoa(unescape(encodeURIComponent(JSON.stringify(sessionUser))));
             const token = encodeURIComponent(rawToken);
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, 600));
             window.location.href = `superadmin_dashboard.html?sa_auth=${token}`;
         }
 
         function saOtpBack() {
+            if (_saOtpTimer) clearInterval(_saOtpTimer);
             document.getElementById('sa-otp-modal').style.display = 'none';
             document.getElementById('sa-login-modal').style.display = 'flex';
             const btn = document.getElementById('sa-modal-btn');
@@ -1575,14 +1953,16 @@
                 window._saModalOtp = otp;
                 await StorageManager.sendEmailOtp(window._saModalUser.email, window._saModalUser.name || 'Super Admin', otp, 'Super Admin Login');
                 const errEl = document.getElementById('sa-otp-err');
-                errEl.style.color = '#16A34A';
-                errEl.textContent = '✅ New OTP sent to your email! (Check inbox & spam)';
+                errEl.style.color = '#22c55e';
+                errEl.textContent = '✅ New OTP dispatched! (Check your inbox & spam)';
+                clearSaOtpInputs();
+                startSaOtpTimer();
             } catch(e) {
                 const errEl = document.getElementById('sa-otp-err');
-                errEl.style.color = '#DC2626';
+                errEl.style.color = '#ff4d4d';
                 errEl.textContent = 'Failed to resend OTP: ' + (e.message || 'Email delivery failed');
             }
-            setTimeout(() => { resendBtn.textContent = 'Resend OTP'; resendBtn.style.pointerEvents = ''; }, 15000);
+            setTimeout(() => { resendBtn.textContent = 'Resend Code'; resendBtn.style.pointerEvents = ''; }, 15000);
         }
 
         document.getElementById('sa-modal-id').addEventListener('input', function() {

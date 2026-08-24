@@ -324,17 +324,302 @@
     .modal-box h3 { font-size:1.2rem; font-weight:800; color:var(--red); margin-bottom:0.3rem; }
     .modal-box .sub { color:var(--muted); font-size:0.82rem; margin-bottom:1.5rem; }
     .modal-close { position:absolute; top:1rem; right:1rem; background:rgba(255,255,255,0.08); border:none; color:white; width:32px; height:32px; border-radius:50%; font-size:1.1rem; cursor:pointer; }
+    /* Main Console */
+    #console-screen {
+      display: none;
+    }
+
+    header {
+      background: rgba(255, 42, 77, 0.08);
+      border-bottom: 1px solid rgba(255, 42, 77, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--red);
+      font-family:'Playfair Display', serif;
+    }
+
+    header span {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-card .number {
+      font-size: 2.5rem;
+      font-weight: 900;
+    }
+
+    .stat-card .label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .section h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-row input {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 0.35rem;
+    }
+
+    select option {
+      background-color: white;
+      color: black;
+    }
+    
+    select option:checked {
+      background-color: #0f172a;
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.9rem;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      padding: 0.25rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-sa {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--gold);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-sm {
+      padding: 0.35rem 0.8rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1.5rem;
+      color: white;
+      font-size: 0.9rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s;
+      z-index: 999;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Edit Modal */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1000; align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:#0f172a; border:1px solid rgba(255, 42, 77, 0.3); border-radius:18px; padding:2rem; width:100%; max-width:480px; position:relative; }
+    .modal-box h3 { font-size:1.2rem; font-weight:800; color:var(--red); margin-bottom:0.3rem; }
+    .modal-box .sub { color:var(--muted); font-size:0.82rem; margin-bottom:1.5rem; }
+    .modal-close { position:absolute; top:1rem; right:1rem; background:rgba(255,255,255,0.08); border:none; color:white; width:32px; height:32px; border-radius:50%; font-size:1.1rem; cursor:pointer; }
     .modal-field { margin-bottom:1rem; }
     .modal-field label { display:block; color:var(--muted); font-size:0.77rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.35rem; }
     .modal-field input { margin-bottom:0; }
     .modal-field input:disabled { opacity:0.5; cursor:not-allowed; }
     .modal-save { width:100%; padding:0.85rem; border-radius:10px; border:none; background:linear-gradient(135deg,#ff2a4d,#cc223e); color:white; font-weight:700; font-size:1rem; cursor:pointer; margin-top:0.5rem; font-family:'Outfit',sans-serif; transition:all 0.3s; }
     .modal-save:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(245,158,11,0.4); }
+
+    /* ── OTP ANIMATION V5 (Developer Portal Edition) ── */
+    .dev-otp-boxes-stage {
+      position: relative;
+      min-height: 75px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 1.2rem 0 1rem 0;
+      perspective: 1000px;
+    }
+    .dev-otp-boxes-grid {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-style: preserve-3d;
+    }
+    .dev-otp-digit {
+      width: 44px;
+      height: 54px;
+      border-radius: 12px;
+      background: #141824;
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #ffffff;
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+      text-align: center;
+      caret-color: #ff2a4d;
+      transition: all 0.25s ease;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .dev-otp-digit::after {
+      content: '';
+      position: absolute;
+      top: -1.5px;
+      right: -1.5px;
+      width: 12px;
+      height: 12px;
+      border-top: 2.5px solid #ff2a4d;
+      border-right: 2.5px solid #ff2a4d;
+      border-top-right-radius: 12px;
+      opacity: 0.6;
+      transition: all 0.3s ease;
+    }
+    .dev-otp-digit:focus, .dev-otp-digit.active {
+      border-color: rgba(255, 42, 77, 0.85);
+      background: #1e2438;
+      box-shadow: 0 0 16px rgba(255, 42, 77, 0.4), inset 0 0 8px rgba(255, 42, 77, 0.15);
+      transform: translateY(-2px) scale(1.05);
+    }
+    .dev-otp-digit:focus::after, .dev-otp-digit.active::after {
+      opacity: 1;
+      width: 18px;
+      height: 18px;
+      filter: drop-shadow(0 0 6px #ff2a4d);
+    }
+    .dev-otp-digit.filled {
+      border-color: rgba(255, 42, 77, 0.5);
+      color: #ffffff;
+    }
+    .dev-otp-boxes-grid.orbiting {
+      animation: devOtpOrbit 1.3s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
+    }
+    @keyframes devOtpOrbit {
+      0% { transform: rotateY(0deg) rotateZ(0deg) scale(1); }
+      50% { transform: rotateY(180deg) rotateZ(10deg) scale(0.92); }
+      100% { transform: rotateY(360deg) rotateZ(0deg) scale(1); }
+    }
+    .dev-otp-boxes-grid.shake {
+      animation: devOtpShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    @keyframes devOtpShake {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+    .dev-otp-boxes-grid.success .dev-otp-digit {
+      border-color: #22c55e !important;
+      color: #22c55e !important;
+      background: rgba(34, 197, 94, 0.15) !important;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.45) !important;
+    }
+    .dev-otp-boxes-grid.success .dev-otp-digit::after {
+      border-color: #22c55e !important;
+    }
   </style>
 <script src="config.js"></script>
-</head>
-
-<body>
     <script src="storage.js"></script>
     <!-- Cyber Mesh Particles -->
     <div id="tsparticles" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;"></div>
@@ -1184,6 +1469,90 @@
         document.getElementById('dev-profile-modal').style.display = 'none';
     }
 
+    
+    let _devOtpInitialized = false;
+    function initDevOtpInputs() {
+        if (_devOtpInitialized) return;
+        _devOtpInitialized = true;
+        const grid = document.getElementById('dev-otp-grid');
+        if (!grid) return;
+        const inputs = grid.querySelectorAll('.dev-otp-digit');
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                const val = input.value.replace(/[^0-9]/g, '');
+                input.value = val ? val[val.length - 1] : '';
+                if (input.value) {
+                    input.classList.add('filled');
+                    if (index < inputs.length - 1) inputs[index + 1].focus();
+                } else {
+                    input.classList.remove('filled');
+                }
+                checkDevAutoVerify();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace') {
+                    if (!input.value && index > 0) {
+                        inputs[index - 1].focus();
+                        inputs[index - 1].value = '';
+                        inputs[index - 1].classList.remove('filled');
+                    } else {
+                        input.value = '';
+                        input.classList.remove('filled');
+                    }
+                    e.preventDefault();
+                    checkDevAutoVerify();
+                } else if (e.key === 'ArrowLeft' && index > 0) {
+                    inputs[index - 1].focus();
+                } else if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                } else if (e.key === 'Enter') {
+                    verifyOldEmailOtp();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                if (pasted) {
+                    for (let i = 0; i < inputs.length && i < pasted.length; i++) {
+                        inputs[i].value = pasted[i];
+                        inputs[i].classList.add('filled');
+                    }
+                    const nextIdx = Math.min(pasted.length, inputs.length - 1);
+                    inputs[nextIdx].focus();
+                    checkDevAutoVerify();
+                }
+            });
+        });
+    }
+
+    function getDevEnteredOtp() {
+        const inputs = document.querySelectorAll('#dev-otp-grid .dev-otp-digit');
+        let otp = '';
+        inputs.forEach(i => { otp += i.value.trim(); });
+        return otp;
+    }
+
+    function clearDevOtpInputs() {
+        const inputs = document.querySelectorAll('#dev-otp-grid .dev-otp-digit');
+        inputs.forEach(i => {
+            i.value = '';
+            i.classList.remove('filled');
+        });
+        const grid = document.getElementById('dev-otp-grid');
+        if (grid) grid.classList.remove('orbiting', 'shake', 'success');
+        if (inputs.length > 0) setTimeout(() => inputs[0].focus(), 150);
+    }
+
+    function checkDevAutoVerify() {
+        const otp = getDevEnteredOtp();
+        if (otp.length === 6) {
+            verifyOldEmailOtp();
+        }
+    }
+
     async function sendDevProfileOtp() {
         const targetEmail = 'rohithsaimerupula01@gmail.com';
         const newName = document.getElementById('dev-edit-name').value.trim();
@@ -1208,6 +1577,8 @@
             btn.disabled = false;
             
             showToast(`OTP sent to: ${targetEmail}`);
+            initDevOtpInputs();
+            clearDevOtpInputs();
             document.getElementById('dev-profile-error').textContent = '';
         } catch(e) {
             document.getElementById('dev-profile-error').style.color = 'var(--red)';
@@ -1218,20 +1589,45 @@
     }
 
     async function verifyOldEmailOtp() {
-        const entered = document.getElementById('dev-edit-otp').value.trim();
+        const entered = getDevEnteredOtp();
+        const grid = document.getElementById('dev-otp-grid');
+        const errEl = document.getElementById('dev-profile-error');
+
+        if (entered.length < 6) {
+            errEl.style.color = 'var(--red)';
+            errEl.textContent = 'Please enter all 6 digits.';
+            return;
+        }
+
+        errEl.textContent = '';
+        if (grid) grid.classList.add('orbiting');
+
+        await new Promise(r => setTimeout(r, 700));
+
         if (!_devProfileOtp || entered !== _devProfileOtp) {
-            document.getElementById('dev-profile-error').style.color = 'var(--red)';
-            document.getElementById('dev-profile-error').textContent = 'Invalid OTP for email. Try again.';
+            if (grid) {
+                grid.classList.remove('orbiting');
+                grid.classList.add('shake');
+                setTimeout(() => grid.classList.remove('shake'), 500);
+            }
+            errEl.style.color = 'var(--red)';
+            errEl.textContent = '❌ Invalid OTP. Try again.';
             return;
         }
         
         // OTP verified successfully
+        if (grid) {
+            grid.classList.remove('orbiting');
+            grid.classList.add('success');
+        }
         const btn = document.getElementById('dev-profile-otp-btn');
-        btn.style.display = 'none';
-        document.getElementById('dev-profile-save-btn').style.display = 'inline-block';
-        document.getElementById('dev-profile-error').style.color = '#22c55e';
-        document.getElementById('dev-profile-error').textContent = 'Email verified! You can now save your changes.';
+        if (btn) btn.style.display = 'none';
+        const saveBtn = document.getElementById('dev-profile-save-btn');
+        if (saveBtn) saveBtn.style.display = 'inline-block';
+        errEl.style.color = '#22c55e';
+        errEl.textContent = '✅ Verified! Saving changes...';
         
+        await new Promise(r => setTimeout(r, 600));
         saveDevProfile(true);
     }
 
