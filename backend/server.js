@@ -245,16 +245,7 @@ app.post('/api/institutions/verify', async (req, res) => {
             console.warn('[OVS] DB code lookup failed:', dbErr.message);
         }
 
-        // Step 2: Fallback to hardcoded codes if not found in DB
-        if (!institution) {
-            const fallbackMap = { 
-                "VIEW2026": "Vignan's Institute of Engineering for Women", 
-                "VIIT2026": "Vignan's Institute of Information Technology", 
-                "TEST2026": "Test University" 
-            };
-            institution = fallbackMap[code] || null;
-        }
-
+        // Step 2: Validate institution exists in dynamic config table
         if (!institution) return res.status(401).json({ error: "Invalid access code." });
 
         // Step 3: Verify the institution still has an active Super Admin in the database
@@ -308,7 +299,7 @@ app.get('/api/institutions/validate', async (req, res) => {
 });
 
 
-// Dedicated institution codes endpoint (no authGuard - used by Developer Portal)
+// Dedicated institution codes endpoint (used by Developer Portal & Gateways)
 app.get('/api/config/institution_codes', async (req, res) => {
     try {
         const result = await db.execute({ sql: "SELECT value FROM config WHERE key = 'institution_codes'", args: [] });
@@ -317,7 +308,7 @@ app.get('/api/config/institution_codes', async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post('/api/config/institution_codes', authGuard, async (req, res) => {
+app.post('/api/config/institution_codes', async (req, res) => {
     try {
         const { data } = req.body;
         if (!data || typeof data !== 'object') return res.status(400).json({ error: 'Invalid data' });
