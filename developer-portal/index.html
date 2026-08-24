@@ -1667,7 +1667,7 @@
               <div class="section" style="margin-bottom:0; padding:1.2rem; background:rgba(255,255,255,0.03);">
                   <h4 style="font-size:0.85rem; color:#22c55e; text-transform:uppercase; margin-bottom:0.8rem;">Membership Stats</h4>
                   <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>Admins:</span> <strong id="det-count-admins">0</strong></div>
-                  <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>Sub-Admins:</span> <strong id="det-count-subadmins">0</strong></div>
+                  <div style="display:flex; justify-content:<div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>Sub-Admins:</span> <strong id="det-count-subadmins">0</strong></div>
                   <div style="display:flex; justify-content:space-between;"><span>Voters:</span> <strong id="det-count-voters">0</strong></div>
               </div>
           </div>
@@ -1675,6 +1675,66 @@
     </div>
   </div>
 
+  <script>
+    var API = (typeof window !== 'undefined' && window.API) ? window.API : (typeof PROD_API_URL !== 'undefined' ? PROD_API_URL : 'https://votify-backend-delta.vercel.app/api');
+    let devSession = null;
+    
+    function toggleDevPass() {
+      const p = document.getElementById('dev-pass');
+      const btn = document.getElementById('dev-pass-eye');
+      if (!p) return;
+      if (p.type === 'password') {
+        p.type = 'text';
+        if (btn) btn.textContent = '🙈';
+      } else {
+        p.type = 'password';
+        if (btn) btn.textContent = '👁️';
+      }
+    }
+
+    function toggleUnlockDevPass() {
+      const p = document.getElementById('dev-unlock-pass');
+      const btn = document.getElementById('dev-unlock-eye');
+      if (!p) return;
+      if (p.type === 'password') {
+        p.type = 'text';
+        if (btn) btn.textContent = '🙈';
+      } else {
+        p.type = 'password';
+        if (btn) btn.textContent = '👁️';
+      }
+    }
+
+    console.log('[OVS Dev Portal] v2.2.5 loaded at', new Date().toISOString());
+
+    // Safe DOM Utilities
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+    function setHTML(id, html) {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = html;
+    }
+
+    // --- SESSION RECOVERY ---
+    (async function() {
+        const stored = localStorage.getItem('ovs_currentUser');
+        if (stored && stored !== 'null') {
+            try {
+                const user = JSON.parse(stored);
+                if (user && user.role === 'developer') {
+                    devSession = user;
+                    const authS = document.getElementById('auth-screen');
+                    const consS = document.getElementById('console-screen');
+                    if (authS) authS.style.display = 'none';
+                    if (consS) consS.style.display = 'block';
+                    setText('dev-name-label', user.name || 'DEVELOPER OPERATOR');
+                    startInactivityTimer();
+                    loadConsole();
+                }
+            } catch(e) {
+                console.error("Session Recovery Failed:", e);
                 localStorage.removeItem('ovs_currentUser');
             }
         }
