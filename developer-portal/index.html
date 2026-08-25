@@ -1219,103 +1219,7 @@
           <div class="metric-label" style="color:#ff2a4d;">Membership Packs</div>
           <div class="metric-sub">Active capacity tiers</div>
         </div>
-      </div><!-- TELEMETRY & CLOUD ENGINE DIAGNOSTICS -->
-      <div class="telemetry-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-          <div>
-            <h3 style="margin:0; font-size:1.3rem; color:#38bdf8; display:flex; align-items:center; gap:8px;">
-              <span>📡</span> Cloud Engine & Database Telemetry
-            </h3>
-            <p style="color:var(--muted); font-size:0.85rem; margin-top:0.3rem;">Real-time infrastructure health, table quotas, and round-trip engine latency.</p>
-          </div>
-          <button class="btn btn-red-outline" style="border-color:#38bdf8; color:#38bdf8; width:auto; padding:0.6rem 1.2rem;" onclick="runDiagnosticsCheck()">🧪 Run Health Diagnostics</button>
-        </div>
-        
-        <div class="telemetry-grid">
-          <div class="telemetry-item">
-            <div class="telemetry-item-lbl">Database Engine</div>
-            <div class="telemetry-item-val" style="color:#22c55e; font-size:1.1rem;">Turso Cloud (LibSQL)</div>
-          </div>
-          <div class="telemetry-item">
-            <div class="telemetry-item-lbl">Region & Datacenter</div>
-            <div class="telemetry-item-val" style="font-size:1.1rem;">AWS ap-south-1 (Mumbai)</div>
-          </div>
-          <div class="telemetry-item">
-            <div class="telemetry-item-lbl">Live Latency Ping</div>
-            <div class="telemetry-item-val" id="tel-latency" style="color:#38bdf8;">-- ms</div>
-          </div>
-          <div class="telemetry-item">
-            <div class="telemetry-item-lbl">Global Public Ledger Hashes</div>
-            <div class="telemetry-item-val" id="tel-ledger-count" style="color:#f59e0b;">0</div>
-          </div>
-          <div class="telemetry-item">
-            <div class="telemetry-item-lbl">Audit Trail Records</div>
-            <div class="telemetry-item-val" id="tel-audit-count" style="color:#a855f7;">0</div>
-          </div>
-          <div class="telemetry-item">
-            <div class="telemetry-item-lbl">Config Parameters</div>
-            <div class="telemetry-item-val" id="tel-config-count">0</div>
-          </div>
-        </div>
-      </div>
-
-      
-
-      <!-- ROOT SECURITY & AUDIT TRAIL -->
-      <div class="section">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
-          <h2 style="margin:0;">🛡️ Security & Access Audit Trail</h2>
-          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-            <button class="btn btn-red-outline" style="border-color:#38bdf8;color:#38bdf8;width:auto;padding:0.5rem 1rem;" onclick="loadSecurityLogs()">🔄 Refresh Logs</button>
-            <button class="btn btn-red-outline" style="border-color:#f59e0b;color:#f59e0b;width:auto;padding:0.5rem 1rem;" onclick="exportAuditLogs()">📥 Export JSON</button>
-            <button class="btn btn-danger btn-sm" style="padding:0.5rem 1rem;" onclick="clearRootAuditLogs()">⭐ Clear Logs</button>
-          </div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Timestamp</th>
-              <th>Action / Event</th>
-              <th>Operator</th>
-              <th>Institution / Scope</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody id="security-logs-body">
-            <tr><td colspan="5" class="empty">Loading security logs...</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- GLOBAL CRYPTOGRAPHIC VOTE LEDGER EXPLORER -->
-      <div class="section">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
-          <div>
-            <h2 style="margin:0; color:#38bdf8;">📜 Cryptographic Ballot Ledger Explorer</h2>
-            <p style="color:var(--muted); font-size:0.85rem; margin-top:0.3rem;">Immutable SHA-256 vote receipts proving zero ballot manipulation across all institutions.</p>
-          </div>
-          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-            <button class="btn btn-red-outline" style="border-color:#38bdf8; color:#38bdf8; width:auto; padding:0.5rem 1rem;" onclick="loadLedgerExplorer()">🔄 Refresh Ledger</button>
-            <button class="btn" style="background:linear-gradient(135deg,#0284c7,#0369a1); color:white; width:auto; padding:0.5rem 1.2rem; font-weight:700;" onclick="verifyLedgerIntegrity()">🔍 Verify Hash Chain Integrity</button>
-          </div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Cryptographic Receipt Hash</th>
-              <th>Institution</th>
-              <th>Election ID</th>
-              <th>Timestamp</th>
-              <th>Verification Status</th>
-            </tr>
-          </thead>
-          <tbody id="ledger-explorer-body">
-            <tr><td colspan="5" class="empty">Loading cryptographic ledger...</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- PACKS MANAGER -->
+      </div><!-- PACKS MANAGER -->
       <div class="section">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
           <h2 style="margin:0;">ðŸ“¦ Manage Packs</h2>
@@ -2005,7 +1909,7 @@
             } else {
                 showToast('⚠️ Cryptographic warning detected.', false);
             }
-            loadLedgerExplorer();
+            
         } catch(e) {
             showToast('Integrity verification failed: ' + e.message, false);
         }
@@ -2344,9 +2248,7 @@
         
         startInactivityTimer();
         loadConsole();
-        loadSecurityLogs();
-        loadTelemetryData();
-        loadLedgerExplorer();
+        
     }
 
     function dev2FABack() {
@@ -2499,7 +2401,7 @@
         try {
             await api('/auditLogs?institution=Global', { method: 'DELETE' });
             showToast('Global audit logs cleared');
-            loadSecurityLogs();
+            
         } catch(e) {
             showToast('Failed to clear logs: ' + e.message, false);
         }
@@ -2587,7 +2489,7 @@
             closeResetSAModal();
             showToast(`Password reset successfully for ${_resetSaTargetId}!`);
             loadConsole();
-            loadSecurityLogs();
+            
         } catch(e) {
             err.textContent = 'Failed to reset password: ' + e.message;
         }
