@@ -526,79 +526,59 @@
     .modal-save:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(245,158,11,0.4); }
 
     /* ── OTP ANIMATION V5 (Developer Portal Edition) ── */
+    /* ── FIXED SQUIRCLE OTP DIGIT BOXES ── */
     .dev-otp-boxes-stage {
-      position: relative;
-      min-height: 75px;
       display: flex;
-      align-items: center;
       justify-content: center;
-      margin: 1.2rem 0 1rem 0;
+      margin: 1.2rem 0 1.5rem 0;
       perspective: 1000px;
     }
     .dev-otp-boxes-grid {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       align-items: center;
       justify-content: center;
       transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
       transform-style: preserve-3d;
     }
-    .dev-otp-digit {
-      width: 44px;
-      height: 54px;
-      border-radius: 12px;
-      background: #141824;
-      border: 1.5px solid rgba(255, 255, 255, 0.1);
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: #ffffff;
-      font-family: 'JetBrains Mono', monospace;
-      outline: none;
-      text-align: center;
-      caret-color: #ff2a4d;
-      transition: all 0.25s ease;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    .dev-otp-digit, input.dev-otp-digit {
+      width: 48px !important;
+      height: 58px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      border-radius: 14px !important;
+      background: #141824 !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.18) !important;
+      font-size: 1.8rem !important;
+      line-height: 56px !important;
+      font-weight: 800 !important;
+      color: #ffffff !important;
+      font-family: 'JetBrains Mono', monospace !important;
+      outline: none !important;
+      text-align: center !important;
+      caret-color: #ff2a4d !important;
+      display: inline-block !important;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.6) !important;
+      transition: all 0.25s ease !important;
     }
-    .dev-otp-digit::after {
-      content: '';
-      position: absolute;
-      top: -1.5px;
-      right: -1.5px;
-      width: 12px;
-      height: 12px;
-      border-top: 2.5px solid #ff2a4d;
-      border-right: 2.5px solid #ff2a4d;
-      border-top-right-radius: 12px;
-      opacity: 0.6;
-      transition: all 0.3s ease;
+    .dev-otp-digit:focus, input.dev-otp-digit:focus {
+      border-color: #ff2a4d !important;
+      background: #1e2438 !important;
+      box-shadow: 0 0 18px rgba(255, 42, 77, 0.5), inset 0 0 8px rgba(255, 42, 77, 0.2) !important;
+      transform: translateY(-3px) scale(1.06) !important;
     }
-    .dev-otp-digit:focus, .dev-otp-digit.active {
-      border-color: rgba(255, 42, 77, 0.85);
-      background: #1e2438;
-      box-shadow: 0 0 16px rgba(255, 42, 77, 0.4), inset 0 0 8px rgba(255, 42, 77, 0.15);
-      transform: translateY(-2px) scale(1.05);
-    }
-    .dev-otp-digit:focus::after, .dev-otp-digit.active::after {
-      opacity: 1;
-      width: 18px;
-      height: 18px;
-      filter: drop-shadow(0 0 6px #ff2a4d);
-    }
-    .dev-otp-digit.filled {
-      border-color: rgba(255, 42, 77, 0.5);
-      color: #ffffff;
+    .dev-otp-digit.filled, input.dev-otp-digit.filled {
+      border-color: rgba(255, 42, 77, 0.6) !important;
+      color: #ffffff !important;
     }
     .dev-otp-boxes-grid.orbiting {
       animation: devOtpOrbit 1.3s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
     }
     @keyframes devOtpOrbit {
-      0% { transform: rotateY(0deg) rotateZ(0deg) scale(1); }
-      50% { transform: rotateY(180deg) rotateZ(10deg) scale(0.92); }
-      100% { transform: rotateY(360deg) rotateZ(0deg) scale(1); }
+      0% { transform: rotateY(0deg) scale(1); }
+      50% { transform: rotateY(180deg) scale(0.92); }
+      100% { transform: rotateY(360deg) scale(1); }
     }
     .dev-otp-boxes-grid.shake {
       animation: devOtpShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
@@ -615,10 +595,7 @@
       background: rgba(34, 197, 94, 0.15) !important;
       box-shadow: 0 0 20px rgba(34, 197, 94, 0.45) !important;
     }
-    .dev-otp-boxes-grid.success .dev-otp-digit::after {
-      border-color: #22c55e !important;
-    }
-  
+
     /* ── DEVELOPER LOCK SCREEN & 2FA STYLING ── */
     #dev-lock-screen {
       display: none;
@@ -1179,7 +1156,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:0.75rem; flex-wrap:wrap;">
         <span id="dev-name-label" style="color:#ff2a4d; font-weight:900; letter-spacing:1px;">DEVELOPER OPERATOR</span>
-        <button class="btn btn-red-outline" style="border-color: var(--cyan); color: var(--cyan); width:auto; padding:0.5rem 1rem;" onclick="loadConsole()">🔄 Refresh Data</button>
+        <button class="btn btn-red-outline" style="border-color: var(--cyan); color: var(--cyan); width:auto; padding:0.5rem 1rem;" onclick="refreshConsoleData()">🔄 Refresh Data</button>
         <button class="btn btn-red-outline" style="border-color:#f59e0b;color:#f59e0b; width:auto; padding:0.5rem 1rem;" onclick="openDevProfile()">⚙️ My Profile</button>
         <button class="btn btn-red-outline" style="border-color:#eab308; color:#eab308; width:auto; padding:0.5rem 1rem;" onclick="devLockConsole()">🔒 Lock Console</button>
         <button class="btn btn-red-outline" style="width:auto; padding:0.5rem 1rem;" onclick="devLogout()">Sign Out</button>
@@ -1975,6 +1952,17 @@
         if (_devRateLimitTimer) { clearInterval(_devRateLimitTimer); _devRateLimitTimer = null; }
     }
 
+    // ── REFRESH CONSOLE WRAPPER ──
+    async function refreshConsoleData() {
+        showToast('🔄 Refreshing Data...');
+        try {
+            await loadConsole();
+            showToast('✅ Data Refreshed Successfully!');
+        } catch(e) {
+            showToast('Refresh failed: ' + e.message, false);
+        }
+    }
+
     // ── 2. DEVELOPER 2FA LOGIN FLOW (OTP ANIMATION V5) ──
     let _devLoginOtp = null;
     let _devLoginOtpTimer = null;
@@ -2005,19 +1993,24 @@
     }
 
     function initDevLoginOtpInputs() {
-        if (_devLoginInputsInit) return;
-        _devLoginInputsInit = true;
         const grid = document.getElementById('dev-login-otp-grid');
         if (!grid) return;
         const inputs = grid.querySelectorAll('.dev-otp-digit');
 
         inputs.forEach((input, index) => {
+            // Remove previous event listeners by cloning
+            const newInput = input.cloneNode(true);
+            input.parentNode.replaceChild(newInput, input);
+        });
+
+        const refreshedInputs = grid.querySelectorAll('.dev-otp-digit');
+        refreshedInputs.forEach((input, index) => {
             input.addEventListener('input', () => {
                 const val = input.value.replace(/[^0-9]/g, '');
                 input.value = val ? val[val.length - 1] : '';
                 if (input.value) {
                     input.classList.add('filled');
-                    if (index < inputs.length - 1) inputs[index + 1].focus();
+                    if (index < refreshedInputs.length - 1) refreshedInputs[index + 1].focus();
                 } else {
                     input.classList.remove('filled');
                 }
@@ -2027,9 +2020,9 @@
             input.addEventListener('keydown', (e) => {
                 if (e.key === 'Backspace') {
                     if (!input.value && index > 0) {
-                        inputs[index - 1].focus();
-                        inputs[index - 1].value = '';
-                        inputs[index - 1].classList.remove('filled');
+                        refreshedInputs[index - 1].focus();
+                        refreshedInputs[index - 1].value = '';
+                        refreshedInputs[index - 1].classList.remove('filled');
                     } else {
                         input.value = '';
                         input.classList.remove('filled');
@@ -2037,9 +2030,9 @@
                     e.preventDefault();
                     checkDevLoginAutoVerify();
                 } else if (e.key === 'ArrowLeft' && index > 0) {
-                    inputs[index - 1].focus();
-                } else if (e.key === 'ArrowRight' && index < inputs.length - 1) {
-                    inputs[index + 1].focus();
+                    refreshedInputs[index - 1].focus();
+                } else if (e.key === 'ArrowRight' && index < refreshedInputs.length - 1) {
+                    refreshedInputs[index + 1].focus();
                 } else if (e.key === 'Enter') {
                     devVerify2FA();
                 }
@@ -2049,12 +2042,12 @@
                 e.preventDefault();
                 const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
                 if (pasted) {
-                    for (let i = 0; i < inputs.length && i < pasted.length; i++) {
-                        inputs[i].value = pasted[i];
-                        inputs[i].classList.add('filled');
+                    for (let i = 0; i < refreshedInputs.length && i < pasted.length; i++) {
+                        refreshedInputs[i].value = pasted[i];
+                        refreshedInputs[i].classList.add('filled');
                     }
-                    const nextIdx = Math.min(pasted.length, inputs.length - 1);
-                    inputs[nextIdx].focus();
+                    const nextIdx = Math.min(pasted.length, refreshedInputs.length - 1);
+                    refreshedInputs[nextIdx].focus();
                     checkDevLoginAutoVerify();
                 }
             });
@@ -2064,7 +2057,7 @@
     function getDevLoginEnteredOtp() {
         const inputs = document.querySelectorAll('#dev-login-otp-grid .dev-otp-digit');
         let otp = '';
-        inputs.forEach(i => { otp += i.value.trim(); });
+        inputs.forEach(i => { otp += (i.value || '').trim(); });
         return otp;
     }
 
@@ -2146,6 +2139,8 @@
             clearDevRateLimit();
             _devPendingUser = userData;
             _devLoginOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            window._devLoginOtp = _devLoginOtp;
+            sessionStorage.setItem('ovs_dev_active_otp', _devLoginOtp);
             console.warn("🔐 DEV 2FA OTP DISPATCHED:", _devLoginOtp);
 
             const targetEmail = userData.email || 'rohithsaimerupula01@gmail.com';
@@ -2197,13 +2192,15 @@
             return;
         }
 
+        const validOtp = _devLoginOtp || window._devLoginOtp || sessionStorage.getItem('ovs_dev_active_otp');
+
         errEl.textContent = '';
         if (grid) grid.classList.add('orbiting');
         if (btn) { btn.disabled = true; btn.textContent = 'Verifying Security Token...'; }
 
-        await new Promise(r => setTimeout(r, 700));
+        await new Promise(r => setTimeout(r, 600));
 
-        if (!_devLoginOtp || entered !== _devLoginOtp) {
+        if (!validOtp || entered !== validOtp) {
             if (grid) {
                 grid.classList.remove('orbiting');
                 grid.classList.add('shake');
@@ -2239,7 +2236,7 @@
             });
         } catch(e) {}
 
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 500));
 
         if (_devLoginOtpTimer) clearInterval(_devLoginOtpTimer);
         document.getElementById('auth-screen').style.display = 'none';
@@ -2248,7 +2245,6 @@
         
         startInactivityTimer();
         loadConsole();
-        
     }
 
     function dev2FABack() {
@@ -2257,6 +2253,7 @@
         document.getElementById('dev-auth-creds-box').style.display = 'block';
         document.getElementById('auth-error').textContent = '';
         _devLoginOtp = null;
+        sessionStorage.removeItem('ovs_dev_active_otp');
     }
 
     async function devResend2FA() {
@@ -2265,6 +2262,8 @@
         resendBtn.style.pointerEvents = 'none';
         try {
             _devLoginOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            window._devLoginOtp = _devLoginOtp;
+            sessionStorage.setItem('ovs_dev_active_otp', _devLoginOtp);
             console.warn("🔐 DEV 2FA RESENT OTP:", _devLoginOtp);
             const targetEmail = (_devPendingUser && _devPendingUser.email) || 'rohithsaimerupula01@gmail.com';
             await StorageManager.sendEmailOtp(targetEmail, (_devPendingUser && _devPendingUser.name) || 'Developer', _devLoginOtp, 'Developer Root Access 2FA');
@@ -2511,20 +2510,13 @@
     function devLogout() {
       devSession = null;
       localStorage.removeItem('ovs_currentUser');
-      // Completely wipe institution context so we don't accidentally land in a voter login
       localStorage.removeItem('ovs_inst_name');
       localStorage.removeItem('ovs_inst_code');
       localStorage.removeItem('ovs_inst_logo');
-      // Redirect to the HOME GATEWAY instead of login.html
       window.location.href = 'index.html';
     }
 
     async function loadConsole() {
-      const overlay = document.getElementById('db-loading');
-      const retryBtn = document.getElementById('db-retry-btn');
-      if(overlay) overlay.style.display = 'flex';
-      setText('db-loading-msg', 'Connecting to database...');
-      if(retryBtn) retryBtn.style.display = 'none';
       try {
         const [statsRes, packsRes, codesRes] = await Promise.all([
             fetch(API + '/dev/stats', { headers: { 'Content-Type': 'application/json' } }),
@@ -2556,16 +2548,17 @@
         if (codesRes.ok) codes = await codesRes.json();
         window.instCodesCache = codes;
 
-        if(overlay) overlay.style.display = 'none';
-
-        setText('stat-sa', counts.saCount || 0);
-        setText('stat-inst', counts.instCount || 0);
-        setText('stat-users', counts.studentCount || 0);
+        // Animate 4 Metric Cards
+        animateCounter('stat-inst', counts.instCount || 0);
+        animateCounter('stat-users', counts.studentCount || 0);
+        animateCounter('stat-admins', (counts.saCount || 0) + (counts.adminCount || 0) + (counts.subAdminCount || 0));
+        animateCounter('stat-packs', packs.length || 0);
         
-        renderEnhancedSaTable(window.saCache);
+        await renderEnhancedSaTable(window.saCache);
         renderPackRequests(window.saCache);
         renderPacksTable(window.packsCache);
         populatePackDropdown(window.packsCache);
+        updateLatencyPing();
 
         // If institution details modal is open, refresh its view
         const instModal = document.getElementById('inst-modal');
@@ -2574,9 +2567,8 @@
         }
       } catch (e) {
         const msg = e.message || 'Unknown error';
-        setText('db-loading-msg', 'âŒ ' + msg);
-        if(retryBtn) retryBtn.style.display = 'block';
-        showToast(msg, false);
+        console.error('[LOAD_CONSOLE_ERROR]', e);
+        showToast('Failed to load: ' + msg, false);
       }
     }
 
