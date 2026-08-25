@@ -910,13 +910,20 @@ app.get('/api/dev/stats', async (req, res) => {
             };
         });
 
-        const totalUsers = allUsersRes.rows.reduce((sum, r) => sum + r.count, 0);
+        const totalVoters = allUsersRes.rows
+            .filter(r => r.role === 'voter' || r.role === 'student')
+            .reduce((sum, r) => sum + r.count, 0);
+
+        const totalStaff = allUsersRes.rows
+            .filter(r => ['superadmin', 'admin', 'subadmin'].includes(r.role))
+            .reduce((sum, r) => sum + r.count, 0);
         
         res.json({
             counts: { 
                 saCount: superAdmins.length, 
                 instCount: detailedInstitutions.length, 
-                studentCount: totalUsers 
+                studentCount: totalVoters,
+                staffCount: totalStaff
             },
             superAdmins,
             institutions: detailedInstitutions

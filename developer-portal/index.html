@@ -2551,7 +2551,7 @@
         // Animate 4 Metric Cards
         animateCounter('stat-inst', counts.instCount || 0);
         animateCounter('stat-users', counts.studentCount || 0);
-        animateCounter('stat-admins', (counts.saCount || 0) + (counts.adminCount || 0) + (counts.subAdminCount || 0));
+        animateCounter('stat-admins', counts.staffCount !== undefined ? counts.staffCount : ((counts.saCount || 0) + (counts.adminCount || 0) + (counts.subAdminCount || 0)));
         animateCounter('stat-packs', packs.length || 0);
         
         await renderEnhancedSaTable(window.saCache);
