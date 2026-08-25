@@ -1149,10 +1149,7 @@
     <header>
       <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
         <h1 style="margin:0;">CORE INFRASTRUCTURE PRIME</h1>
-        <div class="node-hud-badge" id="node-hud">
-          <span class="node-pulse-dot"></span>
-          <span id="node-hud-text">Turso AWS Mumbai • Latency ~38ms</span>
-        </div>
+        
       </div>
       <div style="display:flex;align-items:center;gap:0.75rem; flex-wrap:wrap;">
         <span id="dev-name-label" style="color:#ff2a4d; font-weight:900; letter-spacing:1px;">DEVELOPER OPERATOR</span>
@@ -1199,8 +1196,8 @@
       </div><!-- PACKS MANAGER -->
       <div class="section">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-          <h2 style="margin:0;">ðŸ“¦ Manage Packs</h2>
-          <button class="btn btn-red-outline" style="border-color:#a855f7;color:#a855f7;" onclick="togglePackForm()">âž• Create New Pack</button>
+          <h2 style="margin:0;">📦 Manage Packs</h2>
+          <button class="btn btn-red-outline" style="border-color:#a855f7;color:#a855f7;" onclick="togglePackForm()">➕ Create New Pack</button>
         </div>
 
         <!-- Create Pack Form (hidden by default) -->
@@ -1220,7 +1217,7 @@
             <div><label>Max Students</label><input type="number" id="pack-maxStudents" value="1000" min="1" max="100000"></div>
           </div>
           <div style="display:flex;gap:1rem;margin-top:0.5rem;">
-            <button class="btn" style="flex:1;background:linear-gradient(135deg,#a855f7,#7c3aed);color:white;padding:0.8rem;" onclick="createPack()">ðŸ’¾ Save Pack</button>
+            <button class="btn" style="flex:1;background:linear-gradient(135deg,#a855f7,#7c3aed);color:white;padding:0.8rem;" onclick="createPack()">💾 Save Pack</button>
             <button class="btn btn-red-outline" style="width:auto;padding:0.8rem 1.5rem;" onclick="togglePackForm()">Cancel</button>
           </div>
         </div>
@@ -1245,20 +1242,20 @@
 
       <!-- Create Institution -->
       <div class="section">
-        <h2>ðŸ›ï¸ Create Institution</h2>
+        <h2>🏛️ Create Institution</h2>
         <div class="form-row">
           <div><label>Institution Name</label><input type="text" id="inst-create-name" placeholder="KL University"></div>
           <div><label>Institution Address</label><input type="text" id="inst-create-address" placeholder="Vaddeswaram, Guntur, AP"></div>
         </div>
         <div class="form-row">
           <div><label>Unique Gateway Code <small style="color:var(--muted);text-transform:none">(max 10 chars, letters & numbers only)</small></label><input type="text" id="inst-create-code" placeholder="e.g. KLU2026" maxlength="10" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')"></div>
-          <div><label>Assign Pack <small style="color:var(--muted);text-transform:none">â€” optional</small></label>
+          <div><label>Assign Pack <small style="color:var(--muted);text-transform:none">— optional</small></label>
             <select id="inst-create-pack" style="width:100%;padding:0.9rem 1.2rem;border-radius:10px;border:1px solid rgba(168,85,247,0.4);background:rgba(168,85,247,0.06);color:white;font-size:1rem;font-family:'Outfit',sans-serif;outline:none;">
               <option value="">-- No Pack (Unlimited) --</option>
             </select>
           </div>
         </div>
-        <button class="btn" style="width:100%;padding:1.2rem;font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,#06b6d4,#7c3aed);color:white;box-shadow:0 4px 15px rgba(6,182,212,0.3);border:none;text-transform:uppercase;letter-spacing:1px;" onclick="openCreateSAModal()">🚀 Next: Assign Super Admin â†’</button>
+        <button class="btn" style="width:100%;padding:1.2rem;font-size:1.1rem;font-weight:800;background:linear-gradient(135deg,#06b6d4,#7c3aed);color:white;box-shadow:0 4px 15px rgba(6,182,212,0.3);border:none;text-transform:uppercase;letter-spacing:1px;" onclick="openCreateSAModal()">🚀 Next: Assign Super Admin →</button>
       </div>
 
       <!-- Pending Pack Requests -->
@@ -1346,8 +1343,8 @@
   <!-- ASSIGN PACK MODAL -->
   <div class="modal-overlay" id="assign-pack-modal" style="display:none; align-items:center; justify-content:center;">
     <div class="modal-box" style="max-width:440px;">
-      <button class="modal-close" onclick="closeAssignPackModal()">âœ•</button>
-      <h3>ðŸ“¦ Assign Pack</h3>
+      <button class="modal-close" onclick="closeAssignPackModal()">✕</button>
+      <h3>📦 Assign Pack</h3>
       <p class="sub">Super Admin: <strong id="assign-pack-sa-id-display" style="color:#a855f7;"></strong></p>
       <input type="hidden" id="assign-pack-sa-id">
       <input type="hidden" id="assign-pack-sa-inst">
@@ -1358,10 +1355,10 @@
         </select>
       </div>
       <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(168,85,247,0.06); border:1px solid rgba(168,85,247,0.15); border-radius:8px; font-size:0.82rem; color:var(--muted);">
-        â„¹ï¸ Changing a pack updates the limits immediately. Existing users are not deleted.
+        ℹ️  Changing a pack updates the limits immediately. Existing users are not deleted.
       </div>
       <div style="display:flex;gap:1rem;margin-top:1.5rem;">
-        <button class="btn" style="flex:1;background:linear-gradient(135deg,#a855f7,#7c3aed);color:white;" onclick="saveAssignPack()">ðŸ’¾ Save Assignment</button>
+        <button class="btn" style="flex:1;background:linear-gradient(135deg,#a855f7,#7c3aed);color:white;" onclick="saveAssignPack()">💾 Save Assignment</button>
         <button class="btn btn-red-outline" style="width:auto;padding:0.8rem 1.5rem;" onclick="closeAssignPackModal()">Cancel</button>
       </div>
     </div>
@@ -1370,8 +1367,8 @@
   <!-- EDIT PACK MODAL -->
   <div class="modal-overlay" id="edit-pack-modal" style="display:none; align-items:center; justify-content:center;">
     <div class="modal-box" style="max-width:440px;">
-      <button class="modal-close" onclick="closeEditPackModal()">âœ•</button>
-      <h3>âœï¸ Edit Pack</h3>
+      <button class="modal-close" onclick="closeEditPackModal()">✕</button>
+      <h3>✏️ Edit Pack</h3>
       <p class="sub">Pack ID: <strong id="edit-pack-id-display" style="color:#f59e0b;"></strong></p>
       <input type="hidden" id="edit-pack-id">
       <div class="modal-field">
@@ -1391,7 +1388,7 @@
         <input type="number" id="edit-pack-maxStudents" min="1" max="100000">
       </div>
       <div style="display:flex;gap:1rem;margin-top:1.5rem;">
-        <button class="btn btn-gold" style="flex:1;" onclick="saveEditPack()">ðŸ’¾ Save Changes</button>
+        <button class="btn btn-gold" style="flex:1;" onclick="saveEditPack()">💾 Save Changes</button>
         <button class="btn btn-red-outline" style="width:auto;padding:0.8rem 1.5rem;" onclick="closeEditPackModal()">Cancel</button>
       </div>
     </div>
@@ -1400,7 +1397,7 @@
   <!-- CREATE SUPER ADMIN MODAL (triggered after institution form) -->
   <div class="modal-overlay" id="create-sa-modal" style="display:none; align-items:center; justify-content:center;">
     <div class="modal-box" style="max-width:520px;">
-      <button class="modal-close" onclick="closeCreateSAModal()">âœ•</button>
+      <button class="modal-close" onclick="closeCreateSAModal()">✕</button>
       <h3>👤 Assign Super Admin</h3>
       <p class="sub">Institution: <strong id="create-sa-inst-display" style="color:#06b6d4;"></strong></p>
       <div class="modal-field">
@@ -1421,7 +1418,7 @@
       </div>
       <div id="create-sa-error" style="color:var(--red);font-size:0.85rem;margin-bottom:0.8rem;min-height:1rem;"></div>
       <div style="display:flex;gap:1rem;">
-        <button class="modal-save" onclick="createInstitutionWithSA()">ðŸ›ï¸ Create Institution & Super Admin</button>
+        <button class="modal-save" onclick="createInstitutionWithSA()">🏛️ Create Institution & Super Admin</button>
         <button class="btn btn-red-outline" style="width:auto;padding:0.85rem 1.2rem;" onclick="closeCreateSAModal()">Cancel</button>
       </div>
     </div>
@@ -1430,8 +1427,8 @@
   <!-- DEVELOPER PROFILE MODAL (OTP-verified) -->
   <div class="modal-overlay" id="dev-profile-modal" style="display:none; align-items:center; justify-content:center;">
     <div class="modal-box" style="max-width:480px;">
-      <button class="modal-close" onclick="closeDevProfileModal()">âœ•</button>
-      <h3>âš™ï¸ Developer Profile</h3>
+      <button class="modal-close" onclick="closeDevProfileModal()">✕</button>
+      <h3>⚙️  Developer Profile</h3>
       <p class="sub">Changes require OTP verification to your registered email.</p>
       <div id="dev-profile-form-section">
         <div class="modal-field">
@@ -1455,7 +1452,7 @@
         <div id="dev-profile-error" style="color:var(--red);font-size:0.85rem;margin-bottom:0.8rem;min-height:1rem;"></div>
         <div style="display:flex;gap:1rem;">
           <button id="dev-profile-otp-btn" class="modal-save" onclick="sendDevProfileOtp()">📧 Send OTP & Verify</button>
-          <button id="dev-profile-save-btn" class="modal-save" style="display:none;" onclick="saveDevProfile()">ðŸ’¾ Save Changes</button>
+          <button id="dev-profile-save-btn" class="modal-save" style="display:none;" onclick="saveDevProfile()">💾 Save Changes</button>
         </div>
       </div>
     </div>
@@ -1487,8 +1484,8 @@
   <!-- EDIT SUPER ADMIN MODAL -->
   <div class="modal-overlay" id="edit-sa-modal">
     <div class="modal-box">
-      <button class="modal-close" onclick="closeEditModal()">âœ•</button>
-      <h3>âœï¸ Edit Super Admin</h3>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+      <h3>✏️ Edit Super Admin</h3>
       <p class="sub">ID: <strong id="edit-sa-id-display" style="color:#f59e0b;"></strong> &nbsp;(ID cannot be changed)</p>
       <input type="hidden" id="edit-sa-id">
       <div class="modal-field">
@@ -1507,16 +1504,16 @@
         <label>New Password <small style="text-transform:none">(Leave blank to keep current · Exactly 10 chars · 3 letters · 1 special · 1 number)</small></label>
         <input type="password" id="edit-sa-pass" placeholder="Leave blank to keep current" maxlength="10">
       </div>
-      <button class="modal-save" onclick="saveEditSA()">ðŸ’¾ Save Changes</button>
+      <button class="modal-save" onclick="saveEditSA()">💾 Save Changes</button>
     </div>
   </div>
 
   <!-- INSTITUTIONS MODAL -->
   <div class="modal-overlay" id="inst-modal" style="display:none; align-items:center; justify-content:center;">
     <div class="modal-box" style="max-width:700px; max-height:80vh; display:flex; flex-direction:column;">
-      <button class="modal-close" onclick="closeInstModal()">âœ•</button>
+      <button class="modal-close" onclick="closeInstModal()">✕</button>
       <div id="inst-list-view">
-          <h3>ðŸ›ï¸ Registered Institutions</h3>
+          <h3>🏛️ Registered Institutions</h3>
           <p class="sub">Select an institution to view full details and membership stats.</p>
           <div style="overflow-y:auto; max-height:50vh; margin-top:1rem;">
               <table style="width:100%;">
@@ -1534,7 +1531,7 @@
           </div>
       </div>
       <div id="inst-detail-view" style="display:none;">
-          <button class="btn btn-red-outline" style="margin-bottom:1rem; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="showInstList()">â† Back to List</button>
+          <button class="btn btn-red-outline" style="margin-bottom:1rem; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="showInstList()">←  Back to List</button>
           <h3 id="det-inst-name" style="margin-bottom:0.2rem;">KL University</h3>
           <p class="sub" style="margin-bottom:1.5rem;">Infrastructure Node Details</p>
           
@@ -1652,7 +1649,7 @@
     function showToast(msg, success = true) {
       const t = document.getElementById('toast');
       if (!t) return;
-      t.textContent = (success ? 'âœ… ' : 'âŒ ') + msg;
+      t.textContent = (success ? '✅ ' : '❌ ') + msg;
       t.style.borderColor = success ? 'rgba(34,197,94,0.5)' : 'rgba(239,68,68,0.5)';
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 3000);
@@ -2579,7 +2576,7 @@
         renderPackRequests(window.saCache);
         renderPacksTable(window.packsCache);
         populatePackDropdown(window.packsCache);
-        updateLatencyPing();
+        
 
         // If institution details modal is open, refresh its view
         const instModal = document.getElementById('inst-modal');
@@ -2594,11 +2591,11 @@
     }
 
     async function purgeOrphanedUsers() {
-      const confirmed = confirm("ðŸ§¹ WARNING: This will delete all users in the database who do NOT belong to any valid institution.\n\nAre you sure you want to purge orphaned data?");
+      const confirmed = confirm("🧹 WARNING: This will delete all users in the database who do NOT belong to any valid institution.\n\nAre you sure you want to purge orphaned data?");
       if (!confirmed) return;
       try {
         const result = await api('/users/orphans', { method: 'DELETE' });
-        showToast(`âœ… Purge complete! ${result.rowsAffected || 0} orphaned records were deleted.`);
+        showToast(`✅ Purge complete! ${result.rowsAffected || 0} orphaned records were deleted.`);
         loadConsole();
       } catch (e) {
         showToast(e.message, false);
@@ -3048,7 +3045,7 @@
             closeCreateSAModal();
             ['inst-create-name','inst-create-address','inst-create-code'].forEach(i => { const el = document.getElementById(i); if(el) el.value = ''; });
             document.getElementById('inst-create-pack').value = '';
-            showToast(`âœ… Institution "${institution}" and Super Admin ${id} created successfully!`);
+            showToast(`✅ Institution "${institution}" and Super Admin ${id} created successfully!`);
             loadConsole();
         } catch(e) { errEl.textContent = e.message; }
     }
@@ -3186,7 +3183,7 @@
             document.getElementById('dev-profile-otp-btn').disabled = true;
 
             _devProfileOtp = Math.floor(100000 + Math.random() * 900000).toString();
-            console.warn("ðŸ” DEV PROFILE OTP:", _devProfileOtp);
+            console.warn("🔐  DEV PROFILE OTP:", _devProfileOtp);
             
             const context = 'Authorize Profile Change';
             const res = await StorageManager.sendEmailOtp(targetEmail, devSession.name || 'Developer', _devProfileOtp, context);
@@ -3196,7 +3193,7 @@
             document.getElementById('dev-edit-otp-label').innerHTML = `OTP <small>(sent to: ${targetEmail})</small>`;
             
             const btn = document.getElementById('dev-profile-otp-btn');
-            btn.textContent = 'âœ”ï¸ Verify OTP';
+            btn.textContent = '✔️  Verify OTP';
             btn.onclick = verifyOldEmailOtp; 
             btn.disabled = false;
             
@@ -3287,7 +3284,7 @@
             setText('dev-name-label', devSession.name || 'Developer');
             
             closeDevProfileModal();
-            showToast('âœ… Developer profile updated successfully!');
+            showToast('✅ Developer profile updated successfully!');
         } catch(e) { 
             document.getElementById('dev-profile-error').style.color = 'var(--red)';
             document.getElementById('dev-profile-error').textContent = e.message; 
@@ -3348,7 +3345,7 @@
     function openAssignPack(saId, institution) {
         document.getElementById('assign-pack-sa-id').value = saId;
         document.getElementById('assign-pack-sa-inst').value = institution;
-        document.getElementById('assign-pack-sa-id-display').textContent = saId + ' â€” ' + institution;
+        document.getElementById('assign-pack-sa-id-display').textContent = saId + ' — ' + institution;
 
         // Populate the dropdown with current packs
         const sel = document.getElementById('assign-pack-select');
@@ -3454,7 +3451,7 @@
             <tr>
                 <td style="font-weight:700;">${inst.name}</td>
                 <td>${inst.superAdmin ? inst.superAdmin.name : '<span style="color:var(--red)">MISSING</span>'}</td>
-                <td><button class="btn btn-sm" style="background:rgba(255,255,255,0.08); color:white;" onclick="viewInstDetail('${inst.name.replace(/'/g, "\\'")}')">View Details âž”</button></td>
+                <td><button class="btn btn-sm" style="background:rgba(255,255,255,0.08); color:white;" onclick="viewInstDetail('${inst.name.replace(/'/g, "\\'")}')">View Details ➔</button></td>
             </tr>
         `).join('');
     }
@@ -3527,7 +3524,7 @@
       try {
         const result = await api(`/users/${id}?institution=${encodeURIComponent(institution)}`, { method: 'PATCH', body: JSON.stringify(updates) });
         if (result.renamePropagated) {
-            showToast(`âœ… Global Rename: "${result.from}" changed to "${result.to}". All users & config updated!`);
+            showToast(`✅ Global Rename: "${result.from}" changed to "${result.to}". All users & config updated!`);
         } else {
             showToast(`${id} updated successfully!`);
         }
@@ -3561,7 +3558,7 @@
           return;
       }
 
-      const confirmed = confirm(`âš ï¸ PERMANENT DELETE â€” CANNOT BE UNDONE\n\nRemoving Super Admin: ${id}\nInstitution: ${instName}\n\nThis will AUTOMATICALLY delete:\nâ€¢ All Admins of this institution\nâ€¢ All Sub-Admins of this institution\nâ€¢ All Students/Voters of this institution\nâ€¢ All Candidates of this institution\nâ€¢ The institution's election history & config\nâ€¢ The institution's Gateway Access Code\n\nAre you absolutely sure?`);
+      const confirmed = confirm(`⚠️  PERMANENT DELETE — CANNOT BE UNDONE\n\nRemoving Super Admin: ${id}\nInstitution: ${instName}\n\nThis will AUTOMATICALLY delete:\n• All Admins of this institution\n• All Sub-Admins of this institution\n• All Students/Voters of this institution\n• All Candidates of this institution\n• The institution's election history & config\n• The institution's Gateway Access Code\n\nAre you absolutely sure?`);
       if (!confirmed) return;
       
       try {
@@ -3579,7 +3576,7 @@
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || 'Server reported an error during deletion.');
 
-        showToast(`âœ… Fully removed ${instName} and all related accounts.`);
+        showToast(`✅ Fully removed ${instName} and all related accounts.`);
         loadConsole(); 
       } catch (e) { 
           console.error('[DELETE_FAIL]', e);
