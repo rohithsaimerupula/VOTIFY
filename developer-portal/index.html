@@ -1981,11 +1981,55 @@
         }
     }
 
-    // ── 2. DEVELOPER 2FA LOGIN FLOW (OTP ANIMATION V5) ──
+    // ── 2. DEVELOPER 2FA LOGIN FLOW (MULTI-OTP POOL & ROBUST VERIFICATION) ──
     let _devLoginOtp = null;
     let _devLoginOtpTimer = null;
     let _devPendingUser = null;
-    let _devLoginInputsInit = false;
+    let _devValidOtps = [];
+    let _isVerifyingDev2FA = false;
+
+    function recordDevOtp(otpCode) {
+        if (!otpCode) return;
+        const codeStr = String(otpCode).trim();
+        _devLoginOtp = codeStr;
+        window._devLoginOtp = codeStr;
+        
+        // Clean expired OTPs
+        const now = Date.now();
+        _devValidOtps = _devValidOtps.filter(item => item && item.exp > now);
+        _devValidOtps.push({ otp: codeStr, exp: now + 15 * 60 * 1000 });
+        
+        try {
+            sessionStorage.setItem('ovs_dev_active_otp', codeStr);
+            sessionStorage.setItem('ovs_dev_otp_pool', JSON.stringify(_devValidOtps));
+        } catch(e) {}
+        
+        console.warn("🔐 DEV 2FA ACTIVE CODES:", _devValidOtps.map(o => o.otp));
+    }
+
+    function isOtpValid(enteredOtp) {
+        if (!enteredOtp || enteredOtp.length !== 6) return false;
+        const clean = String(enteredOtp).trim();
+        if (_devLoginOtp && clean === _devLoginOtp) return true;
+        if (window._devLoginOtp && clean === window._devLoginOtp) return true;
+        
+        try {
+            const storedActive = sessionStorage.getItem('ovs_dev_active_otp');
+            if (storedActive && clean === storedActive.trim()) return true;
+            
+            const poolStr = sessionStorage.getItem('ovs_dev_otp_pool');
+            if (poolStr) {
+                const pool = JSON.parse(poolStr);
+                const now = Date.now();
+                if (Array.isArray(pool) && pool.some(item => item.otp === clean && item.exp > now)) {
+                    return true;
+                }
+            }
+        } catch(e) {}
+        
+        const now = Date.now();
+        return _devValidOtps.some(item => item.otp === clean && item.exp > now);
+    }
 
     function startDevOtpTimer() {
         if (_devLoginOtpTimer) clearInterval(_devLoginOtpTimer);
@@ -2052,6 +2096,7 @@
                 } else if (e.key === 'ArrowRight' && index < refreshedInputs.length - 1) {
                     refreshedInputs[index + 1].focus();
                 } else if (e.key === 'Enter') {
+                    e.preventDefault();
                     devVerify2FA();
                 }
             });
@@ -2092,7 +2137,7 @@
 
     function checkDevLoginAutoVerify() {
         const otp = getDevLoginEnteredOtp();
-        if (otp.length === 6) {
+        if (otp.length === 6 && !_isVerifyingDev2FA) {
             devVerify2FA();
         }
     }
@@ -2156,22 +2201,20 @@
             // Credentials Valid! Generate 2FA OTP
             clearDevRateLimit();
             _devPendingUser = userData;
-            _devLoginOtp = Math.floor(100000 + Math.random() * 900000).toString();
-            window._devLoginOtp = _devLoginOtp;
-            sessionStorage.setItem('ovs_dev_active_otp', _devLoginOtp);
-            console.warn("🔐 DEV 2FA OTP DISPATCHED:", _devLoginOtp);
+            const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            recordDevOtp(newOtp);
 
             const targetEmail = userData.email || 'rohithsaimerupula01@gmail.com';
             btn.innerText = 'Sending 2FA OTP...';
 
             try {
                 if (typeof StorageManager !== 'undefined' && StorageManager.sendEmailOtp) {
-                    await StorageManager.sendEmailOtp(targetEmail, userData.name || 'Developer', _devLoginOtp, 'Developer Root Access 2FA');
+                    await StorageManager.sendEmailOtp(targetEmail, userData.name || 'Developer', newOtp, 'Developer Root Access 2FA');
                 } else {
                     await fetch(apiBase + '/auth/send-otp', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: targetEmail, name: userData.name || 'Developer', otp: _devLoginOtp, context: 'Developer Root Access 2FA' })
+                        body: JSON.stringify({ email: targetEmail, name: userData.name || 'Developer', otp: newOtp, context: 'Developer Root Access 2FA' })
                     });
                 }
             } catch(mailErr) {
@@ -2200,7 +2243,8 @@
     }
 
     async function devVerify2FA() {
-        const entered = getDevLoginEnteredOtp();
+        if (_isVerifyingDev2FA) return;
+        const entered = getDevLoginEnteredOtp().trim();
         const grid = document.getElementById('dev-login-otp-grid');
         const errEl = document.getElementById('dev-otp-auth-err');
         const btn = document.getElementById('dev-otp-verify-btn');
@@ -2210,15 +2254,14 @@
             return;
         }
 
-        const validOtp = _devLoginOtp || window._devLoginOtp || sessionStorage.getItem('ovs_dev_active_otp');
-
+        _isVerifyingDev2FA = true;
         errEl.textContent = '';
         if (grid) grid.classList.add('orbiting');
         if (btn) { btn.disabled = true; btn.textContent = 'Verifying Security Token...'; }
 
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 450));
 
-        if (!validOtp || entered !== validOtp) {
+        if (!isOtpValid(entered)) {
             if (grid) {
                 grid.classList.remove('orbiting');
                 grid.classList.add('shake');
@@ -2226,6 +2269,7 @@
             }
             if (btn) { btn.disabled = false; btn.textContent = 'Verify & Unlock Console'; }
             errEl.textContent = '❌ Invalid Security Code. Try again.';
+            _isVerifyingDev2FA = false;
             return;
         }
 
@@ -2254,13 +2298,14 @@
             });
         } catch(e) {}
 
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 400));
 
         if (_devLoginOtpTimer) clearInterval(_devLoginOtpTimer);
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('console-screen').style.display = 'block';
         setText('dev-name-label', devSession.name || 'DEVELOPER OPERATOR');
         
+        _isVerifyingDev2FA = false;
         startInactivityTimer();
         loadConsole();
     }
@@ -2271,7 +2316,7 @@
         document.getElementById('dev-auth-creds-box').style.display = 'block';
         document.getElementById('auth-error').textContent = '';
         _devLoginOtp = null;
-        sessionStorage.removeItem('ovs_dev_active_otp');
+        _isVerifyingDev2FA = false;
     }
 
     async function devResend2FA() {
@@ -2279,12 +2324,11 @@
         resendBtn.textContent = 'Sending...';
         resendBtn.style.pointerEvents = 'none';
         try {
-            _devLoginOtp = Math.floor(100000 + Math.random() * 900000).toString();
-            window._devLoginOtp = _devLoginOtp;
-            sessionStorage.setItem('ovs_dev_active_otp', _devLoginOtp);
-            console.warn("🔐 DEV 2FA RESENT OTP:", _devLoginOtp);
+            const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            recordDevOtp(newOtp);
+            
             const targetEmail = (_devPendingUser && _devPendingUser.email) || 'rohithsaimerupula01@gmail.com';
-            await StorageManager.sendEmailOtp(targetEmail, (_devPendingUser && _devPendingUser.name) || 'Developer', _devLoginOtp, 'Developer Root Access 2FA');
+            await StorageManager.sendEmailOtp(targetEmail, (_devPendingUser && _devPendingUser.name) || 'Developer', newOtp, 'Developer Root Access 2FA');
             showToast('New 2FA Code dispatched to email!');
             clearDevLoginOtpInputs();
             startDevOtpTimer();
