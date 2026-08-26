@@ -2204,7 +2204,7 @@
             const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
             recordDevOtp(newOtp);
 
-            const targetEmail = userData.email || 'rohithsaimerupula01@gmail.com';
+            const targetEmail = userData.email || 'developervotify@gmail.com';
             btn.innerText = 'Sending 2FA OTP...';
 
             try {
@@ -2327,7 +2327,7 @@
             const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
             recordDevOtp(newOtp);
             
-            const targetEmail = (_devPendingUser && _devPendingUser.email) || 'rohithsaimerupula01@gmail.com';
+            const targetEmail = (_devPendingUser && _devPendingUser.email) || 'developervotify@gmail.com';
             await StorageManager.sendEmailOtp(targetEmail, (_devPendingUser && _devPendingUser.name) || 'Developer', newOtp, 'Developer Root Access 2FA');
             showToast('New 2FA Code dispatched to email!');
             clearDevLoginOtpInputs();
@@ -3108,7 +3108,7 @@
         
         const emailInput = document.getElementById('dev-edit-email');
         // Fixed developer email for OTP as requested
-        emailInput.value = 'rohithsaimerupula01@gmail.com';
+        emailInput.value = 'developervotify@gmail.com';
         emailInput.disabled = true;
 
         document.getElementById('dev-edit-pass').value = '';
@@ -3219,7 +3219,7 @@
     }
 
     async function sendDevProfileOtp() {
-        const targetEmail = 'rohithsaimerupula01@gmail.com';
+        const targetEmail = 'developervotify@gmail.com';
         const newName = document.getElementById('dev-edit-name').value.trim();
 
         try {
