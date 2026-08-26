@@ -1300,18 +1300,16 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Institution</th>
-              <th>Membership Pack</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th style="width:26%;">🏛️ Institution & Gateway</th>
+              <th style="width:22%;">👑 Super Admin</th>
+              <th style="width:22%;">📊 Quotas & Membership</th>
+              <th style="width:12%; text-align:center;">Status</th>
+              <th style="width:18%; text-align:right;">Actions</th>
             </tr>
           </thead>
           <tbody id="sa-table-body">
             <tr>
-              <td colspan="7" class="empty">Loading...</td>
+              <td colspan="5" class="empty">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -2844,36 +2842,38 @@
 
             return `
             <tr>
-              <td>
-                <strong style="color:white;font-size:0.95rem;">${sa.name || 'Super Admin'}</strong><br>
-                <small style="color:var(--gold);font-family:'JetBrains Mono',monospace;">ID: ${sa.regNum}</small><br>
-                <small style="color:var(--muted)">${sa.email || '-'}</small>
-              </td>
-              <td>
-                <strong style="color:white;font-size:1rem;">${instName || '-'}</strong><br>
-                <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.4rem;flex-wrap:wrap;">
+              <td style="vertical-align:middle;">
+                <strong style="color:white;font-size:1.05rem;display:block;margin-bottom:0.35rem;">${instName || '-'}</strong>
+                <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
                   ${codeDisplay}
                 </div>
               </td>
-              <td>
+              <td style="vertical-align:middle;">
+                <strong style="color:white;font-size:0.95rem;display:block;">${sa.name || 'Super Admin'}</strong>
+                <small style="color:var(--gold);font-family:'JetBrains Mono',monospace;display:inline-block;margin:2px 0;">ID: ${sa.regNum}</small><br>
+                <small style="color:var(--muted);font-size:0.85rem;">${sa.email || '-'}</small>
+              </td>
+              <td style="vertical-align:middle;">
                 <div class="capacity-meter">
-                  <div style="display:flex;justify-content:space-between;gap:1rem;">
+                  <div style="display:flex;justify-content:space-between;gap:1rem;font-size:0.82rem;">
                     <span>🎓 Students:</span> <strong>${studentCount} / ${maxStudents}</strong>
                   </div>
-                  <div class="capacity-bar-wrap">
+                  <div class="capacity-bar-wrap" style="margin:4px 0;">
                     <div class="capacity-bar-fill ${isStudentWarning ? 'warning' : ''}" style="width:${studentPct}%;"></div>
                   </div>
-                  <div style="display:flex;justify-content:space-between;gap:1rem;margin-top:4px;">
+                  <div style="display:flex;justify-content:space-between;gap:1rem;font-size:0.82rem;">
                     <span>👥 Admins:</span> <strong>${adminCount} / ${maxAdmins}</strong>
                   </div>
-                  <small style="color:#a855f7;font-weight:600;display:block;margin-top:2px;">📦 ${packName}</small>
+                  <div style="margin-top:5px;">
+                    <span style="font-size:0.75rem;padding:2px 8px;border-radius:6px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);color:#c084fc;font-weight:700;">📦 ${packName}</span>
+                  </div>
                 </div>
               </td>
-              <td>
+              <td style="vertical-align:middle;text-align:center;">
                 ${statusBadge}
               </td>
-              <td>
-                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+              <td style="vertical-align:middle;text-align:right;">
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:flex-end;">
                   ${suspendBtn}
                   <button class="btn-sm" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);" onclick="openResetSAModal('${sa.regNum}','${instName.replace(/'/g,"\\'")}')">🔑 Reset Pass</button>
                   <button class="btn-sm" style="background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);" onclick="openAssignPack('${sa.regNum}','${instName.replace(/'/g,"\\'")}')">📦 Pack</button>
