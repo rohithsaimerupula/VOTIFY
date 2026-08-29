@@ -789,6 +789,363 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
 
+    .metric-grid .metric-tile:nth-child(1) { animation: tileReveal 0.45s ease-out 0.05s both; }
+    .metric-grid .metric-tile:nth-child(2) { animation: tileReveal 0.45s ease-out 0.12s both; }
+    .metric-grid .metric-tile:nth-child(3) { animation: tileReveal 0.45s ease-out 0.19s both; }
+    .metric-grid .metric-tile:nth-child(4) { animation: tileReveal 0.45s ease-out 0.26s both; }
+
+    @keyframes tileReveal {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spin-reverse {
+      to { transform: rotate(-360deg); }
+    }
+    @keyframes pulse-icon {
+      0%, 100% { transform: scale(1); opacity: 0.85; filter: drop-shadow(0 0 12px rgba(255, 42, 77, 0.5)); }
+      50% { transform: scale(1.12); opacity: 1; filter: drop-shadow(0 0 24px rgba(255, 42, 77, 0.9)); }
+    }
+    @keyframes progress-slide {
+      0% { transform: translateX(-100%); }
+      50% { transform: translateX(50%); }
+      100% { transform: translateX(200%); }
+    }
+
+    .db-loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(16, 6, 12, 0.97) 0%, rgba(5, 5, 8, 0.99) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease;
+    }
+    .db-loader-spinner-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 84px;
+      height: 84px;
+    }
+    .db-spinner-ring {
+      width: 78px;
+      height: 78px;
+      border: 4px solid rgba(255, 42, 77, 0.15);
+      border-top-color: #ff2a4d;
+      border-right-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.85s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+      filter: drop-shadow(0 0 16px rgba(255, 42, 77, 0.5));
+    }
+    .db-spinner-inner {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      border: 2px dashed rgba(168, 85, 247, 0.45);
+      border-radius: 50%;
+      animation: spin-reverse 2.2s linear infinite;
+    }
+    .db-spinner-icon {
+      position: absolute;
+      font-size: 1.55rem;
+      animation: pulse-icon 1.8s ease-in-out infinite;
+    }
+    .db-loading-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #ff2a4d;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      background: rgba(255, 42, 77, 0.12);
+      padding: 0.3rem 0.85rem;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 42, 77, 0.25);
+    }
+    .db-loading-title {
+      color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin: 0 0 0.4rem 0;
+      letter-spacing: 0.5px;
+    }
+    .db-loading-subtitle {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin: 0 0 1.2rem 0;
+      line-height: 1.4;
+    }
+    .db-loading-bar-wrap {
+      width: 200px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
+    }
+    .loading-progress-pulse {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, #ff2a4d, #38bdf8, transparent);
+      animation: progress-slide 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .db-retry-btn {
+      padding: 0.75rem 2.2rem;
+      background: linear-gradient(135deg, #ff2a4d, #cc223e);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      box-shadow: 0 6px 20px rgba(255, 42, 77, 0.4);
+      transition: all 0.2s ease;
+    }
+    .db-retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 42, 77, 0.6);
+    }
+
+    /* ── SUPER-FORMAT ACTION BUTTON STRIP ── */
+    .action-toolbar-strip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      white-space: nowrap;
+    }
+
+    .action-pill-btn {
+      height: 28px;
+      padding: 0 0.55rem;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f1f5f9;
+    }
+
+    .action-pill-btn.pill-edit {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+    .action-pill-btn.pill-edit:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-pack {
+      background: rgba(168, 85, 247, 0.12);
+      border-color: rgba(168, 85, 247, 0.3);
+      color: #c084fc;
+    }
+    .action-pill-btn.pill-pack:hover {
+      background: rgba(168, 85, 247, 0.22);
+      border-color: #a855f7;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-pass {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+    }
+    .action-pill-btn.pill-pass:hover {
+      background: rgba(245, 158, 11, 0.22);
+      border-color: #f59e0b;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-suspend {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .action-pill-btn.pill-suspend:hover {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: #ff2a4d;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-activate {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+    }
+    .action-pill-btn.pill-activate:hover {
+      background: rgba(34, 197, 94, 0.22);
+      border-color: #22c55e;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-delete {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      padding: 0 0.45rem;
+    }
+    .action-pill-btn.pill-delete:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: #ef4444;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* ── SUPER-FORMAT ACTION BUTTONS & DROPDOWNS ── */
+    .action-dropdown {
+      position: relative;
+      display: inline-block;
+      text-align: left;
+    }
+
+    .action-btn-primary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.42rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .action-btn-primary:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .action-btn-menu {
+      background: rgba(255, 42, 77, 0.1);
+      color: #ff4d6d;
+      border: 1px solid rgba(255, 42, 77, 0.3);
+      padding: 0.42rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .action-btn-menu:hover {
+      background: rgba(255, 42, 77, 0.22);
+      border-color: #ff2a4d;
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(255, 42, 77, 0.3);
+    }
+
+    .action-menu-dropdown {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: rgba(18, 8, 14, 0.98);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 42, 77, 0.3);
+      border-radius: 12px;
+      padding: 0.45rem;
+      min-width: 215px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 42, 77, 0.2);
+      z-index: 99999;
+      animation: menuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes menuPop {
+      from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .action-menu-item {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      color: #f1f5f9;
+      padding: 0.6rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .action-menu-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+
+    .action-menu-item.item-activate:hover {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+    .action-menu-item.item-suspend:hover {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+    }
+    .action-menu-item.item-danger {
+      color: #f87171;
+    }
+    .action-menu-item.item-danger:hover {
+      background: rgba(239, 68, 68, 0.18);
+      color: #ff4d6d;
+    }
+
+    .action-menu-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0.35rem 0;
+    }
+
+    .section table td {
+      overflow: visible;
+    }
+
     .metric-tile:hover {
       transform: translateY(-5px);
       background: var(--card-hover);
@@ -1069,12 +1426,12 @@
       <p style="color:#ff2a4d; font-weight:700; letter-spacing:1px;">CORE INFRASTRUCTURE ACCESS</p>
       <div style="text-align:left; margin-bottom:1rem;">
         <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--muted); font-weight:700; text-transform:uppercase;">Developer ID</label>
-        <input type="text" id="dev-id" placeholder="Enter Developer ID" autocomplete="off" maxlength="20" style="margin-bottom:0;" onkeydown="if(event.key==='Enter') devLogin()">
+        <input type="text" id="dev-id" placeholder="Enter Developer ID" autocomplete="off" maxlength="20" style="margin-bottom:0;" oninput="clearDevAuthError()" onkeydown="handleDevIdEnter(event)">
       </div>
       <div style="text-align:left; margin-bottom:1.2rem;">
         <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--muted); font-weight:700; text-transform:uppercase;">Password</label>
         <div style="position:relative; width:100%;">
-          <input type="password" id="dev-pass" placeholder="Enter Password" maxlength="25" style="width:100%; padding:0.9rem 3rem 0.9rem 1.2rem; margin-bottom:0;" onkeydown="if(event.key==='Enter') devLogin()">
+          <input type="password" id="dev-pass" placeholder="Enter Password" maxlength="25" style="width:100%; padding:0.9rem 3rem 0.9rem 1.2rem; margin-bottom:0;" oninput="clearDevAuthError()" onkeydown="handleDevPassEnter(event)">
           <button type="button" id="dev-pass-eye" onclick="toggleDevPass()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.25rem; padding:6px; z-index:100; display:flex; align-items:center; justify-content:center; outline:none;">👁️</button>
         </div>
       </div>
@@ -1300,11 +1657,11 @@
         <table>
           <thead>
             <tr>
-              <th style="width:26%;">🏛️ Institution & Gateway</th>
-              <th style="width:22%;">👑 Super Admin</th>
-              <th style="width:22%;">📊 Quotas & Membership</th>
-              <th style="width:12%; text-align:center;">Status</th>
-              <th style="width:18%; text-align:right;">Actions</th>
+              <th style="width:24%;">🏛️ Institution & Gateway</th>
+              <th style="width:20%;">👑 Super Admin</th>
+              <th style="width:20%;">📊 Quotas & Membership</th>
+              <th style="width:10%; text-align:center;">Status</th>
+              <th style="width:26%; text-align:right;">Actions</th>
             </tr>
           </thead>
           <tbody id="sa-table-body">
@@ -1553,15 +1910,22 @@
 
   
   <!-- DB LOADING OVERLAY -->
-  <div id="db-loading" style="display:none; position:fixed; inset:0; background:rgba(5, 10, 20, 0.94); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:999999; align-items:center; justify-content:center; flex-direction:column; gap:1.5rem;">
-    <div style="width:60px; height:60px; border:4px solid rgba(255, 42, 77, 0.18); border-top-color:#ff2a4d; border-radius:50%; animation:spin 0.9s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite; filter:drop-shadow(0 0 12px rgba(255, 42, 77, 0.6));"></div>
-    <div style="text-align:center;">
-      <p id="db-loading-msg" style="color:#ffffff; font-family:'Outfit',sans-serif; font-size:1.15rem; font-weight:700; margin:0 0 0.4rem 0; letter-spacing:0.5px;">Connecting to database...</p>
-      <p style="color:#64748b; font-size:0.85rem; margin:0;">Syncing infrastructure state and campus quotas</p>
+  <div id="db-loading" class="db-loading-overlay" style="display:none;">
+    <div class="db-loader-spinner-wrap">
+      <div id="db-loading-spinner" class="db-spinner-ring"></div>
+      <div class="db-spinner-inner"></div>
+      <div class="db-spinner-icon">⚡</div>
     </div>
-    <button id="db-retry-btn" onclick="loadConsole(true)" style="display:none; padding:0.7rem 2rem; background:linear-gradient(135deg,#ff2a4d,#cc223e); border:none; border-radius:10px; color:white; font-weight:600; cursor:pointer; font-family:'Outfit',sans-serif; box-shadow:0 4px 15px rgba(255,42,77,0.4);">🔄 Retry</button>
+    <div style="text-align:center; max-width:440px; padding:0 1.5rem;">
+      <div class="db-loading-badge">VOTIFY CLOUD CORE PRIME</div>
+      <p id="db-loading-msg" class="db-loading-title">Connecting to database...</p>
+      <p id="db-loading-sub" class="db-loading-subtitle">Syncing infrastructure state and campus quotas</p>
+      <div class="db-loading-bar-wrap">
+        <div class="loading-progress-pulse"></div>
+      </div>
+    </div>
+    <button id="db-retry-btn" onclick="loadConsole(true)" class="db-retry-btn" style="display:none;">🔄 Retry Connection</button>
   </div>
-  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
   <script>
     var API = (typeof window !== 'undefined' && window.API) ? window.API : (typeof PROD_API_URL !== 'undefined' ? PROD_API_URL : 'https://votify-backend-delta.vercel.app/api');
@@ -1605,7 +1969,7 @@
         if (el) el.innerHTML = html;
     }
 
-    // --- SESSION RECOVERY ---
+    // --- SESSION RECOVERY (INSTANT CACHED RECOVERY) ---
     (async function() {
         const stored = localStorage.getItem('ovs_currentUser');
         if (stored && stored !== 'null') {
@@ -1618,8 +1982,21 @@
                     if (authS) authS.style.display = 'none';
                     if (consS) consS.style.display = 'block';
                     setText('dev-name-label', user.name || 'DEVELOPER OPERATOR');
+
+                    // Instant Cache Paint: show previous valid counts immediately with zero lag
+                    try {
+                        const cachedMetrics = JSON.parse(localStorage.getItem('ovs_dev_metrics_cache') || 'null');
+                        if (cachedMetrics && cachedMetrics.counts) {
+                            setText('stat-inst', cachedMetrics.counts.instCount || 0);
+                            setText('stat-users', cachedMetrics.counts.studentCount || 0);
+                            setText('stat-admins', cachedMetrics.counts.staffCount !== undefined ? cachedMetrics.counts.staffCount : ((cachedMetrics.counts.saCount || 0) + (cachedMetrics.counts.adminCount || 0) + (cachedMetrics.counts.subAdminCount || 0)));
+                            setText('stat-packs', cachedMetrics.packsCount || 0);
+                            if (cachedMetrics.instSub) setText('stat-inst-sub', cachedMetrics.instSub);
+                        }
+                    } catch(e) {}
+
                     startInactivityTimer();
-                    loadConsole();
+                    loadConsole(false); // Fast seamless sync
                 }
             } catch(e) {
                 console.error("Session Recovery Failed:", e);
@@ -1628,13 +2005,23 @@
         }
     })();
 
+    function getDevHeaders(extra = {}) {
+      const user = devSession || JSON.parse(localStorage.getItem('ovs_currentUser') || 'null');
+      const regNum = user ? (user.regNum || user.id || 'OVS-CORE-ROOT') : 'OVS-CORE-ROOT';
+      const institution = (user && user.institution) || 'GLOBAL_ROOT';
+      return {
+        'Content-Type': 'application/json',
+        'x-ovs-reg-num': regNum,
+        'x-ovs-institution': encodeURIComponent(institution),
+        'x-ovs-caller-role': 'developer',
+        ...extra
+      };
+    }
+
     async function api(path, opts = {}) {
       const res = await fetch(API + path, { 
         ...(opts || {}), 
-        headers: { 
-          'Content-Type': 'application/json', 
-          ...((opts && opts.headers) || {}) 
-        } 
+        headers: getDevHeaders((opts && opts.headers) || {})
       });
       if (!res.ok) { 
         const e = await res.json().catch(() => ({})); 
@@ -1761,6 +2148,25 @@
             subEl.textContent = `${activeCount} Active • ${suspendedCount} Suspended`;
         }
     }
+
+    // ── ACTION MENU DROPDOWN CONTROLLER ──
+    function toggleActionMenu(event, menuId) {
+        if (event) event.stopPropagation();
+        const targetMenu = document.getElementById(menuId);
+        const isAlreadyOpen = targetMenu && targetMenu.style.display === 'block';
+        closeAllActionMenus();
+        if (targetMenu && !isAlreadyOpen) {
+            targetMenu.style.display = 'block';
+        }
+    }
+
+    function closeAllActionMenus() {
+        document.querySelectorAll('.action-menu-dropdown').forEach(m => {
+            m.style.display = 'none';
+        });
+    }
+
+    document.addEventListener('click', () => closeAllActionMenus());
 
     // ── 4. MODERN TOAST HUD WITH COUNTDOWN PROGRESS BAR ──
     let _toastTimeout = null;
@@ -1961,20 +2367,10 @@
 
     // ── REFRESH CONSOLE WRAPPER ──
     async function refreshConsoleData() {
-        const overlay = document.getElementById('db-loading');
-        if (overlay) {
-            overlay.style.display = 'flex';
-            setText('db-loading-msg', 'Connecting to database...');
-            const retryBtn = document.getElementById('db-retry-btn');
-            if (retryBtn) retryBtn.style.display = 'none';
-        }
-        const minDelay = new Promise(r => setTimeout(r, 650));
         try {
-            await Promise.all([loadConsole(false), minDelay]);
-            if (overlay) overlay.style.display = 'none';
+            await loadConsole(true);
             showToast('Data Refreshed Successfully!');
         } catch(e) {
-            if (overlay) overlay.style.display = 'none';
             showToast('Refresh failed: ' + e.message, false);
         }
     }
@@ -2140,6 +2536,49 @@
         }
     }
 
+    function clearDevAuthError() {
+        const err = document.getElementById('auth-error');
+        if (err) err.textContent = '';
+    }
+
+    function handleDevIdEnter(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const id = document.getElementById('dev-id').value.trim().toUpperCase();
+        const pass = document.getElementById('dev-pass').value;
+        if (!id) {
+            document.getElementById('auth-error').textContent = 'Developer ID is required.';
+            return;
+        }
+        if (!pass) {
+            document.getElementById('auth-error').textContent = '';
+            document.getElementById('dev-pass').focus();
+            return;
+        }
+        devLogin();
+    }
+
+    function handleDevPassEnter(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const id = document.getElementById('dev-id').value.trim().toUpperCase();
+        const pass = document.getElementById('dev-pass').value;
+        if (!id && !pass) {
+            document.getElementById('auth-error').textContent = 'Developer ID and password required.';
+            return;
+        }
+        if (!id) {
+            document.getElementById('auth-error').textContent = 'Developer ID is required.';
+            document.getElementById('dev-id').focus();
+            return;
+        }
+        if (!pass) {
+            document.getElementById('auth-error').textContent = 'Password is required.';
+            return;
+        }
+        devLogin();
+    }
+
     async function devLogin() {
         if (!checkDevRateLimit()) return;
         const id = document.getElementById('dev-id').value.trim().toUpperCase();
@@ -2148,8 +2587,18 @@
         const btn = document.getElementById('dev-login-btn');
 
         errEl.textContent = '';
-        if (!id || !pass) {
+        if (!id && !pass) {
             errEl.textContent = 'Developer ID and password required.';
+            return;
+        }
+        if (!id) {
+            errEl.textContent = 'Developer ID is required.';
+            document.getElementById('dev-id').focus();
+            return;
+        }
+        if (!pass) {
+            errEl.textContent = 'Password is required.';
+            document.getElementById('dev-pass').focus();
             return;
         }
 
@@ -2576,12 +3025,30 @@
       window.location.href = 'index.html';
     }
 
-    async function loadConsole() {
+    async function loadConsole(showOverlay = false) {
+      const overlay = document.getElementById('db-loading');
+      const retryBtn = document.getElementById('db-retry-btn');
+      const spinner = document.getElementById('db-loading-spinner');
+      const startTime = performance.now();
+
+      if (showOverlay && overlay) {
+          overlay.style.display = 'flex';
+          overlay.style.opacity = '1';
+          overlay.style.visibility = 'visible';
+          if (spinner) spinner.style.display = 'block';
+          if (retryBtn) retryBtn.style.display = 'none';
+          setText('db-loading-msg', 'Connecting to database...');
+          setText('db-loading-sub', 'Syncing infrastructure state and campus quotas');
+      }
+
       try {
-        const [statsRes, packsRes, codesRes] = await Promise.all([
-            fetch(API + '/dev/stats', { headers: { 'Content-Type': 'application/json' } }),
-            fetch(API + '/packs', { headers: { 'Content-Type': 'application/json' } }),
-            fetch(API + '/config/institution_codes', { headers: { 'Content-Type': 'application/json' } })
+        // Parallelize all 5 backend calls in one single batch for zero lag
+        const [statsRes, packsRes, codesRes, statusRes, usersRes] = await Promise.all([
+            fetch(API + '/dev/stats', { headers: getDevHeaders() }),
+            fetch(API + '/packs', { headers: getDevHeaders() }),
+            fetch(API + '/config/institution_codes', { headers: getDevHeaders() }),
+            fetch(API + '/config/institution_status', { headers: getDevHeaders() }).catch(() => null),
+            fetch(API + '/users', { headers: getDevHeaders() }).catch(() => null)
         ]);
 
         if (!statsRes.ok) {
@@ -2608,18 +3075,43 @@
         if (codesRes.ok) codes = await codesRes.json();
         window.instCodesCache = codes;
 
-        // Animate 4 Metric Cards
+        // Load Status & Users pre-fetched
+        let statusMap = {};
+        if (statusRes && statusRes.ok) statusMap = await statusRes.json().catch(() => ({}));
+        _instStatusCache = statusMap;
+
+        let allUsers = [];
+        if (usersRes && usersRes.ok) allUsers = await usersRes.json().catch(() => []);
+
+        // Cache latest metrics to localStorage for instant reload render
+        try {
+            localStorage.setItem('ovs_dev_metrics_cache', JSON.stringify({
+                counts,
+                packsCount: Array.isArray(packs) ? packs.length : 0,
+                timestamp: Date.now()
+            }));
+        } catch(e) {}
+
+        // Smooth overlay fade out
+        if (showOverlay && overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                overlay.style.opacity = '1';
+            }, 250);
+        }
+
+        // Animate 4 Metric Cards smoothly
         animateCounter('stat-inst', counts.instCount || 0);
         animateCounter('stat-users', counts.studentCount || 0);
         animateCounter('stat-admins', counts.staffCount !== undefined ? counts.staffCount : ((counts.saCount || 0) + (counts.adminCount || 0) + (counts.subAdminCount || 0)));
         animateCounter('stat-packs', packs.length || 0);
         
-        await renderEnhancedSaTable(window.saCache);
+        renderEnhancedSaTable(window.saCache, statusMap, allUsers);
         renderPackRequests(window.saCache);
         renderPacksTable(window.packsCache);
         populatePackDropdown(window.packsCache);
         
-
         // If institution details modal is open, refresh its view
         const instModal = document.getElementById('inst-modal');
         if (instModal && instModal.style.display === 'flex') {
@@ -2628,6 +3120,12 @@
       } catch (e) {
         const msg = e.message || 'Unknown error';
         console.error('[LOAD_CONSOLE_ERROR]', e);
+        if (showOverlay && overlay) {
+            if (spinner) spinner.style.display = 'none';
+            setText('db-loading-msg', '⚠️ Connection Failed');
+            setText('db-loading-sub', msg);
+            if (retryBtn) retryBtn.style.display = 'inline-block';
+        }
         showToast('Failed to load: ' + msg, false);
       }
     }
@@ -2776,7 +3274,7 @@
     }
 
     // ── 3. RENDER ALL INSTITUTIONS TABLE WITH CAPACITY METERS & CODES ──
-    async function renderEnhancedSaTable(list) {
+    function renderEnhancedSaTable(list, preStatusMap = null, preUsers = null) {
         const tbody = document.getElementById('sa-table-body');
         if (!tbody) return;
 
@@ -2785,18 +3283,13 @@
             return; 
         }
 
-        // Fetch codes and status
+        // Use pre-fetched codes, status, and users without blocking network calls
         const codesMap = window.instCodesCache || {};
-        const statusMap = await api('/config/institution_status').catch(() => ({}));
+        const statusMap = preStatusMap || _instStatusCache || {};
         _instStatusCache = statusMap;
         updateFilterChipCounts(list, statusMap);
 
-        // Fetch all users to calculate accurate real-time student and admin counts
-        let allUsers = [];
-        try {
-            const res = await api('/users');
-            allUsers = res || [];
-        } catch(e) {}
+        const allUsers = Array.isArray(preUsers) ? preUsers : [];
 
         const packsMap = {};
         (window.packsCache || []).forEach(p => { packsMap[p.id] = p; });
@@ -2872,13 +3365,23 @@
               <td style="vertical-align:middle;text-align:center;">
                 ${statusBadge}
               </td>
-              <td style="vertical-align:middle;text-align:right;">
-                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:flex-end;">
-                  ${suspendBtn}
-                  <button class="btn-sm" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);" onclick="openResetSAModal('${sa.regNum}','${instName.replace(/'/g,"\\'")}')">🔑 Reset Pass</button>
-                  <button class="btn-sm" style="background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);" onclick="openAssignPack('${sa.regNum}','${instName.replace(/'/g,"\\'")}')">📦 Pack</button>
-                  <button class="btn-sm" style="background:rgba(255,255,255,0.08);color:white;border:1px solid rgba(255,255,255,0.2);" onclick="editSA('${sa.regNum}')">✏️ Edit</button>
-                  <button class="btn-sm btn-danger" onclick="deleteSuperAdmin('${sa.regNum}', '${instName.replace(/'/g,"\\'")}')">🗑️ Delete</button>
+              <td style="vertical-align:middle;text-align:right;white-space:nowrap;">
+                <div class="action-toolbar-strip">
+                  <button class="action-pill-btn pill-edit" onclick="editSA('${sa.regNum}')" title="Edit Super Admin">
+                    ✏️ Edit
+                  </button>
+                  <button class="action-pill-btn pill-pack" onclick="openAssignPack('${sa.regNum}','${instName.replace(/'/g,\"\\\\'\")}')" title="Assign Capacity Pack">
+                    📦 Pack
+                  </button>
+                  <button class="action-pill-btn pill-pass" onclick="openResetSAModal('${sa.regNum}','${instName.replace(/'/g,\"\\\\'\")}')" title="Reset Master Password">
+                    🔑 Pass
+                  </button>
+                  <button class="action-pill-btn ${isSuspended ? 'pill-activate' : 'pill-suspend'}" onclick="toggleInstitutionSuspend('${instName.replace(/'/g,\"\\\\'\")}', '${isSuspended ? 'suspended' : 'active'}')" title="${isSuspended ? 'Activate Institution' : 'Suspend Institution'}">
+                    ${isSuspended ? '▶️ Active' : '⏸️ Suspend'}
+                  </button>
+                  <button class="action-pill-btn pill-delete" onclick="deleteSuperAdmin('${sa.regNum}', '${instName.replace(/'/g,\"\\\\'\")}')" title="Delete Institution">
+                    🗑️
+                  </button>
                 </div>
               </td>
             </tr>`;
@@ -3065,7 +3568,7 @@
         if (pwdErr) { errEl.textContent = 'Password: ' + pwdErr; return; }
 
         try {
-            const codesRes = await fetch(API + '/config/institution_codes', { headers: { 'Content-Type': 'application/json' } });
+            const codesRes = await fetch(API + '/config/institution_codes', { headers: getDevHeaders() });
             const existingCodes = codesRes.ok ? (await codesRes.json()) : {};
             if (existingCodes[code]) { errEl.textContent = `Code "${code}" is already in use for "${existingCodes[code]}".`; return; }
             const inUse = Object.values(existingCodes).some(v => v.toLowerCase() === institution.toLowerCase());
@@ -3074,7 +3577,7 @@
             const hashedPass = await StorageManager.hashPassword(pass);
             const addRes = await fetch(API + '/users/add', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getDevHeaders(),
                 body: JSON.stringify({ regNum: id, password: hashedPass, role: 'superadmin', name, email, institution, address, status: 'active', packId: packId || null })
             });
             if (!addRes.ok) { const e = await addRes.json().catch(() => ({ error: 'Failed' })); errEl.textContent = e.error; return; }
@@ -3082,7 +3585,7 @@
             existingCodes[code] = institution;
             await fetch(API + '/config/institution_codes', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getDevHeaders(),
                 body: JSON.stringify({ data: existingCodes })
             });
 

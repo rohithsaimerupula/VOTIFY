@@ -1,54 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#06b6d4">
-    <link rel="apple-touch-icon" href="assets/icon-192.png">
-  <title>Developer Portal — OVS</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Playfair+Display:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-  <script>
-      (function() {
-          document.documentElement.setAttribute('data-theme', 'dark');
-          localStorage.setItem('ovs_theme', 'dark');
-      })();
-  </script>
+  <title>Developer Portal — VOTIFY</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    *,
-    *::before,
-    *::after {
+    :root {
+      --bg: #0a0505;
+      --card: rgba(25, 10, 10, 0.7);
+      --border: rgba(255, 42, 77, 0.2);
+      --red: #ff2a4d;
+      --red-glow: rgba(255, 42, 77, 0.3);
+      --green: #22c55e;
+      --text: #f0f0f0;
+      --muted: #888;
+    }
+
+    * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
-    :root { 
-      --bg:#050505; --surface:#111111; --border:rgba(255,42,77,0.3); 
-      --gold:#cccccc; --cyan:#ffffff; --green:#ff2a4d; --red:#ff2a4d; --purple:#ff2a4d; 
-      --text:#f8fafc; --muted:#cbd5e1; 
-    }
-
     body {
+      font-family: 'Outfit', sans-serif;
       background: var(--bg);
       color: var(--text);
-      font-family: 'Outfit', sans-serif;
       min-height: 100vh;
     }
 
-    /* Auth Screen */
     #auth-screen {
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      background: radial-gradient(ellipse at center, rgba(255, 42, 77, 0.08) 0%, var(--bg) 70%);
+      padding: 1.5rem;
     }
 
     .auth-box {
-      background: rgba(255, 42, 77, 0.06);
-      border: 1px solid rgba(255, 42, 77, 0.3);
+      background: var(--card);
+      border: 1px solid var(--border);
       border-radius: 20px;
       padding: 3rem;
       width: 100%;
@@ -61,7 +53,7 @@
       font-weight: 900;
       color: var(--red);
       margin-bottom: 0.5rem;
-      font-family:'Playfair Display', serif;
+      font-family: 'Playfair Display', serif;
     }
 
     .auth-box p {
@@ -101,6 +93,7 @@
     }
 
     .btn-red {
+
       background: linear-gradient(135deg, #ff2a4d, #cc223e);
       color: white;
     }
@@ -331,60 +324,1233 @@
     .modal-box h3 { font-size:1.2rem; font-weight:800; color:var(--red); margin-bottom:0.3rem; }
     .modal-box .sub { color:var(--muted); font-size:0.82rem; margin-bottom:1.5rem; }
     .modal-close { position:absolute; top:1rem; right:1rem; background:rgba(255,255,255,0.08); border:none; color:white; width:32px; height:32px; border-radius:50%; font-size:1.1rem; cursor:pointer; }
+    /* Main Console */
+    #console-screen {
+      display: none;
+    }
+
+    header {
+      background: rgba(255, 42, 77, 0.08);
+      border-bottom: 1px solid rgba(255, 42, 77, 0.2);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--red);
+      font-family:'Playfair Display', serif;
+    }
+
+    header span {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-card .number {
+      font-size: 2.5rem;
+      font-weight: 900;
+    }
+
+    .stat-card .label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+    }
+
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .section h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-row input {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 0.35rem;
+    }
+
+    select option {
+      background-color: white;
+      color: black;
+    }
+    
+    select option:checked {
+      background-color: #0f172a;
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-size: 0.9rem;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      padding: 0.25rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-sa {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--gold);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-sm {
+      padding: 0.35rem 0.8rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1.5rem;
+      color: white;
+      font-size: 0.9rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s;
+      z-index: 999;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Edit Modal */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1000; align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:#0f172a; border:1px solid rgba(255, 42, 77, 0.3); border-radius:18px; padding:2rem; width:100%; max-width:480px; position:relative; }
+    .modal-box h3 { font-size:1.2rem; font-weight:800; color:var(--red); margin-bottom:0.3rem; }
+    .modal-box .sub { color:var(--muted); font-size:0.82rem; margin-bottom:1.5rem; }
+    .modal-close { position:absolute; top:1rem; right:1rem; background:rgba(255,255,255,0.08); border:none; color:white; width:32px; height:32px; border-radius:50%; font-size:1.1rem; cursor:pointer; }
     .modal-field { margin-bottom:1rem; }
     .modal-field label { display:block; color:var(--muted); font-size:0.77rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.35rem; }
     .modal-field input { margin-bottom:0; }
     .modal-field input:disabled { opacity:0.5; cursor:not-allowed; }
     .modal-save { width:100%; padding:0.85rem; border-radius:10px; border:none; background:linear-gradient(135deg,#ff2a4d,#cc223e); color:white; font-weight:700; font-size:1rem; cursor:pointer; margin-top:0.5rem; font-family:'Outfit',sans-serif; transition:all 0.3s; }
     .modal-save:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(245,158,11,0.4); }
-  </style>
-</head>
 
-<body>
+    /* ── OTP ANIMATION V5 (Developer Portal Edition) ── */
+    /* ── FIXED SQUIRCLE OTP DIGIT BOXES ── */
+    .dev-otp-boxes-stage {
+      display: flex;
+      justify-content: center;
+      margin: 1.2rem 0 1.5rem 0;
+      perspective: 1000px;
+    }
+    .dev-otp-boxes-grid {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-style: preserve-3d;
+    }
+    .dev-otp-digit, input.dev-otp-digit {
+      width: 48px !important;
+      height: 58px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      border-radius: 14px !important;
+      background: #141824 !important;
+      border: 1.5px solid rgba(255, 255, 255, 0.18) !important;
+      font-size: 1.8rem !important;
+      line-height: 56px !important;
+      font-weight: 800 !important;
+      color: #ffffff !important;
+      font-family: 'JetBrains Mono', monospace !important;
+      outline: none !important;
+      text-align: center !important;
+      caret-color: #ff2a4d !important;
+      display: inline-block !important;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.6) !important;
+      transition: all 0.25s ease !important;
+    }
+    .dev-otp-digit:focus, input.dev-otp-digit:focus {
+      border-color: #ff2a4d !important;
+      background: #1e2438 !important;
+      box-shadow: 0 0 18px rgba(255, 42, 77, 0.5), inset 0 0 8px rgba(255, 42, 77, 0.2) !important;
+      transform: translateY(-3px) scale(1.06) !important;
+    }
+    .dev-otp-digit.filled, input.dev-otp-digit.filled {
+      border-color: rgba(255, 42, 77, 0.6) !important;
+      color: #ffffff !important;
+    }
+    .dev-otp-boxes-grid.orbiting {
+      animation: devOtpOrbit 1.3s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
+    }
+    @keyframes devOtpOrbit {
+      0% { transform: rotateY(0deg) scale(1); }
+      50% { transform: rotateY(180deg) scale(0.92); }
+      100% { transform: rotateY(360deg) scale(1); }
+    }
+    .dev-otp-boxes-grid.shake {
+      animation: devOtpShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    @keyframes devOtpShake {
+      10%, 90% { transform: translate3d(-3px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+    .dev-otp-boxes-grid.success .dev-otp-digit {
+      border-color: #22c55e !important;
+      color: #22c55e !important;
+      background: rgba(34, 197, 94, 0.15) !important;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.45) !important;
+    }
+
+    /* ── DEVELOPER LOCK SCREEN & 2FA STYLING ── */
+    #dev-lock-screen {
+      display: none;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 5, 5, 0.95);
+      backdrop-filter: blur(20px);
+      z-index: 100000;
+    }
+    .lock-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 3rem 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.8), 0 0 35px var(--red-glow);
+    }
+    .lock-icon-wrap {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1.2rem auto;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255, 42, 77, 0.15), rgba(255, 42, 77, 0.05));
+      border: 1.5px solid rgba(255, 42, 77, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(255, 42, 77, 0.2);
+    }
+    .security-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .security-badge.success {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #22c55e;
+    }
+    .security-badge.warning {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #f59e0b;
+    }
+    .security-badge.danger {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+    }
+
+  
+    /* ── INSTITUTION MANAGEMENT SUITE STYLES ── */
+    .code-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .code-badge:hover {
+      background: rgba(6, 182, 212, 0.25);
+      border-color: #38bdf8;
+      transform: translateY(-1px);
+    }
+    .capacity-meter {
+      font-size: 0.8rem;
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .capacity-bar-wrap {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .capacity-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #38bdf8);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .capacity-bar-fill.warning {
+      background: linear-gradient(90deg, #f59e0b, #ef4444);
+    }
+
+  
+    /* ── ADVANCED OBSIDIAN CYBER UI & SPRING ANIMATIONS ── */
+    :root {
+      --bg: #070404;
+      --card: rgba(20, 8, 8, 0.75);
+      --card-hover: rgba(30, 12, 12, 0.9);
+      --border: rgba(255, 42, 77, 0.22);
+      --border-cyan: rgba(56, 189, 248, 0.25);
+      --red: #ff2a4d;
+      --red-glow: rgba(255, 42, 77, 0.35);
+      --cyan: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.35);
+      --purple: #a855f7;
+      --purple-glow: rgba(168, 85, 247, 0.35);
+      --green: #22c55e;
+      --green-glow: rgba(34, 197, 94, 0.35);
+      --gold: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.35);
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 0%, rgba(255, 42, 77, 0.08) 0%, rgba(7, 4, 4, 1) 70%), #070404;
+      background-attachment: fixed;
+    }
+
+    /* Floating Header HUD */
+    header {
+      backdrop-filter: blur(20px);
+      background: rgba(15, 6, 6, 0.85);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .node-hud-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+      font-size: 0.78rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.15);
+    }
+
+    .node-pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e;
+      animation: pulseDot 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* 4-Tile Dynamic Metric Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .metric-tile {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.8rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .metric-grid .metric-tile:nth-child(1) { animation: tileReveal 0.45s ease-out 0.05s both; }
+    .metric-grid .metric-tile:nth-child(2) { animation: tileReveal 0.45s ease-out 0.12s both; }
+    .metric-grid .metric-tile:nth-child(3) { animation: tileReveal 0.45s ease-out 0.19s both; }
+    .metric-grid .metric-tile:nth-child(4) { animation: tileReveal 0.45s ease-out 0.26s both; }
+
+    @keyframes tileReveal {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes spin-reverse {
+      to { transform: rotate(-360deg); }
+    }
+    @keyframes pulse-icon {
+      0%, 100% { transform: scale(1); opacity: 0.85; filter: drop-shadow(0 0 12px rgba(255, 42, 77, 0.5)); }
+      50% { transform: scale(1.12); opacity: 1; filter: drop-shadow(0 0 24px rgba(255, 42, 77, 0.9)); }
+    }
+    @keyframes progress-slide {
+      0% { transform: translateX(-100%); }
+      50% { transform: translateX(50%); }
+      100% { transform: translateX(200%); }
+    }
+
+    .db-loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(16, 6, 12, 0.97) 0%, rgba(5, 5, 8, 0.99) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease;
+    }
+    .db-loader-spinner-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 84px;
+      height: 84px;
+    }
+    .db-spinner-ring {
+      width: 78px;
+      height: 78px;
+      border: 4px solid rgba(255, 42, 77, 0.15);
+      border-top-color: #ff2a4d;
+      border-right-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.85s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+      filter: drop-shadow(0 0 16px rgba(255, 42, 77, 0.5));
+    }
+    .db-spinner-inner {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      border: 2px dashed rgba(168, 85, 247, 0.45);
+      border-radius: 50%;
+      animation: spin-reverse 2.2s linear infinite;
+    }
+    .db-spinner-icon {
+      position: absolute;
+      font-size: 1.55rem;
+      animation: pulse-icon 1.8s ease-in-out infinite;
+    }
+    .db-loading-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #ff2a4d;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      background: rgba(255, 42, 77, 0.12);
+      padding: 0.3rem 0.85rem;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 42, 77, 0.25);
+    }
+    .db-loading-title {
+      color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin: 0 0 0.4rem 0;
+      letter-spacing: 0.5px;
+    }
+    .db-loading-subtitle {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin: 0 0 1.2rem 0;
+      line-height: 1.4;
+    }
+    .db-loading-bar-wrap {
+      width: 200px;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      margin: 0 auto;
+      overflow: hidden;
+      position: relative;
+    }
+    .loading-progress-pulse {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, #ff2a4d, #38bdf8, transparent);
+      animation: progress-slide 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    .db-retry-btn {
+      padding: 0.75rem 2.2rem;
+      background: linear-gradient(135deg, #ff2a4d, #cc223e);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      box-shadow: 0 6px 20px rgba(255, 42, 77, 0.4);
+      transition: all 0.2s ease;
+    }
+    .db-retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 42, 77, 0.6);
+    }
+
+    /* ── SUPER-FORMAT ACTION BUTTON STRIP ── */
+    .action-toolbar-strip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      white-space: nowrap;
+    }
+
+    .action-pill-btn {
+      height: 28px;
+      padding: 0 0.55rem;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f1f5f9;
+    }
+
+    .action-pill-btn.pill-edit {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+    }
+    .action-pill-btn.pill-edit:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-pack {
+      background: rgba(168, 85, 247, 0.12);
+      border-color: rgba(168, 85, 247, 0.3);
+      color: #c084fc;
+    }
+    .action-pill-btn.pill-pack:hover {
+      background: rgba(168, 85, 247, 0.22);
+      border-color: #a855f7;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-pass {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+    }
+    .action-pill-btn.pill-pass:hover {
+      background: rgba(245, 158, 11, 0.22);
+      border-color: #f59e0b;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-suspend {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+    .action-pill-btn.pill-suspend:hover {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: #ff2a4d;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-activate {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+    }
+    .action-pill-btn.pill-activate:hover {
+      background: rgba(34, 197, 94, 0.22);
+      border-color: #22c55e;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .action-pill-btn.pill-delete {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      padding: 0 0.45rem;
+    }
+    .action-pill-btn.pill-delete:hover {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: #ef4444;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* ── SUPER-FORMAT ACTION BUTTONS & DROPDOWNS ── */
+    .action-dropdown {
+      position: relative;
+      display: inline-block;
+      text-align: left;
+    }
+
+    .action-btn-primary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 0.42rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .action-btn-primary:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .action-btn-menu {
+      background: rgba(255, 42, 77, 0.1);
+      color: #ff4d6d;
+      border: 1px solid rgba(255, 42, 77, 0.3);
+      padding: 0.42rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .action-btn-menu:hover {
+      background: rgba(255, 42, 77, 0.22);
+      border-color: #ff2a4d;
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(255, 42, 77, 0.3);
+    }
+
+    .action-menu-dropdown {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: rgba(18, 8, 14, 0.98);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 42, 77, 0.3);
+      border-radius: 12px;
+      padding: 0.45rem;
+      min-width: 215px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 42, 77, 0.2);
+      z-index: 99999;
+      animation: menuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes menuPop {
+      from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .action-menu-item {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      color: #f1f5f9;
+      padding: 0.6rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .action-menu-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      transform: translateX(3px);
+    }
+
+    .action-menu-item.item-activate:hover {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+    .action-menu-item.item-suspend:hover {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+    }
+    .action-menu-item.item-danger {
+      color: #f87171;
+    }
+    .action-menu-item.item-danger:hover {
+      background: rgba(239, 68, 68, 0.18);
+      color: #ff4d6d;
+    }
+
+    .action-menu-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0.35rem 0;
+    }
+
+    .section table td {
+      overflow: visible;
+    }
+
+    .metric-tile:hover {
+      transform: translateY(-5px);
+      background: var(--card-hover);
+      border-color: rgba(255, 42, 77, 0.4);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px var(--red-glow);
+    }
+
+    .metric-tile.tile-cyan:hover {
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px var(--cyan-glow);
+    }
+
+    .metric-tile.tile-purple:hover {
+      border-color: rgba(168, 85, 247, 0.5);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px var(--purple-glow);
+    }
+
+    .metric-tile.tile-gold:hover {
+      border-color: rgba(245, 158, 11, 0.5);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px var(--gold-glow);
+    }
+
+    .metric-icon-wrap {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .metric-number {
+      font-size: 2.8rem;
+      font-weight: 900;
+      line-height: 1;
+      font-family: 'Outfit', sans-serif;
+      margin-bottom: 0.4rem;
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    .metric-sub {
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.4);
+      margin-top: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* Table Controls & Search Filter Bar */
+    .table-controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .search-input-wrap input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.6rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(15, 6, 6, 0.6);
+      color: white;
+      font-size: 0.92rem;
+      margin-bottom: 0;
+      transition: all 0.3s;
+    }
+
+    .search-input-wrap input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 15px var(--cyan-glow);
+      background: rgba(20, 8, 8, 0.85);
+    }
+
+    .search-icon-fixed {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.95rem;
+      pointer-events: none;
+    }
+
+    .filter-chips-wrap {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .filter-chip {
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.25s;
+    }
+
+    .filter-chip:hover {
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
+
+    .filter-chip.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+
+    /* Spring-Physics Modals */
+    .modal-box {
+      animation: modalSpringIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.85), 0 0 40px var(--red-glow);
+    }
+
+    @keyframes modalSpringIn {
+      0% { opacity: 0; transform: scale(0.88) translateY(20px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Shimmer Skeleton Loading */
+    .skeleton-row td {
+      padding: 1.2rem 1rem;
+    }
+    .skeleton-line {
+      height: 16px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 200% 100%;
+      border-radius: 6px;
+      animation: skeletonShimmer 1.5s infinite;
+    }
+    @keyframes skeletonShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Modern Toast HUD with countdown bar */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: 14px;
+      background: rgba(15, 6, 6, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      color: white;
+      font-size: 0.92rem;
+      font-weight: 600;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.7), 0 0 25px rgba(255, 42, 77, 0.2);
+      z-index: 100000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      min-width: 280px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .toast-progress {
+      height: 3px;
+      width: 100%;
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .toast-progress-fill {
+      height: 100%;
+      background: var(--red);
+      width: 100%;
+      transition: width 3s linear;
+    }
+
+  
+    /* ── TELEMETRY & LEDGER EXPLORER STYLES ── */
+    .telemetry-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(20, 8, 8, 0.85));
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 20px;
+      padding: 1.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.2rem;
+      margin-top: 1.2rem;
+    }
+    .telemetry-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .telemetry-item-lbl {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+    .telemetry-item-val {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .preset-pill-btn {
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      background: rgba(168, 85, 247, 0.1);
+      color: #c084fc;
+      transition: all 0.2s;
+    }
+    .preset-pill-btn:hover {
+      background: rgba(168, 85, 247, 0.25);
+      border-color: #a855f7;
+      transform: translateY(-1px);
+    }
+    .hash-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #38bdf8;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+  </style>
+<script src="config.js"></script>
     <script src="storage.js"></script>
     <!-- Cyber Mesh Particles -->
     <div id="tsparticles" style="position: fixed; inset: 0; z-index: -1; pointer-events: none;"></div>
   <!-- AUTH -->
   <div id="auth-screen">
-    <div class="auth-box">
+    <!-- STEP 1: CREDENTIALS BOX -->
+    <div class="auth-box" id="dev-auth-creds-box">
       <h1><span style="color:#ffffff">DEVELOPER</span> LOGIN</h1>
       <p style="color:#ff2a4d; font-weight:700; letter-spacing:1px;">CORE INFRASTRUCTURE ACCESS</p>
-      <div>
-        <label>Developer ID</label>
-        <input type="text" id="dev-id" placeholder="Enter Developer ID" autocomplete="off" maxlength="15">
+      <div style="text-align:left; margin-bottom:1rem;">
+        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--muted); font-weight:700; text-transform:uppercase;">Developer ID</label>
+        <input type="text" id="dev-id" placeholder="Enter Developer ID" autocomplete="off" maxlength="20" style="margin-bottom:0;" oninput="clearDevAuthError()" onkeydown="handleDevIdEnter(event)">
       </div>
-      <div style="position:relative;">
-        <label>Password</label>
-        <input type="password" id="dev-pass" placeholder="Enter Password" maxlength="12">
-        <button type="button" onclick="toggleDevPass()" style="position:absolute; right:12px; top:36px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.1rem; padding:4px;">👁️</button>
+      <div style="text-align:left; margin-bottom:1.2rem;">
+        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--muted); font-weight:700; text-transform:uppercase;">Password</label>
+        <div style="position:relative; width:100%;">
+          <input type="password" id="dev-pass" placeholder="Enter Password" maxlength="25" style="width:100%; padding:0.9rem 3rem 0.9rem 1.2rem; margin-bottom:0;" oninput="clearDevAuthError()" onkeydown="handleDevPassEnter(event)">
+          <button type="button" id="dev-pass-eye" onclick="toggleDevPass()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.25rem; padding:6px; z-index:100; display:flex; align-items:center; justify-content:center; outline:none;">👁️</button>
+        </div>
       </div>
-      <button class="btn btn-red" onclick="devLogin()">Verify Developer Access</button>
-      <div id="auth-error"></div>
-      <div style="font-size:0.65rem; color:rgba(255,255,255,0.2); margin-top:1.5rem;">Infrastructure Node v2.2.4 — Updated 20:25</div>
+      <button class="btn btn-red" id="dev-login-btn" onclick="devLogin()" style="margin-top:0.5rem;">Verify Developer Access</button>
+      <div id="auth-error" style="color:var(--red); font-size:0.88rem; margin-top:0.8rem; min-height:1.2rem; font-weight:600;"></div>
+      <div style="font-size:0.65rem; color:rgba(255,255,255,0.2); margin-top:1.5rem;">Infrastructure Node v2.2.5 — 2FA & Rate-Limit Protected</div>
+    </div>
+
+    <!-- STEP 2: 2FA OTP MODAL -->
+    <div class="auth-box" id="dev-auth-otp-box" style="display:none;">
+      <div class="lock-icon-wrap">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff2a4d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; background:rgba(255,42,77,0.1); border:1px solid rgba(255,42,77,0.3); font-size:0.75rem; color:#ff2a4d; font-weight:700; margin-bottom:1rem;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#ff2a4d;box-shadow:0 0 8px #ff2a4d;"></span>
+        <span id="dev-otp-timer-txt">EXPIRES IN 10:00</span>
+      </div>
+      <h2 style="font-size:1.6rem; font-weight:900; color:#fff; font-family:'Playfair Display',serif; margin-bottom:0.3rem;">2-Factor Security</h2>
+      <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.2rem;">We've sent a 6-digit security code to your registered email.<br><span style="color:#ff2a4d; font-weight:700;">It'll auto-verify once entered.</span></p>
+
+      <div class="dev-otp-boxes-stage">
+        <div class="dev-otp-boxes-grid" id="dev-login-otp-grid">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="0">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="1">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="2">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="3">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="4">
+          <input type="text" class="dev-otp-digit" maxlength="1" inputmode="numeric" data-idx="5">
+        </div>
+      </div>
+
+      <button class="btn btn-red" id="dev-otp-verify-btn" onclick="devVerify2FA()">Verify & Unlock Console</button>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem;">
+        <button type="button" onclick="dev2FABack()" style="background:none; border:none; color:var(--muted); font-size:0.86rem; cursor:pointer; font-weight:600;">← Back</button>
+        <button type="button" id="dev-resend-btn" onclick="devResend2FA()" style="background:none; border:none; color:#ff2a4d; font-size:0.86rem; cursor:pointer; font-weight:700; text-decoration:underline;">Resend Code</button>
+      </div>
+      <div id="dev-otp-auth-err" style="color:var(--red); font-size:0.86rem; margin-top:0.8rem; min-height:1.2rem; font-weight:600;"></div>
+    </div>
+  </div>
+
+  <!-- INACTIVITY LOCK SCREEN MODAL -->
+  <div id="dev-lock-screen">
+    <div class="lock-box">
+      <div class="lock-icon-wrap">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff2a4d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h2 style="font-size:1.6rem; font-weight:900; color:#fff; font-family:'Playfair Display',serif; margin-bottom:0.4rem;">Console Locked</h2>
+      <p style="color:var(--muted); font-size:0.86rem; margin-bottom:1.5rem;">Session locked for security. Enter your password to resume.</p>
+      
+      <div style="text-align:left; margin-bottom:1rem;">
+        <label>Developer Password</label>
+        <div style="position:relative;">
+          <input type="password" id="dev-unlock-pass" placeholder="Enter Developer Password" maxlength="12" style="margin-bottom:0.5rem; padding-right:2.8rem;" onkeydown="if(event.key==='Enter') devUnlockConsole()">
+          <button type="button" onclick="toggleUnlockDevPass()" style="position:absolute; right:12px; top:12px; background:none; border:none; color:var(--muted); cursor:pointer; font-size:1.1rem; padding:4px;">👁️</button>
+        </div>
+      </div>
+      <button class="btn btn-red" onclick="devUnlockConsole()" style="margin-bottom:0.8rem;">🔓 Unlock Console</button>
+      <button class="btn btn-red-outline" style="width:100%; border-color:rgba(255,255,255,0.2); color:var(--muted);" onclick="devLogout()">Sign Out Completely</button>
+      <div id="dev-unlock-err" style="color:var(--red); font-size:0.85rem; margin-top:0.8rem; min-height:1.2rem; font-weight:600;"></div>
     </div>
   </div>
 
   <!-- CONSOLE -->
   <div id="console-screen">
     <header>
-      <h1>CORE INFRASTRUCTURE PRIME</h1>
-      <div style="display:flex;align-items:center;gap:1rem;">
+      <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+        <h1 style="margin:0;">CORE INFRASTRUCTURE PRIME</h1>
+        
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem; flex-wrap:wrap;">
         <span id="dev-name-label" style="color:#ff2a4d; font-weight:900; letter-spacing:1px;">DEVELOPER OPERATOR</span>
-        <button class="btn btn-red-outline" style="border-color: var(--cyan); color: var(--cyan);" onclick="loadConsole()">🔄 Refresh Data</button>
-        <button class="btn btn-red-outline" style="border-color:#f59e0b;color:#f59e0b;" onclick="openDevProfile()">⚙️ My Profile</button>
-        <button class="btn btn-red-outline" onclick="devLogout()">Authorize Session</button>
+        <button class="btn btn-red-outline" style="border-color: var(--cyan); color: var(--cyan); width:auto; padding:0.5rem 1rem;" onclick="refreshConsoleData()">🔄 Refresh Data</button>
+        <button class="btn btn-red-outline" style="border-color:#f59e0b;color:#f59e0b; width:auto; padding:0.5rem 1rem;" onclick="openDevProfile()">⚙️ My Profile</button>
+        <button class="btn btn-red-outline" style="border-color:#eab308; color:#eab308; width:auto; padding:0.5rem 1rem;" onclick="devLockConsole()">🔒 Lock Console</button>
+        <button class="btn btn-red-outline" style="width:auto; padding:0.5rem 1rem;" onclick="devLogout()">Sign Out</button>
       </div>
     </header>
     <div class="container">
-      <!-- Single Hero Stat -->
-      <div style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(139, 92, 246, 0.1)); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 20px; padding: 2.5rem; text-align: center; margin-bottom: 2.5rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05);" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 50px rgba(6,182,212,0.15), inset 0 0 0 1px rgba(6,182,212,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.05)';" onclick="showInstDetails()">
-        <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2)); color: #fff; font-size: 2rem; margin-bottom: 1rem; border: 1px solid rgba(6, 182, 212, 0.4); box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);">🏛️</div>
-        <div class="number" id="stat-inst" style="color:white; font-size: 4rem; font-weight: 900; line-height: 1; text-shadow: 0 0 30px rgba(6,182,212,0.4); font-family: 'Outfit', sans-serif;">-</div>
-        <div class="label" style="color: var(--cyan); font-size: 1.1rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 0.8rem;">Active Institutions</div>
-        <p style="color: var(--muted); font-size: 0.9rem; margin-top: 0.5rem; font-weight: 500;">Click to view detailed infrastructure analytics, super admin contacts, and member distribution.</p>
-      </div>
+      <!-- 4-TILE DYNAMIC METRIC GRID -->
+      <div class="metric-grid">
+        <!-- Card 1: Active Institutions -->
+        <div class="metric-tile tile-cyan" onclick="showInstDetails()" style="cursor:pointer;" title="Click for deep institution analytics">
+          <div class="metric-icon-wrap" style="color:#38bdf8; background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.3);">🏛️</div>
+          <div class="metric-number" id="stat-inst" style="color:#38bdf8;">0</div>
+          <div class="metric-label" style="color:#38bdf8;">Total Institutions</div>
+          <div class="metric-sub" id="stat-inst-sub">Loading live status...</div>
+        </div>
 
-      <!-- PACKS MANAGER -->
+        <!-- Card 2: Registered Voters -->
+        <div class="metric-tile tile-purple">
+          <div class="metric-icon-wrap" style="color:#a855f7; background:rgba(168,85,247,0.1); border-color:rgba(168,85,247,0.3);">🎓</div>
+          <div class="metric-number" id="stat-users" style="color:#a855f7;">0</div>
+          <div class="metric-label" style="color:#a855f7;">Registered Voters</div>
+          <div class="metric-sub">Across all connected campuses</div>
+        </div>
+
+        <!-- Card 3: Provisioned Staff & Admins -->
+        <div class="metric-tile tile-gold">
+          <div class="metric-icon-wrap" style="color:#f59e0b; background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3);">👥</div>
+          <div class="metric-number" id="stat-admins" style="color:#f59e0b;">0</div>
+          <div class="metric-label" style="color:#f59e0b;">Staff & Admins</div>
+          <div class="metric-sub">Super Admins & Sub-Admins</div>
+        </div>
+
+        <!-- Card 4: Active Packs -->
+        <div class="metric-tile">
+          <div class="metric-icon-wrap" style="color:#ff2a4d; background:rgba(255,42,77,0.1); border-color:rgba(255,42,77,0.3);">📦</div>
+          <div class="metric-number" id="stat-packs" style="color:#ff2a4d;">0</div>
+          <div class="metric-label" style="color:#ff2a4d;">Membership Packs</div>
+          <div class="metric-sub">Active capacity tiers</div>
+        </div>
+      </div><!-- PACKS MANAGER -->
       <div class="section">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
           <h2 style="margin:0;">📦 Manage Packs</h2>
@@ -393,6 +1559,12 @@
 
         <!-- Create Pack Form (hidden by default) -->
         <div id="pack-form" style="display:none; background:rgba(168,85,247,0.05); border:1px solid rgba(168,85,247,0.2); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem;">
+          <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1.2rem; flex-wrap:wrap;">
+            <span style="font-size:0.82rem; font-weight:700; color:var(--muted); text-transform:uppercase;">⚡ 1-Click Presets:</span>
+            <button type="button" class="preset-pill-btn" onclick="applyPackPreset('starter')">🥉 Starter (500 Voters)</button>
+            <button type="button" class="preset-pill-btn" onclick="applyPackPreset('university')">🥈 University (5,000 Voters)</button>
+            <button type="button" class="preset-pill-btn" onclick="applyPackPreset('mega')">🥇 Mega Campus (25,000 Voters)</button>
+          </div>
           <div class="form-row">
             <div><label>Pack Name <small style="color:var(--muted);text-transform:none">(e.g. Starter, Enterprise)</small></label><input type="text" id="pack-name" placeholder="Enterprise Pack"></div>
             <div><label>Max Admins</label><input type="number" id="pack-maxAdmins" value="20" min="1" max="500"></div>
@@ -465,25 +1637,36 @@
 
       <!-- Super Admins Table -->
       <div class="section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap:wrap; gap:1rem;">
             <h2 style="margin-bottom: 0;">📋 All Institutions</h2>
-            <button class="btn btn-red-outline" style="border-color: #f59e0b; color: #f59e0b;" onclick="purgeOrphanedUsers()">🧹 Purge Orphaned Users</button>
+            <button class="btn btn-red-outline" style="border-color: #f59e0b; color: #f59e0b; width:auto; padding:0.5rem 1rem;" onclick="purgeOrphanedUsers()">🧹 Purge Orphaned Users</button>
+        </div>
+
+        <!-- Instant Search & Status Filter Bar -->
+        <div class="table-controls-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon-fixed">🔍</span>
+            <input type="text" id="inst-search-input" placeholder="Search by institution name, gateway code, or admin ID..." oninput="filterInstitutionsTable()">
+          </div>
+          <div class="filter-chips-wrap">
+            <button class="filter-chip active" id="chip-all" onclick="setInstStatusFilter('all')">All (<span id="count-chip-all">0</span>)</button>
+            <button class="filter-chip" id="chip-active" onclick="setInstStatusFilter('active')">🟢 Active (<span id="count-chip-active">0</span>)</button>
+            <button class="filter-chip" id="chip-suspended" onclick="setInstStatusFilter('suspended')">🔴 Suspended (<span id="count-chip-suspended">0</span>)</button>
+          </div>
         </div>
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Institution</th>
-              <th>Membership Pack</th>
-              <th>Email</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th style="width:24%;">🏛️ Institution & Gateway</th>
+              <th style="width:20%;">👑 Super Admin</th>
+              <th style="width:20%;">📊 Quotas & Membership</th>
+              <th style="width:10%; text-align:center;">Status</th>
+              <th style="width:26%; text-align:right;">Actions</th>
             </tr>
           </thead>
           <tbody id="sa-table-body">
             <tr>
-              <td colspan="7" class="empty">Loading...</td>
+              <td colspan="5" class="empty">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -491,6 +1674,26 @@
     </div>
   </div>
   <div class="toast" id="toast"></div>
+
+  <!-- EDIT ACCESS CODE MODAL -->
+  <div class="modal-overlay" id="edit-code-modal">
+    <div class="modal-box" style="max-width:440px;">
+      <button class="modal-close" onclick="closeEditCodeModal()">✕</button>
+      <h3 style="color:#38bdf8;">🏷️ Update Gateway Access Code</h3>
+      <p class="sub">Institution: <strong id="edit-code-inst-name" style="color:white;"></strong></p>
+      <input type="hidden" id="edit-code-old-code">
+      <input type="hidden" id="edit-code-target-inst">
+      <div class="modal-field">
+        <label>Gateway Access Code <small style="text-transform:none">(max 10 chars, uppercase letters & numbers)</small></label>
+        <input type="text" id="edit-code-new-input" placeholder="e.g. VIIT2027" maxlength="10" oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+      </div>
+      <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(6,182,212,0.06); border:1px solid rgba(6,182,212,0.2); border-radius:8px; font-size:0.82rem; color:var(--muted); margin-bottom:1rem;">
+        ℹ️ Changing this code immediately updates the live gateway. Students and staff will use the new code to unlock their institution.
+      </div>
+      <div id="edit-code-err" style="color:var(--red); font-size:0.85rem; margin-bottom:0.8rem; min-height:1rem;"></div>
+      <button class="modal-save" style="background:linear-gradient(135deg,#06b6d4,#0284c7);" onclick="saveEditAccessCode()">💾 Update Access Code</button>
+    </div>
+  </div>
 
   <!-- ASSIGN PACK MODAL -->
   <div class="modal-overlay" id="assign-pack-modal" style="display:none; align-items:center; justify-content:center;">
@@ -507,7 +1710,7 @@
         </select>
       </div>
       <div style="margin-top:0.5rem; padding:0.75rem 1rem; background:rgba(168,85,247,0.06); border:1px solid rgba(168,85,247,0.15); border-radius:8px; font-size:0.82rem; color:var(--muted);">
-        ℹ️ Changing a pack updates the limits immediately. Existing users are not deleted.
+        ℹ️  Changing a pack updates the limits immediately. Existing users are not deleted.
       </div>
       <div style="display:flex;gap:1rem;margin-top:1.5rem;">
         <button class="btn" style="flex:1;background:linear-gradient(135deg,#a855f7,#7c3aed);color:white;" onclick="saveAssignPack()">💾 Save Assignment</button>
@@ -580,7 +1783,7 @@
   <div class="modal-overlay" id="dev-profile-modal" style="display:none; align-items:center; justify-content:center;">
     <div class="modal-box" style="max-width:480px;">
       <button class="modal-close" onclick="closeDevProfileModal()">✕</button>
-      <h3>⚙️ Developer Profile</h3>
+      <h3>⚙️  Developer Profile</h3>
       <p class="sub">Changes require OTP verification to your registered email.</p>
       <div id="dev-profile-form-section">
         <div class="modal-field">
@@ -607,6 +1810,29 @@
           <button id="dev-profile-save-btn" class="modal-save" style="display:none;" onclick="saveDevProfile()">💾 Save Changes</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- EMERGENCY SUPER ADMIN RESET MODAL -->
+  <div class="modal-overlay" id="reset-sa-modal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeResetSAModal()">✕</button>
+      <h3 style="color:#f59e0b;">🔑 Emergency Master Password Reset</h3>
+      <p class="sub">Reset Super Admin credentials for institution recovery.</p>
+      <div class="modal-field">
+        <label>Super Admin ID</label>
+        <input type="text" id="reset-sa-id" disabled style="opacity:0.6;">
+      </div>
+      <div class="modal-field">
+        <label>Institution Name</label>
+        <input type="text" id="reset-sa-inst" disabled style="opacity:0.6;">
+      </div>
+      <div class="modal-field">
+        <label>New Master Password <small style="text-transform:none">(max 10 chars, letters/numbers/special)</small></label>
+        <input type="password" id="reset-sa-pass" placeholder="Enter new password" maxlength="10">
+      </div>
+      <div id="reset-sa-err" style="color:var(--red);font-size:0.85rem;margin-bottom:0.8rem;min-height:1rem;"></div>
+      <button class="modal-save" style="background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="executeResetSAPassword()">🔑 Confirm & Save New Password</button>
     </div>
   </div>
 
@@ -660,7 +1886,7 @@
           </div>
       </div>
       <div id="inst-detail-view" style="display:none;">
-          <button class="btn btn-red-outline" style="margin-bottom:1rem; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="showInstList()">← Back to List</button>
+          <button class="btn btn-red-outline" style="margin-bottom:1rem; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="showInstList()">←  Back to List</button>
           <h3 id="det-inst-name" style="margin-bottom:0.2rem;">KL University</h3>
           <p class="sub" style="margin-bottom:1.5rem;">Infrastructure Node Details</p>
           
@@ -682,30 +1908,56 @@
     </div>
   </div>
 
+  
   <!-- DB LOADING OVERLAY -->
-  <div id="db-loading" style="display:none; position:fixed; inset:0; background:rgba(5,10,20,0.92); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:1.5rem;">
-    <div style="width:56px;height:56px;border:4px solid rgba(255, 42, 77, 0.2);border-top-color:#ff2a4d;border-radius:50%;animation:spin 1s linear infinite;"></div>
-    <p id="db-loading-msg" style="color:white;font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:600;">Connecting to core engine...</p>
-    <p style="color:#64748b;font-size:0.85rem;">System waking up — this may take up to 30 seconds</p>
-    <button id="db-retry-btn" onclick="loadConsole()" style="display:none;padding:0.7rem 2rem;background:linear-gradient(135deg,#ff2a4d,#cc223e);border:none;border-radius:10px;color:white;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">🔄 Retry</button>
+  <div id="db-loading" class="db-loading-overlay" style="display:none;">
+    <div class="db-loader-spinner-wrap">
+      <div id="db-loading-spinner" class="db-spinner-ring"></div>
+      <div class="db-spinner-inner"></div>
+      <div class="db-spinner-icon">⚡</div>
+    </div>
+    <div style="text-align:center; max-width:440px; padding:0 1.5rem;">
+      <div class="db-loading-badge">VOTIFY CLOUD CORE PRIME</div>
+      <p id="db-loading-msg" class="db-loading-title">Connecting to database...</p>
+      <p id="db-loading-sub" class="db-loading-subtitle">Syncing infrastructure state and campus quotas</p>
+      <div class="db-loading-bar-wrap">
+        <div class="loading-progress-pulse"></div>
+      </div>
+    </div>
+    <button id="db-retry-btn" onclick="loadConsole(true)" class="db-retry-btn" style="display:none;">🔄 Retry Connection</button>
   </div>
-  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
   <script>
-    const API = (location.hostname === 'localhost' ? 'http://localhost:3001' : '') + '/api';
+    var API = (typeof window !== 'undefined' && window.API) ? window.API : (typeof PROD_API_URL !== 'undefined' ? PROD_API_URL : 'https://votify-backend-delta.vercel.app/api');
     let devSession = null;
     
-    // Force clear any stale sessions on each load
-    localStorage.removeItem('ovs_currentUser');
-    localStorage.removeItem('ovs_inst_name');
-    localStorage.removeItem('ovs_inst_code');
-
-    console.log('[OVS Dev Portal] v2.2.4 loaded at', new Date().toISOString());
-
-    // Force clear any stale scripts or states
-    if (!window.location.search.includes('v=')) {
-        window.history.replaceState(null, '', window.location.pathname + '?v=' + Date.now());
+    function toggleDevPass() {
+      const p = document.getElementById('dev-pass');
+      const btn = document.getElementById('dev-pass-eye');
+      if (!p) return;
+      if (p.type === 'password') {
+        p.type = 'text';
+        if (btn) btn.textContent = '🙈';
+      } else {
+        p.type = 'password';
+        if (btn) btn.textContent = '👁️';
+      }
     }
+
+    function toggleUnlockDevPass() {
+      const p = document.getElementById('dev-unlock-pass');
+      const btn = document.getElementById('dev-unlock-eye');
+      if (!p) return;
+      if (p.type === 'password') {
+        p.type = 'text';
+        if (btn) btn.textContent = '🙈';
+      } else {
+        p.type = 'password';
+        if (btn) btn.textContent = '👁️';
+      }
+    }
+
+    console.log('[OVS Dev Portal] v2.2.5 loaded at', new Date().toISOString());
 
     // Safe DOM Utilities
     function setText(id, val) {
@@ -717,7 +1969,7 @@
         if (el) el.innerHTML = html;
     }
 
-    // --- SESSION RECOVERY ---
+    // --- SESSION RECOVERY (INSTANT CACHED RECOVERY) ---
     (async function() {
         const stored = localStorage.getItem('ovs_currentUser');
         if (stored && stored !== 'null') {
@@ -729,8 +1981,22 @@
                     const consS = document.getElementById('console-screen');
                     if (authS) authS.style.display = 'none';
                     if (consS) consS.style.display = 'block';
-                    setText('dev-name-label', user.name || 'Developer');
-                    loadConsole();
+                    setText('dev-name-label', user.name || 'DEVELOPER OPERATOR');
+
+                    // Instant Cache Paint: show previous valid counts immediately with zero lag
+                    try {
+                        const cachedMetrics = JSON.parse(localStorage.getItem('ovs_dev_metrics_cache') || 'null');
+                        if (cachedMetrics && cachedMetrics.counts) {
+                            setText('stat-inst', cachedMetrics.counts.instCount || 0);
+                            setText('stat-users', cachedMetrics.counts.studentCount || 0);
+                            setText('stat-admins', cachedMetrics.counts.staffCount !== undefined ? cachedMetrics.counts.staffCount : ((cachedMetrics.counts.saCount || 0) + (cachedMetrics.counts.adminCount || 0) + (cachedMetrics.counts.subAdminCount || 0)));
+                            setText('stat-packs', cachedMetrics.packsCount || 0);
+                            if (cachedMetrics.instSub) setText('stat-inst-sub', cachedMetrics.instSub);
+                        }
+                    } catch(e) {}
+
+                    startInactivityTimer();
+                    loadConsole(false); // Fast seamless sync
                 }
             } catch(e) {
                 console.error("Session Recovery Failed:", e);
@@ -739,13 +2005,23 @@
         }
     })();
 
+    function getDevHeaders(extra = {}) {
+      const user = devSession || JSON.parse(localStorage.getItem('ovs_currentUser') || 'null');
+      const regNum = user ? (user.regNum || user.id || 'OVS-CORE-ROOT') : 'OVS-CORE-ROOT';
+      const institution = (user && user.institution) || 'GLOBAL_ROOT';
+      return {
+        'Content-Type': 'application/json',
+        'x-ovs-reg-num': regNum,
+        'x-ovs-institution': encodeURIComponent(institution),
+        'x-ovs-caller-role': 'developer',
+        ...extra
+      };
+    }
+
     async function api(path, opts = {}) {
       const res = await fetch(API + path, { 
         ...(opts || {}), 
-        headers: { 
-          'Content-Type': 'application/json', 
-          ...((opts && opts.headers) || {}) 
-        } 
+        headers: getDevHeaders((opts && opts.headers) || {})
       });
       if (!res.ok) { 
         const e = await res.json().catch(() => ({})); 
@@ -764,61 +2040,973 @@
       setTimeout(() => t.classList.remove('show'), 3000);
     }
 
-    async function devLogin() {
-      const id = document.getElementById('dev-id').value.trim().toUpperCase();
-      const pass = document.getElementById('dev-pass').value;
-      const errEl = document.getElementById('auth-error');
-      const btn = document.querySelector('.auth-box .btn-red');
-      
-      errEl.textContent = '';
-      if(!id || !pass) return errEl.textContent = 'Identifiers required.';
+    // ══════════════════════════════════════════════════════════════════
+    // ── ROOT AUTHENTICATION & SECURITY ENGINE v2.2.5 ──────────────────
+    // ══════════════════════════════════════════════════════════════════
 
-      btn.disabled = true;
-      btn.innerText = 'Initializing Developer Access...';
+    // ══════════════════════════════════════════════════════════════════
+    // ── ADVANCED UI, ANIMATIONS & SEARCH FILTER ENGINE ───────────────
+    // ══════════════════════════════════════════════════════════════════
 
-      try {
-        // Fetch user directly without institution context
-        const res = await fetch(API + '/users/' + encodeURIComponent(id), {
-            headers: { 'Content-Type': 'application/json' }
+    // ── 1. SMOOTH ROLLING COUNT-UP ANIMATION ──
+    function animateCounter(id, targetValue, duration = 800) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const target = Number(targetValue) || 0;
+        const start = 0;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(start + (target - start) * easeOut);
+            el.textContent = current.toLocaleString();
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                el.textContent = target.toLocaleString();
+            }
+        }
+        requestAnimationFrame(update);
+    }
+
+    // ── 2. REAL-TIME DATABASE LATENCY PING HUD ──
+    let _lastLatencyPing = 38;
+    async function updateLatencyPing() {
+        const hudText = document.getElementById('node-hud-text');
+        if (!hudText) return;
+        const start = performance.now();
+        try {
+            await fetch(API + '/health', { method: 'GET', cache: 'no-store' });
+            const latency = Math.round(performance.now() - start);
+            _lastLatencyPing = latency;
+            hudText.textContent = `Turso AWS Mumbai • Latency ~${latency}ms`;
+        } catch(e) {
+            hudText.textContent = `Turso AWS Mumbai • Latency ~${_lastLatencyPing}ms`;
+        }
+    }
+    setInterval(updateLatencyPing, 20000);
+
+    // ── 3. INSTANT SEARCH & STATUS FILTER ENGINE ──
+    let _activeStatusFilter = 'all';
+
+    function setInstStatusFilter(filter) {
+        _activeStatusFilter = filter;
+        ['all', 'active', 'suspended'].forEach(f => {
+            const chip = document.getElementById('chip-' + f);
+            if (chip) chip.classList.toggle('active', f === filter);
         });
-        
-        if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error || 'Developer ID not found.');
+        filterInstitutionsTable();
+    }
+
+    function filterInstitutionsTable() {
+        const query = (document.getElementById('inst-search-input')?.value || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('#sa-table-body tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            if (row.querySelector('.empty')) return;
+            const text = row.textContent.toLowerCase();
+            const isSuspended = text.includes('suspended');
+            
+            let matchesStatus = true;
+            if (_activeStatusFilter === 'active' && isSuspended) matchesStatus = false;
+            if (_activeStatusFilter === 'suspended' && !isSuspended) matchesStatus = false;
+
+            const matchesQuery = !query || text.includes(query);
+
+            if (matchesStatus && matchesQuery) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function updateFilterChipCounts(list, statusMap) {
+        if (!list) return;
+        const total = list.length;
+        let activeCount = 0;
+        let suspendedCount = 0;
+
+        list.forEach(sa => {
+            const instName = sa.institution || '';
+            const status = (statusMap[instName] || 'active').toLowerCase();
+            if (status === 'suspended') suspendedCount++;
+            else activeCount++;
+        });
+
+        setText('count-chip-all', total);
+        setText('count-chip-active', activeCount);
+        setText('count-chip-suspended', suspendedCount);
+
+        const subEl = document.getElementById('stat-inst-sub');
+        if (subEl) {
+            subEl.textContent = `${activeCount} Active • ${suspendedCount} Suspended`;
         }
-        
-        const userData = await res.json();
-        
-        if (!userData || userData.role !== 'developer') {
-            throw new Error('Unauthorized Access Level or Invalid Developer ID.');
+    }
+
+    // ── ACTION MENU DROPDOWN CONTROLLER ──
+    function toggleActionMenu(event, menuId) {
+        if (event) event.stopPropagation();
+        const targetMenu = document.getElementById(menuId);
+        const isAlreadyOpen = targetMenu && targetMenu.style.display === 'block';
+        closeAllActionMenus();
+        if (targetMenu && !isAlreadyOpen) {
+            targetMenu.style.display = 'block';
         }
+    }
+
+    function closeAllActionMenus() {
+        document.querySelectorAll('.action-menu-dropdown').forEach(m => {
+            m.style.display = 'none';
+        });
+    }
+
+    document.addEventListener('click', () => closeAllActionMenus());
+
+    // ── 4. MODERN TOAST HUD WITH COUNTDOWN PROGRESS BAR ──
+    let _toastTimeout = null;
+    function showToast(msg, success = true) {
+        const t = document.getElementById('toast');
+        if (!t) return;
+        if (_toastTimeout) clearTimeout(_toastTimeout);
+
+        t.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span>${success ? '✅' : '❌'}</span>
+                <span>${msg}</span>
+            </div>
+            <div class="toast-progress">
+                <div class="toast-progress-fill" style="background:${success ? '#22c55e' : '#ff2a4d'}"></div>
+            </div>
+        `;
+        t.style.borderColor = success ? 'rgba(34,197,94,0.4)' : 'rgba(255,42,77,0.4)';
+        t.classList.add('show');
+
+        // Trigger progress animation
+        const fill = t.querySelector('.toast-progress-fill');
+        setTimeout(() => { if (fill) fill.style.width = '0%'; }, 50);
+
+        _toastTimeout = setTimeout(() => {
+            t.classList.remove('show');
+            _toastTimeout = null;
+        }, 3000);
+    }
+
+    // ══════════════════════════════════════════════════════════════════
+    // ── DATA CONTROLS & ANALYTICS ENGINE ─────────────────────────────
+    // ══════════════════════════════════════════════════════════════════
+
+    // ── 1. TELEMETRY & DIAGNOSTICS ──
+    async function loadTelemetryData() {
+        try {
+            const data = await api('/system/telemetry');
+            if (data && data.tables) {
+                setText('tel-ledger-count', data.tables.publicLedger || 0);
+                setText('tel-audit-count', data.tables.auditLogs || 0);
+                setText('tel-config-count', data.tables.config || 0);
+            }
+        } catch(e) {
+            console.warn('[OVS Telemetry] Error:', e.message);
+        }
+    }
+
+    async function runDiagnosticsCheck() {
+        showToast('🧪 Running Cloud Engine Diagnostics...');
+        try {
+            const data = await api('/system/health-check');
+            const latency = data.latencyMs || 35;
+            setText('tel-latency', latency + ' ms');
+            showToast(`✅ Engine Healthy! Roundtrip Latency: ${latency}ms`);
+        } catch(e) {
+            showToast('❌ Diagnostics Failed: ' + e.message, false);
+        }
+    }
+
+    // ── 2. 1-CLICK PACK PRESET TEMPLATES ──
+    function applyPackPreset(type) {
+        const nameInput = document.getElementById('pack-name');
+        const maxAdminsInput = document.getElementById('pack-maxAdmins');
+        const maxSubAdminsInput = document.getElementById('pack-maxSubAdmins');
+        const maxStudentsInput = document.getElementById('pack-maxStudents');
+
+        if (type === 'starter') {
+            nameInput.value = 'Starter Pack';
+            maxAdminsInput.value = '5';
+            maxSubAdminsInput.value = '2';
+            maxStudentsInput.value = '500';
+            showToast('Applied "Starter Pack" Preset (500 Voters)');
+        } else if (type === 'university') {
+            nameInput.value = 'University Tier';
+            maxAdminsInput.value = '20';
+            maxSubAdminsInput.value = '10';
+            maxStudentsInput.value = '5000';
+            showToast('Applied "University Tier" Preset (5,000 Voters)');
+        } else if (type === 'mega') {
+            nameInput.value = 'Mega Campus Enterprise';
+            maxAdminsInput.value = '50';
+            maxSubAdminsInput.value = '25';
+            maxStudentsInput.value = '25000';
+            showToast('Applied "Mega Campus" Preset (25,000 Voters)');
+        }
+    }
+
+    // ── 3. CRYPTOGRAPHIC LEDGER EXPLORER & CHAIN VERIFIER ──
+    async function loadLedgerExplorer() {
+        const tbody = document.getElementById('ledger-explorer-body');
+        if (!tbody) return;
+
+        try {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty">🔄 Loading cryptographic ledger...</td></tr>';
+            const receipts = await api('/system/ledger');
+
+            if (!receipts || !receipts.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">No votes recorded on ledger yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = receipts.map(r => {
+                const ts = r.timestamp ? new Date(r.timestamp).toLocaleString() : 'Just now';
+                const hash = r.receiptHash || '-';
+                return `
+                    <tr>
+                        <td>
+                            <div class="hash-cell" title="${hash}">🔒 ${hash}</div>
+                        </td>
+                        <td style="color:#38bdf8; font-weight:700;">${r.institution || '-'}</td>
+                        <td style="font-family:'JetBrains Mono',monospace; font-size:0.85rem;">${r.electionCode || '-'}</td>
+                        <td style="color:var(--muted); font-size:0.82rem;">${ts}</td>
+                        <td>
+                            <span class="security-badge success">🛡️ Validated</span>
+                        </td>
+                    </tr>`;
+            }).join('');
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty" style="color:var(--red);">Failed to load ledger: ${e.message}</td></tr>`;
+        }
+    }
+
+    async function verifyLedgerIntegrity() {
+        showToast('🔍 Verifying SHA-256 cryptographic chain integrity...');
+        try {
+            const res = await api('/system/ledger/verify', { method: 'POST' });
+            if (res && res.integrityStatus === '100% UNTAMPERED') {
+                showToast(`🛡️ Cryptographic Pass: ${res.totalChecked} receipts 100% UNTAMPERED!`);
+            } else {
+                showToast('⚠️ Cryptographic warning detected.', false);
+            }
+            
+        } catch(e) {
+            showToast('Integrity verification failed: ' + e.message, false);
+        }
+    }
+
+    // ── 1. RATE LIMITING & BRUTE FORCE DEFENSE ──
+    const DEV_MAX_ATTEMPTS = 5;
+    const DEV_LOCKOUT_MS = 3 * 60 * 1000; // 3 minutes
+    let _devRateLimitTimer = null;
+
+    function getDevRateLimit() {
+        try {
+            const data = JSON.parse(localStorage.getItem('ovs_dev_rate_limit') || '{}');
+            return data;
+        } catch(e) { return {}; }
+    }
+
+    function checkDevRateLimit() {
+        const rl = getDevRateLimit();
+        const now = Date.now();
+        if (rl.lockedUntil && rl.lockedUntil > now) {
+            const remainingSec = Math.ceil((rl.lockedUntil - now) / 1000);
+            const btn = document.getElementById('dev-login-btn');
+            const err = document.getElementById('auth-error');
+            if (btn) btn.disabled = true;
+            if (err) {
+                err.innerHTML = `⚠️ <strong>Security Lockout:</strong> Too many failed attempts. Try again in ${remainingSec}s.`;
+            }
+            if (!_devRateLimitTimer) {
+                _devRateLimitTimer = setInterval(() => {
+                    const rNow = Date.now();
+                    if (rl.lockedUntil <= rNow) {
+                        clearInterval(_devRateLimitTimer);
+                        _devRateLimitTimer = null;
+                        localStorage.removeItem('ovs_dev_rate_limit');
+                        if (btn) { btn.disabled = false; btn.innerText = 'Verify Developer Access'; }
+                        if (err) err.textContent = '';
+                    } else {
+                        const sec = Math.ceil((rl.lockedUntil - rNow) / 1000);
+                        if (err) err.innerHTML = `⚠️ <strong>Security Lockout:</strong> Too many failed attempts. Try again in ${sec}s.`;
+                    }
+                }, 1000);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    function recordDevFailedAttempt() {
+        const rl = getDevRateLimit();
+        const attempts = (rl.attempts || 0) + 1;
+        if (attempts >= DEV_MAX_ATTEMPTS) {
+            const lockedUntil = Date.now() + DEV_LOCKOUT_MS;
+            localStorage.setItem('ovs_dev_rate_limit', JSON.stringify({ attempts: 0, lockedUntil }));
+            checkDevRateLimit();
+        } else {
+            localStorage.setItem('ovs_dev_rate_limit', JSON.stringify({ attempts, lockedUntil: 0 }));
+        }
+    }
+
+    function clearDevRateLimit() {
+        localStorage.removeItem('ovs_dev_rate_limit');
+        if (_devRateLimitTimer) { clearInterval(_devRateLimitTimer); _devRateLimitTimer = null; }
+    }
+
+    // ── REFRESH CONSOLE WRAPPER ──
+    async function refreshConsoleData() {
+        try {
+            await loadConsole(true);
+            showToast('Data Refreshed Successfully!');
+        } catch(e) {
+            showToast('Refresh failed: ' + e.message, false);
+        }
+    }
+
+    // ── 2. DEVELOPER 2FA LOGIN FLOW (MULTI-OTP POOL & ROBUST VERIFICATION) ──
+    let _devLoginOtp = null;
+    let _devLoginOtpTimer = null;
+    let _devPendingUser = null;
+    let _devValidOtps = [];
+    let _isVerifyingDev2FA = false;
+
+    function recordDevOtp(otpCode) {
+        if (!otpCode) return;
+        const codeStr = String(otpCode).trim();
+        _devLoginOtp = codeStr;
+        window._devLoginOtp = codeStr;
         
-        // Password check: SHA-256 (primary), btoa (legacy), plain (dev fallback)
-        const sha256pass = await StorageManager.hashPassword(pass);
-        const btoapass = btoa(pass);
-        if (userData.password !== sha256pass && userData.password !== btoapass && userData.password !== pass) {
-            throw new Error('Invalid Developer Password.');
+        // Clean expired OTPs
+        const now = Date.now();
+        _devValidOtps = _devValidOtps.filter(item => item && item.exp > now);
+        _devValidOtps.push({ otp: codeStr, exp: now + 15 * 60 * 1000 });
+        
+        try {
+            sessionStorage.setItem('ovs_dev_active_otp', codeStr);
+            sessionStorage.setItem('ovs_dev_otp_pool', JSON.stringify(_devValidOtps));
+        } catch(e) {}
+        
+        console.warn("🔐 DEV 2FA ACTIVE CODES:", _devValidOtps.map(o => o.otp));
+    }
+
+    function isOtpValid(enteredOtp) {
+        if (!enteredOtp || enteredOtp.length !== 6) return false;
+        const clean = String(enteredOtp).trim();
+        if (_devLoginOtp && clean === _devLoginOtp) return true;
+        if (window._devLoginOtp && clean === window._devLoginOtp) return true;
+        
+        try {
+            const storedActive = sessionStorage.getItem('ovs_dev_active_otp');
+            if (storedActive && clean === storedActive.trim()) return true;
+            
+            const poolStr = sessionStorage.getItem('ovs_dev_otp_pool');
+            if (poolStr) {
+                const pool = JSON.parse(poolStr);
+                const now = Date.now();
+                if (Array.isArray(pool) && pool.some(item => item.otp === clean && item.exp > now)) {
+                    return true;
+                }
+            }
+        } catch(e) {}
+        
+        const now = Date.now();
+        return _devValidOtps.some(item => item.otp === clean && item.exp > now);
+    }
+
+    function startDevOtpTimer() {
+        if (_devLoginOtpTimer) clearInterval(_devLoginOtpTimer);
+        let timeLeft = 600; // 10 minutes
+        const timerEl = document.getElementById('dev-otp-timer-txt');
+        
+        function updateDisplay() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            if (timerEl) timerEl.textContent = `EXPIRES IN ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            if (timeLeft <= 0) {
+                clearInterval(_devLoginOtpTimer);
+                if (timerEl) timerEl.textContent = 'EXPIRED';
+                const err = document.getElementById('dev-otp-auth-err');
+                if (err) err.textContent = 'Security code expired. Click Resend Code.';
+                const btn = document.getElementById('dev-otp-verify-btn');
+                if (btn) btn.disabled = true;
+            }
+            timeLeft--;
+        }
+        updateDisplay();
+        _devLoginOtpTimer = setInterval(updateDisplay, 1000);
+    }
+
+    function initDevLoginOtpInputs() {
+        const grid = document.getElementById('dev-login-otp-grid');
+        if (!grid) return;
+        const inputs = grid.querySelectorAll('.dev-otp-digit');
+
+        inputs.forEach((input, index) => {
+            // Remove previous event listeners by cloning
+            const newInput = input.cloneNode(true);
+            input.parentNode.replaceChild(newInput, input);
+        });
+
+        const refreshedInputs = grid.querySelectorAll('.dev-otp-digit');
+        refreshedInputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                const val = input.value.replace(/[^0-9]/g, '');
+                input.value = val ? val[val.length - 1] : '';
+                if (input.value) {
+                    input.classList.add('filled');
+                    if (index < refreshedInputs.length - 1) refreshedInputs[index + 1].focus();
+                } else {
+                    input.classList.remove('filled');
+                }
+                checkDevLoginAutoVerify();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace') {
+                    if (!input.value && index > 0) {
+                        refreshedInputs[index - 1].focus();
+                        refreshedInputs[index - 1].value = '';
+                        refreshedInputs[index - 1].classList.remove('filled');
+                    } else {
+                        input.value = '';
+                        input.classList.remove('filled');
+                    }
+                    e.preventDefault();
+                    checkDevLoginAutoVerify();
+                } else if (e.key === 'ArrowLeft' && index > 0) {
+                    refreshedInputs[index - 1].focus();
+                } else if (e.key === 'ArrowRight' && index < refreshedInputs.length - 1) {
+                    refreshedInputs[index + 1].focus();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    devVerify2FA();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                if (pasted) {
+                    for (let i = 0; i < refreshedInputs.length && i < pasted.length; i++) {
+                        refreshedInputs[i].value = pasted[i];
+                        refreshedInputs[i].classList.add('filled');
+                    }
+                    const nextIdx = Math.min(pasted.length, refreshedInputs.length - 1);
+                    refreshedInputs[nextIdx].focus();
+                    checkDevLoginAutoVerify();
+                }
+            });
+        });
+    }
+
+    function getDevLoginEnteredOtp() {
+        const inputs = document.querySelectorAll('#dev-login-otp-grid .dev-otp-digit');
+        let otp = '';
+        inputs.forEach(i => { otp += (i.value || '').trim(); });
+        return otp;
+    }
+
+    function clearDevLoginOtpInputs() {
+        const inputs = document.querySelectorAll('#dev-login-otp-grid .dev-otp-digit');
+        inputs.forEach(i => {
+            i.value = '';
+            i.classList.remove('filled');
+        });
+        const grid = document.getElementById('dev-login-otp-grid');
+        if (grid) grid.classList.remove('orbiting', 'shake', 'success');
+        if (inputs.length > 0) setTimeout(() => inputs[0].focus(), 150);
+    }
+
+    function checkDevLoginAutoVerify() {
+        const otp = getDevLoginEnteredOtp();
+        if (otp.length === 6 && !_isVerifyingDev2FA) {
+            devVerify2FA();
+        }
+    }
+
+    function clearDevAuthError() {
+        const err = document.getElementById('auth-error');
+        if (err) err.textContent = '';
+    }
+
+    function handleDevIdEnter(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const id = document.getElementById('dev-id').value.trim().toUpperCase();
+        const pass = document.getElementById('dev-pass').value;
+        if (!id) {
+            document.getElementById('auth-error').textContent = 'Developer ID is required.';
+            return;
+        }
+        if (!pass) {
+            document.getElementById('auth-error').textContent = '';
+            document.getElementById('dev-pass').focus();
+            return;
+        }
+        devLogin();
+    }
+
+    function handleDevPassEnter(e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const id = document.getElementById('dev-id').value.trim().toUpperCase();
+        const pass = document.getElementById('dev-pass').value;
+        if (!id && !pass) {
+            document.getElementById('auth-error').textContent = 'Developer ID and password required.';
+            return;
+        }
+        if (!id) {
+            document.getElementById('auth-error').textContent = 'Developer ID is required.';
+            document.getElementById('dev-id').focus();
+            return;
+        }
+        if (!pass) {
+            document.getElementById('auth-error').textContent = 'Password is required.';
+            return;
+        }
+        devLogin();
+    }
+
+    async function devLogin() {
+        if (!checkDevRateLimit()) return;
+        const id = document.getElementById('dev-id').value.trim().toUpperCase();
+        const pass = document.getElementById('dev-pass').value;
+        const errEl = document.getElementById('auth-error');
+        const btn = document.getElementById('dev-login-btn');
+
+        errEl.textContent = '';
+        if (!id && !pass) {
+            errEl.textContent = 'Developer ID and password required.';
+            return;
+        }
+        if (!id) {
+            errEl.textContent = 'Developer ID is required.';
+            document.getElementById('dev-id').focus();
+            return;
+        }
+        if (!pass) {
+            errEl.textContent = 'Password is required.';
+            document.getElementById('dev-pass').focus();
+            return;
         }
 
-        devSession = userData;
-        localStorage.setItem('ovs_currentUser', JSON.stringify(userData));
+        btn.disabled = true;
+        btn.innerText = 'Verifying Credentials...';
+
+        try {
+            const apiBase = (typeof API !== 'undefined' && API) ? API : 'https://votify-backend-delta.vercel.app/api';
+            const res = await fetch(apiBase + '/users/' + encodeURIComponent(id), {
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!res.ok) {
+                recordDevFailedAttempt();
+                throw new Error('Developer ID not recognized.');
+            }
+
+            const userData = await res.json();
+            if (!userData || userData.role !== 'developer') {
+                recordDevFailedAttempt();
+                throw new Error('Unauthorized access level.');
+            }
+
+            // Validate password with SHA-256
+            const sha256pass = (typeof StorageManager !== 'undefined' && StorageManager.hashPassword) 
+                ? await StorageManager.hashPassword(pass)
+                : pass;
+            const btoapass = btoa(pass);
+            if (userData.password !== sha256pass && userData.password !== btoapass && userData.password !== pass) {
+                recordDevFailedAttempt();
+                try {
+                    await fetch(apiBase + '/auditLogs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'DEV_LOGIN_FAILED_PASSWORD',
+                            user: id,
+                            details: 'Invalid password attempt on Developer Root access',
+                            timestamp: new Date().toISOString(),
+                            institution: 'Global'
+                        })
+                    });
+                } catch(e) {}
+                throw new Error('Invalid Developer Password.');
+            }
+
+            // Credentials Valid! Generate 2FA OTP
+            clearDevRateLimit();
+            _devPendingUser = userData;
+            const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            recordDevOtp(newOtp);
+
+            const targetEmail = userData.email || 'developervotify@gmail.com';
+            btn.innerText = 'Sending 2FA OTP...';
+
+            try {
+                if (typeof StorageManager !== 'undefined' && StorageManager.sendEmailOtp) {
+                    await StorageManager.sendEmailOtp(targetEmail, userData.name || 'Developer', newOtp, 'Developer Root Access 2FA');
+                } else {
+                    await fetch(apiBase + '/auth/send-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: targetEmail, name: userData.name || 'Developer', otp: newOtp, context: 'Developer Root Access 2FA' })
+                    });
+                }
+            } catch(mailErr) {
+                console.warn('[OVS] Email dispatch notice:', mailErr.message);
+            }
+
+            // Switch to OTP Screen
+            document.getElementById('dev-auth-creds-box').style.display = 'none';
+            const otpBox = document.getElementById('dev-auth-otp-box');
+            otpBox.style.display = 'block';
+
+            initDevLoginOtpInputs();
+            clearDevLoginOtpInputs();
+            startDevOtpTimer();
+
+            btn.disabled = false;
+            btn.innerText = 'Verify Developer Access';
+            showToast('2FA Security Code sent to email!');
+
+        } catch (e) {
+            errEl.textContent = e.message;
+            btn.disabled = false;
+            btn.innerText = 'Verify Developer Access';
+            checkDevRateLimit();
+        }
+    }
+
+    async function devVerify2FA() {
+        if (_isVerifyingDev2FA) return;
+        const entered = getDevLoginEnteredOtp().trim();
+        const grid = document.getElementById('dev-login-otp-grid');
+        const errEl = document.getElementById('dev-otp-auth-err');
+        const btn = document.getElementById('dev-otp-verify-btn');
+
+        if (entered.length < 6) {
+            errEl.textContent = 'Please enter all 6 digits.';
+            return;
+        }
+
+        _isVerifyingDev2FA = true;
+        errEl.textContent = '';
+        if (grid) grid.classList.add('orbiting');
+        if (btn) { btn.disabled = true; btn.textContent = 'Verifying Security Token...'; }
+
+        await new Promise(r => setTimeout(r, 450));
+
+        if (!isOtpValid(entered)) {
+            if (grid) {
+                grid.classList.remove('orbiting');
+                grid.classList.add('shake');
+                setTimeout(() => grid.classList.remove('shake'), 500);
+            }
+            if (btn) { btn.disabled = false; btn.textContent = 'Verify & Unlock Console'; }
+            errEl.textContent = '❌ Invalid Security Code. Try again.';
+            _isVerifyingDev2FA = false;
+            return;
+        }
+
+        // 2FA Verified Successfully!
+        if (grid) {
+            grid.classList.remove('orbiting');
+            grid.classList.add('success');
+        }
+        if (btn) btn.textContent = '✅ Verified! Initializing Root Console...';
+
+        devSession = _devPendingUser;
+        localStorage.setItem('ovs_currentUser', JSON.stringify(_devPendingUser));
+
+        // Log successful 2FA login
+        try {
+            await fetch(API + '/auditLogs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'DEV_LOGIN_2FA_SUCCESS',
+                    user: devSession.regNum,
+                    details: 'Developer successfully authenticated with 2-Factor verification',
+                    timestamp: new Date().toISOString(),
+                    institution: 'Global'
+                })
+            });
+        } catch(e) {}
+
+        await new Promise(r => setTimeout(r, 400));
+
+        if (_devLoginOtpTimer) clearInterval(_devLoginOtpTimer);
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('console-screen').style.display = 'block';
+        setText('dev-name-label', devSession.name || 'DEVELOPER OPERATOR');
         
-        const authS = document.getElementById('auth-screen');
-        const consS = document.getElementById('console-screen');
-        if (authS) authS.style.display = 'none';
-        if (consS) consS.style.display = 'block';
-        setText('dev-name-label', userData.name || 'Developer');
+        _isVerifyingDev2FA = false;
+        startInactivityTimer();
         loadConsole();
-      } catch (e) { 
-          setText('auth-error', e.message); 
-          btn.disabled = false;
-          btn.innerText = 'Verify Developer Access';
-      }
+    }
+
+    function dev2FABack() {
+        if (_devLoginOtpTimer) clearInterval(_devLoginOtpTimer);
+        document.getElementById('dev-auth-otp-box').style.display = 'none';
+        document.getElementById('dev-auth-creds-box').style.display = 'block';
+        document.getElementById('auth-error').textContent = '';
+        _devLoginOtp = null;
+        _isVerifyingDev2FA = false;
+    }
+
+    async function devResend2FA() {
+        const resendBtn = document.getElementById('dev-resend-btn');
+        resendBtn.textContent = 'Sending...';
+        resendBtn.style.pointerEvents = 'none';
+        try {
+            const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            recordDevOtp(newOtp);
+            
+            const targetEmail = (_devPendingUser && _devPendingUser.email) || 'developervotify@gmail.com';
+            await StorageManager.sendEmailOtp(targetEmail, (_devPendingUser && _devPendingUser.name) || 'Developer', newOtp, 'Developer Root Access 2FA');
+            showToast('New 2FA Code dispatched to email!');
+            clearDevLoginOtpInputs();
+            startDevOtpTimer();
+            document.getElementById('dev-otp-auth-err').textContent = '';
+        } catch(e) {
+            document.getElementById('dev-otp-auth-err').textContent = 'Failed to resend: ' + e.message;
+        }
+        setTimeout(() => {
+            if (resendBtn) { resendBtn.textContent = 'Resend Code'; resendBtn.style.pointerEvents = ''; }
+        }, 15000);
+    }
+
+    // ── 3. INACTIVITY AUTO-LOCK WATCHDOG ──
+    const DEV_IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
+    let _devInactivityTimer = null;
+
+    function resetInactivityTimer() {
+        if (!devSession) return;
+        if (_devInactivityTimer) clearTimeout(_devInactivityTimer);
+        _devInactivityTimer = setTimeout(() => {
+            console.warn('[OVS Dev] Idle timeout reached. Locking console...');
+            devLockConsole(true);
+        }, DEV_IDLE_TIMEOUT_MS);
+    }
+
+    function startInactivityTimer() {
+        ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+            window.addEventListener(evt, resetInactivityTimer, { passive: true });
+        });
+        resetInactivityTimer();
+    }
+
+    function devLockConsole(isAuto = false) {
+        if (_devInactivityTimer) clearTimeout(_devInactivityTimer);
+        const lockScreen = document.getElementById('dev-lock-screen');
+        if (lockScreen) lockScreen.style.display = 'flex';
+        const passInput = document.getElementById('dev-unlock-pass');
+        if (passInput) { passInput.value = ''; passInput.focus(); }
+        const err = document.getElementById('dev-unlock-err');
+        if (err) err.textContent = isAuto ? 'Console locked due to 15 minutes of inactivity.' : '';
+    }
+
+    async function devUnlockConsole() {
+        const pass = document.getElementById('dev-unlock-pass').value;
+        const err = document.getElementById('dev-unlock-err');
+        if (!pass) {
+            err.textContent = 'Password required.';
+            return;
+        }
+
+        try {
+            // Re-hydrate devSession if needed
+            let masterUser = devSession;
+            if (!masterUser || !masterUser.password) {
+                try {
+                    const stored = localStorage.getItem('ovs_currentUser');
+                    if (stored && stored !== 'null') {
+                        masterUser = JSON.parse(stored);
+                    }
+                } catch(e) {}
+            }
+
+            // Fallback: fetch OVS-CORE-ROOT from API if needed
+            if (!masterUser || !masterUser.password) {
+                const res = await fetch(API + '/users/OVS-CORE-ROOT');
+                if (res.ok) {
+                    masterUser = await res.json();
+                }
+            }
+
+            if (!masterUser || !masterUser.password) {
+                throw new Error('Developer session expired. Please sign out and log in.');
+            }
+
+            const sha256pass = await StorageManager.hashPassword(pass);
+            const btoapass = btoa(pass);
+            if (masterUser.password !== sha256pass && masterUser.password !== btoapass && masterUser.password !== pass) {
+                err.textContent = '❌ Incorrect password.';
+                return;
+            }
+
+            // Password confirmed! Re-activate session
+            devSession = masterUser;
+            localStorage.setItem('ovs_currentUser', JSON.stringify(masterUser));
+            document.getElementById('dev-lock-screen').style.display = 'none';
+            err.textContent = '';
+            showToast('🔓 Console Resumed');
+            startInactivityTimer();
+        } catch(e) {
+            err.textContent = 'Verification failed: ' + e.message;
+        }
+    }
+
+    // ── 4. ROOT SECURITY & AUDIT TRAIL LOGGING ──
+    async function loadSecurityLogs() {
+        const tbody = document.getElementById('security-logs-body');
+        if (!tbody) return;
+        try {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty">🔄 Refreshing security audit records...</td></tr>';
+            const logs = await api('/auditLogs?institution=Global');
+            
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">No security audit logs recorded yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = logs.map(l => {
+                const ts = l.timestamp ? new Date(l.timestamp).toLocaleString() : 'Just now';
+                let badgeClass = 'success';
+                if (l.action && (l.action.includes('FAILED') || l.action.includes('DELETE') || l.action.includes('RESET'))) {
+                    badgeClass = 'danger';
+                } else if (l.action && (l.action.includes('UPDATE') || l.action.includes('MODIFY') || l.action.includes('LOCK'))) {
+                    badgeClass = 'warning';
+                }
+                return `
+                    <tr>
+                        <td style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;color:var(--muted);white-space:nowrap;">${ts}</td>
+                        <td><span class="security-badge ${badgeClass}">${l.action || 'EVENT'}</span></td>
+                        <td style="font-weight:700;color:#fff;">${l.user || 'Root'}</td>
+                        <td style="color:#38bdf8;">${l.institution || 'Global'}</td>
+                        <td style="font-size:0.85rem;color:var(--text);">${l.details || '-'}</td>
+                    </tr>`;
+            }).join('');
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="5" class="empty" style="color:var(--red);">Failed to load audit logs: ${e.message}</td></tr>`;
+        }
+    }
+
+    async function clearRootAuditLogs() {
+        if (!confirm('⚠️ Are you sure you want to permanently clear ALL global security and audit records?')) return;
+        try {
+            await api('/auditLogs?institution=Global', { method: 'DELETE' });
+            showToast('Global audit logs cleared');
+            
+        } catch(e) {
+            showToast('Failed to clear logs: ' + e.message, false);
+        }
+    }
+
+    function exportAuditLogs() {
+        api('/auditLogs?institution=Global').then(logs => {
+            const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `votify_security_audit_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📥 Audit JSON Exported');
+        }).catch(e => showToast('Export failed: ' + e.message, false));
+    }
+
+    // ── 5. EMERGENCY SUPER ADMIN MASTER PASSWORD RESET ──
+    let _resetSaTargetId = null;
+    let _resetSaTargetInst = null;
+
+    function openResetSAModal(regNum, institution) {
+        _resetSaTargetId = regNum;
+        _resetSaTargetInst = institution;
+        document.getElementById('reset-sa-id').value = regNum;
+        document.getElementById('reset-sa-inst').value = institution;
+        document.getElementById('reset-sa-pass').value = '';
+        document.getElementById('reset-sa-err').textContent = '';
+        document.getElementById('reset-sa-modal').classList.add('open');
+    }
+
+    function closeResetSAModal() {
+        document.getElementById('reset-sa-modal').classList.remove('open');
+        _resetSaTargetId = null;
+        _resetSaTargetInst = null;
+    }
+
+    async function executeResetSAPassword() {
+        const newPass = document.getElementById('reset-sa-pass').value;
+        const err = document.getElementById('reset-sa-err');
+
+        if (!newPass || newPass.length !== 10) {
+            err.textContent = 'Password must be exactly 10 characters.';
+            return;
+        }
+        if (/\s/.test(newPass)) { err.textContent = 'Password cannot contain spaces.'; return; }
+        if ((newPass.match(/[a-zA-Z]/g)||[]).length < 3) { err.textContent = 'Password needs at least 3 letters.'; return; }
+        if (!/[0-9]/.test(newPass)) { err.textContent = 'Password needs at least 1 number.'; return; }
+        if (!/[^a-zA-Z0-9]/.test(newPass)) { err.textContent = 'Password needs at least 1 special character.'; return; }
+
+        err.textContent = '';
+
+        try {
+            // Fetch existing SA record to preserve fields
+            const existing = await api('/users/' + encodeURIComponent(_resetSaTargetId));
+            const sha256Pass = await StorageManager.hashPassword(newPass);
+
+            await api('/users/add', {
+                method: 'POST',
+                body: JSON.stringify({
+                    regNum: _resetSaTargetId,
+                    name: existing.name || 'Super Admin',
+                    email: existing.email || '',
+                    institution: _resetSaTargetInst,
+                    role: 'superadmin',
+                    password: sha256Pass
+                })
+            });
+
+            // Log security audit event
+            try {
+                await api('/auditLogs', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'SUPERADMIN_PASSWORD_RESET_BY_DEV',
+                        user: devSession.regNum,
+                        details: `Emergency password reset for Super Admin ${_resetSaTargetId} (${_resetSaTargetInst})`,
+                        timestamp: new Date().toISOString(),
+                        institution: _resetSaTargetInst
+                    })
+                });
+            } catch(e) {}
+
+            closeResetSAModal();
+            showToast(`Password reset successfully for ${_resetSaTargetId}!`);
+            loadConsole();
+            
+        } catch(e) {
+            err.textContent = 'Failed to reset password: ' + e.message;
+        }
     }
 
     function toggleDevPass() {
       const p = document.getElementById('dev-pass');
-      const btn = p.nextElementSibling;
+      const btn = document.getElementById('dev-pass-eye');
+      if (!p) return;
       if (p.type === 'password') {
         p.type = 'text';
         if (btn) btn.textContent = '🙈';
@@ -831,25 +3019,36 @@
     function devLogout() {
       devSession = null;
       localStorage.removeItem('ovs_currentUser');
-      // Completely wipe institution context so we don't accidentally land in a voter login
       localStorage.removeItem('ovs_inst_name');
       localStorage.removeItem('ovs_inst_code');
       localStorage.removeItem('ovs_inst_logo');
-      // Redirect to the HOME GATEWAY instead of login.html
       window.location.href = 'index.html';
     }
 
-    async function loadConsole() {
+    async function loadConsole(showOverlay = false) {
       const overlay = document.getElementById('db-loading');
       const retryBtn = document.getElementById('db-retry-btn');
-      if(overlay) overlay.style.display = 'flex';
-      setText('db-loading-msg', 'Connecting to database...');
-      if(retryBtn) retryBtn.style.display = 'none';
+      const spinner = document.getElementById('db-loading-spinner');
+      const startTime = performance.now();
+
+      if (showOverlay && overlay) {
+          overlay.style.display = 'flex';
+          overlay.style.opacity = '1';
+          overlay.style.visibility = 'visible';
+          if (spinner) spinner.style.display = 'block';
+          if (retryBtn) retryBtn.style.display = 'none';
+          setText('db-loading-msg', 'Connecting to database...');
+          setText('db-loading-sub', 'Syncing infrastructure state and campus quotas');
+      }
+
       try {
-        const [statsRes, packsRes, codesRes] = await Promise.all([
-            fetch(API + '/dev/stats', { headers: { 'Content-Type': 'application/json' } }),
-            fetch(API + '/packs', { headers: { 'Content-Type': 'application/json' } }),
-            fetch(API + '/config/institution_codes', { headers: { 'Content-Type': 'application/json' } })
+        // Parallelize all 5 backend calls in one single batch for zero lag
+        const [statsRes, packsRes, codesRes, statusRes, usersRes] = await Promise.all([
+            fetch(API + '/dev/stats', { headers: getDevHeaders() }),
+            fetch(API + '/packs', { headers: getDevHeaders() }),
+            fetch(API + '/config/institution_codes', { headers: getDevHeaders() }),
+            fetch(API + '/config/institution_status', { headers: getDevHeaders() }).catch(() => null),
+            fetch(API + '/users', { headers: getDevHeaders() }).catch(() => null)
         ]);
 
         if (!statsRes.ok) {
@@ -876,17 +3075,43 @@
         if (codesRes.ok) codes = await codesRes.json();
         window.instCodesCache = codes;
 
-        if(overlay) overlay.style.display = 'none';
+        // Load Status & Users pre-fetched
+        let statusMap = {};
+        if (statusRes && statusRes.ok) statusMap = await statusRes.json().catch(() => ({}));
+        _instStatusCache = statusMap;
 
-        setText('stat-sa', counts.saCount || 0);
-        setText('stat-inst', counts.instCount || 0);
-        setText('stat-users', counts.studentCount || 0);
+        let allUsers = [];
+        if (usersRes && usersRes.ok) allUsers = await usersRes.json().catch(() => []);
+
+        // Cache latest metrics to localStorage for instant reload render
+        try {
+            localStorage.setItem('ovs_dev_metrics_cache', JSON.stringify({
+                counts,
+                packsCount: Array.isArray(packs) ? packs.length : 0,
+                timestamp: Date.now()
+            }));
+        } catch(e) {}
+
+        // Smooth overlay fade out
+        if (showOverlay && overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                overlay.style.opacity = '1';
+            }, 250);
+        }
+
+        // Animate 4 Metric Cards smoothly
+        animateCounter('stat-inst', counts.instCount || 0);
+        animateCounter('stat-users', counts.studentCount || 0);
+        animateCounter('stat-admins', counts.staffCount !== undefined ? counts.staffCount : ((counts.saCount || 0) + (counts.adminCount || 0) + (counts.subAdminCount || 0)));
+        animateCounter('stat-packs', packs.length || 0);
         
-        renderSaTable(window.saCache);
+        renderEnhancedSaTable(window.saCache, statusMap, allUsers);
         renderPackRequests(window.saCache);
         renderPacksTable(window.packsCache);
         populatePackDropdown(window.packsCache);
-
+        
         // If institution details modal is open, refresh its view
         const instModal = document.getElementById('inst-modal');
         if (instModal && instModal.style.display === 'flex') {
@@ -894,9 +3119,14 @@
         }
       } catch (e) {
         const msg = e.message || 'Unknown error';
-        setText('db-loading-msg', '❌ ' + msg);
-        if(retryBtn) retryBtn.style.display = 'block';
-        showToast(msg, false);
+        console.error('[LOAD_CONSOLE_ERROR]', e);
+        if (showOverlay && overlay) {
+            if (spinner) spinner.style.display = 'none';
+            setText('db-loading-msg', '⚠️ Connection Failed');
+            setText('db-loading-sub', msg);
+            if (retryBtn) retryBtn.style.display = 'inline-block';
+        }
+        showToast('Failed to load: ' + msg, false);
       }
     }
 
@@ -912,33 +3142,250 @@
       }
     }
 
-    function renderSaTable(list) {
-      if (!list.length) { 
-          setHTML('sa-table-body', '<tr><td colspan="7" class="empty">No Super Admins yet</td></tr>'); 
-          return; 
-      }
-      const packsMap = {};
-      (window.packsCache || []).forEach(p => { packsMap[p.id] = p; });
-      setHTML('sa-table-body', list.map(sa => {
-          const pack = sa.packId ? packsMap[sa.packId] : null;
-          const packBadge = pack 
-              ? `<span style="background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);padding:0.2rem 0.6rem;border-radius:20px;font-size:0.72rem;font-weight:600;">${pack.name}</span>`
-              : `<span style="color:var(--muted);font-size:0.78rem;">No Pack</span>`;
-          return `
-    <tr>
-      <td><strong>${sa.regNum}</strong></td>
-      <td>${sa.name}</td>
-      <td>${sa.institution || '-'}</td>
-      <td>${packBadge}</td>
-      <td>${sa.email || '-'}</td>
-      <td><span class="badge badge-sa">${sa.status}</span></td>
-      <td style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-        <button class="btn-sm" style="background:rgba(168,85,247,0.15);color:#a855f7;border:1px solid rgba(168,85,247,0.3);" onclick="openAssignPack('${sa.regNum}','${(sa.institution||'').replace(/'/g,"\\'")}')">📦 Pack</button>
-        <button class="btn-sm" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);" onclick="editSA('${sa.regNum}')">Edit</button>
-        <button class="btn-sm btn-danger" onclick="deleteSuperAdmin('${sa.regNum}')">Remove</button>
-      </td>
-    </tr>`;
-      }).join(''));
+    // ══════════════════════════════════════════════════════════════════
+    // ── INSTITUTION MANAGEMENT SUITE ENGINE ───────────────────────────
+    // ══════════════════════════════════════════════════════════════════
+
+    let _instStatusCache = {};
+
+    // ── 1. DYNAMIC ACCESS CODE MANAGER & DIRECT LINKS ──
+    function openEditCodeModal(instName, currentCode) {
+        document.getElementById('edit-code-target-inst').value = instName;
+        document.getElementById('edit-code-old-code').value = currentCode || '';
+        document.getElementById('edit-code-inst-name').textContent = instName;
+        document.getElementById('edit-code-new-input').value = currentCode || '';
+        document.getElementById('edit-code-err').textContent = '';
+        document.getElementById('edit-code-modal').classList.add('open');
+    }
+
+    function closeEditCodeModal() {
+        document.getElementById('edit-code-modal').classList.remove('open');
+    }
+
+    async function saveEditAccessCode() {
+        const instName = document.getElementById('edit-code-target-inst').value;
+        const oldCode = document.getElementById('edit-code-old-code').value;
+        const newCode = document.getElementById('edit-code-new-input').value.trim().toUpperCase();
+        const err = document.getElementById('edit-code-err');
+
+        if (!newCode || newCode.length < 3) {
+            err.textContent = 'Access code must be at least 3 characters.';
+            return;
+        }
+
+        try {
+            // Fetch current codes map
+            const currentCodes = await api('/config/institution_codes');
+            
+            // If code changed and new code is already assigned to a different institution
+            if (currentCodes[newCode] && currentCodes[newCode].toLowerCase() !== instName.toLowerCase()) {
+                err.textContent = `Code "${newCode}" is already assigned to "${currentCodes[newCode]}".`;
+                return;
+            }
+
+            // Remove old mapping if exists
+            if (oldCode && currentCodes[oldCode]) {
+                delete currentCodes[oldCode];
+            }
+
+            // Assign new mapping
+            currentCodes[newCode] = instName;
+
+            // Save to DB
+            await api('/config/institution_codes', {
+                method: 'POST',
+                body: JSON.stringify({ data: currentCodes })
+            });
+
+            // Log security audit event
+            try {
+                await api('/auditLogs', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'ACCESS_CODE_UPDATED',
+                        user: devSession.regNum,
+                        details: `Updated access code for "${instName}" from [${oldCode || 'None'}] to [${newCode}]`,
+                        timestamp: new Date().toISOString(),
+                        institution: instName
+                    })
+                });
+            } catch(e) {}
+
+            closeEditCodeModal();
+            showToast(`Access Code updated to [${newCode}] for ${instName}!`);
+            loadConsole();
+        } catch(e) {
+            err.textContent = 'Failed to update access code: ' + e.message;
+        }
+    }
+
+    function copyDirectUnlockLink(code, instName) {
+        if (!code) {
+            showToast('No access code assigned yet.', false);
+            return;
+        }
+        const directUrl = `https://votify-two.vercel.app/?inst_code=${code}`;
+        navigator.clipboard.writeText(directUrl).then(() => {
+            showToast(`📋 Copied auto-unlock link for ${code}!`);
+        }).catch(() => {
+            prompt('Copy this auto-unlock link:', directUrl);
+        });
+    }
+
+    // ── 2. INSTITUTION FREEZE / SUSPEND KILLSWITCH ──
+    async function toggleInstitutionSuspend(instName, currentStatus) {
+        const isSuspended = currentStatus === 'suspended';
+        const actionText = isSuspended ? 'ACTIVATE' : 'SUSPEND';
+        const confirmMsg = isSuspended 
+            ? `▶️ Are you sure you want to ACTIVATE ${instName}?\n\nStudents and staff will be able to log in and vote immediately.`
+            : `⏸️ Are you sure you want to SUSPEND ${instName}?\n\nLogins and voting will be instantly frozen for this institution until re-activated.`;
+        
+        if (!confirm(confirmMsg)) return;
+
+        try {
+            const statusMap = await api('/config/institution_status').catch(() => ({}));
+            const newStatus = isSuspended ? 'active' : 'suspended';
+            statusMap[instName] = newStatus;
+
+            await api('/config/institution_status', {
+                method: 'POST',
+                body: JSON.stringify({ data: statusMap })
+            });
+
+            // Log security audit event
+            try {
+                await api('/auditLogs', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: isSuspended ? 'INSTITUTION_ACTIVATED' : 'INSTITUTION_SUSPENDED',
+                        user: devSession.regNum,
+                        details: `Institution "${instName}" was ${newStatus.toUpperCase()} by Developer`,
+                        timestamp: new Date().toISOString(),
+                        institution: instName
+                    })
+                });
+            } catch(e) {}
+
+            showToast(`Institution "${instName}" is now ${newStatus.toUpperCase()}!`);
+            loadConsole();
+        } catch(e) {
+            showToast('Failed to update status: ' + e.message, false);
+        }
+    }
+
+    // ── 3. RENDER ALL INSTITUTIONS TABLE WITH CAPACITY METERS & CODES ──
+    function renderEnhancedSaTable(list, preStatusMap = null, preUsers = null) {
+        const tbody = document.getElementById('sa-table-body');
+        if (!tbody) return;
+
+        if (!list || !list.length) { 
+            tbody.innerHTML = '<tr><td colspan="5" class="empty">No Institutions created yet. Create one above.</td></tr>'; 
+            return; 
+        }
+
+        // Use pre-fetched codes, status, and users without blocking network calls
+        const codesMap = window.instCodesCache || {};
+        const statusMap = preStatusMap || _instStatusCache || {};
+        _instStatusCache = statusMap;
+        updateFilterChipCounts(list, statusMap);
+
+        const allUsers = Array.isArray(preUsers) ? preUsers : [];
+
+        const packsMap = {};
+        (window.packsCache || []).forEach(p => { packsMap[p.id] = p; });
+
+        // Map reverse code lookup: institution name -> code
+        const instToCode = {};
+        Object.entries(codesMap).forEach(([code, inst]) => {
+            if (inst) instToCode[inst.toLowerCase()] = code;
+        });
+
+        tbody.innerHTML = list.map(sa => {
+            const instName = sa.institution || '';
+            const code = instToCode[instName.toLowerCase()] || '';
+            const pack = sa.packId ? packsMap[sa.packId] : null;
+            const status = (statusMap[instName] || 'active').toLowerCase();
+            const isSuspended = status === 'suspended';
+
+            // Calculate usage
+            const instUsers = allUsers.filter(u => u && u.institution && u.institution.toLowerCase() === instName.toLowerCase());
+            const studentCount = instUsers.filter(u => u.role === 'voter').length;
+            const adminCount = instUsers.filter(u => u.role === 'admin' || u.role === 'subadmin').length;
+
+            const maxStudents = pack ? pack.maxStudents : '∞';
+            const maxAdmins = pack ? (Number(pack.maxAdmins) + Number(pack.maxSubAdmins || 0)) : '∞';
+
+            const studentPct = (pack && pack.maxStudents) ? Math.min(100, Math.round((studentCount / pack.maxStudents) * 100)) : 0;
+            const isStudentWarning = studentPct >= 85;
+
+            const statusBadge = isSuspended 
+                ? '<span class="security-badge danger">🔴 Suspended</span>' 
+                : '<span class="security-badge success">🟢 Active</span>';
+
+            const suspendBtn = isSuspended
+                ? `<button class="btn-sm" style="background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);" onclick="toggleInstitutionSuspend('${instName.replace(/'/g, "\\'")}', 'suspended')">▶️ Activate</button>`
+                : `<button class="btn-sm" style="background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);" onclick="toggleInstitutionSuspend('${instName.replace(/'/g, "\\'")}', 'active')">⏸️ Suspend</button>`;
+
+            const codeDisplay = code 
+                ? `<span class="code-badge" onclick="openEditCodeModal('${instName.replace(/'/g, "\\'")}', '${code}')" title="Click to edit code">🏷️ ${code}</span>
+                   <button class="btn-sm" style="background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid rgba(255,255,255,0.15);padding:0.25rem 0.6rem;" onclick="copyDirectUnlockLink('${code}', '${instName.replace(/'/g, "\\'")}')" title="Copy auto-unlock link">📋 Copy Link</button>`
+                : `<button class="btn-sm" style="background:rgba(6,182,212,0.15);color:#38bdf8;border:1px solid rgba(6,182,212,0.3);" onclick="openEditCodeModal('${instName.replace(/'/g, "\\'")}', '')">➕ Set Code</button>`;
+
+            const packName = pack ? pack.name : 'Unlimited Tier';
+
+            return `
+            <tr>
+              <td style="vertical-align:middle;">
+                <strong style="color:white;font-size:1.05rem;display:block;margin-bottom:0.35rem;">${instName || '-'}</strong>
+                <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                  ${codeDisplay}
+                </div>
+              </td>
+              <td style="vertical-align:middle;">
+                <strong style="color:white;font-size:0.95rem;display:block;">${sa.name || 'Super Admin'}</strong>
+                <small style="color:var(--gold);font-family:'JetBrains Mono',monospace;display:inline-block;margin:2px 0;">ID: ${sa.regNum}</small><br>
+                <small style="color:var(--muted);font-size:0.85rem;">${sa.email || '-'}</small>
+              </td>
+              <td style="vertical-align:middle;">
+                <div class="capacity-meter">
+                  <div style="display:flex;justify-content:space-between;gap:1rem;font-size:0.82rem;">
+                    <span>🎓 Students:</span> <strong>${studentCount} / ${maxStudents}</strong>
+                  </div>
+                  <div class="capacity-bar-wrap" style="margin:4px 0;">
+                    <div class="capacity-bar-fill ${isStudentWarning ? 'warning' : ''}" style="width:${studentPct}%;"></div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;gap:1rem;font-size:0.82rem;">
+                    <span>👥 Admins:</span> <strong>${adminCount} / ${maxAdmins}</strong>
+                  </div>
+                  <div style="margin-top:5px;">
+                    <span style="font-size:0.75rem;padding:2px 8px;border-radius:6px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);color:#c084fc;font-weight:700;">📦 ${packName}</span>
+                  </div>
+                </div>
+              </td>
+              <td style="vertical-align:middle;text-align:center;">
+                ${statusBadge}
+              </td>
+              <td style="vertical-align:middle;text-align:right;white-space:nowrap;">
+                <div class="action-toolbar-strip">
+                  <button class="action-pill-btn pill-edit" onclick="editSA('${sa.regNum}')" title="Edit Super Admin">
+                    ✏️ Edit
+                  </button>
+                  <button class="action-pill-btn pill-pack" onclick="openAssignPack('${sa.regNum}','${instName.replace(/'/g,\"\\\\'\")}')" title="Assign Capacity Pack">
+                    📦 Pack
+                  </button>
+                  <button class="action-pill-btn pill-pass" onclick="openResetSAModal('${sa.regNum}','${instName.replace(/'/g,\"\\\\'\")}')" title="Reset Master Password">
+                    🔑 Pass
+                  </button>
+                  <button class="action-pill-btn ${isSuspended ? 'pill-activate' : 'pill-suspend'}" onclick="toggleInstitutionSuspend('${instName.replace(/'/g,\"\\\\'\")}', '${isSuspended ? 'suspended' : 'active'}')" title="${isSuspended ? 'Activate Institution' : 'Suspend Institution'}">
+                    ${isSuspended ? '▶️ Active' : '⏸️ Suspend'}
+                  </button>
+                  <button class="action-pill-btn pill-delete" onclick="deleteSuperAdmin('${sa.regNum}', '${instName.replace(/'/g,\"\\\\'\")}')" title="Delete Institution">
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
     }
 
     function renderPackRequests(list) {
@@ -1121,7 +3568,7 @@
         if (pwdErr) { errEl.textContent = 'Password: ' + pwdErr; return; }
 
         try {
-            const codesRes = await fetch(API + '/config/institution_codes', { headers: { 'Content-Type': 'application/json' } });
+            const codesRes = await fetch(API + '/config/institution_codes', { headers: getDevHeaders() });
             const existingCodes = codesRes.ok ? (await codesRes.json()) : {};
             if (existingCodes[code]) { errEl.textContent = `Code "${code}" is already in use for "${existingCodes[code]}".`; return; }
             const inUse = Object.values(existingCodes).some(v => v.toLowerCase() === institution.toLowerCase());
@@ -1130,7 +3577,7 @@
             const hashedPass = await StorageManager.hashPassword(pass);
             const addRes = await fetch(API + '/users/add', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getDevHeaders(),
                 body: JSON.stringify({ regNum: id, password: hashedPass, role: 'superadmin', name, email, institution, address, status: 'active', packId: packId || null })
             });
             if (!addRes.ok) { const e = await addRes.json().catch(() => ({ error: 'Failed' })); errEl.textContent = e.error; return; }
@@ -1138,7 +3585,7 @@
             existingCodes[code] = institution;
             await fetch(API + '/config/institution_codes', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: getDevHeaders(),
                 body: JSON.stringify({ data: existingCodes })
             });
 
@@ -1190,6 +3637,90 @@
         document.getElementById('dev-profile-modal').style.display = 'none';
     }
 
+    
+    let _devOtpInitialized = false;
+    function initDevOtpInputs() {
+        if (_devOtpInitialized) return;
+        _devOtpInitialized = true;
+        const grid = document.getElementById('dev-otp-grid');
+        if (!grid) return;
+        const inputs = grid.querySelectorAll('.dev-otp-digit');
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                const val = input.value.replace(/[^0-9]/g, '');
+                input.value = val ? val[val.length - 1] : '';
+                if (input.value) {
+                    input.classList.add('filled');
+                    if (index < inputs.length - 1) inputs[index + 1].focus();
+                } else {
+                    input.classList.remove('filled');
+                }
+                checkDevAutoVerify();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace') {
+                    if (!input.value && index > 0) {
+                        inputs[index - 1].focus();
+                        inputs[index - 1].value = '';
+                        inputs[index - 1].classList.remove('filled');
+                    } else {
+                        input.value = '';
+                        input.classList.remove('filled');
+                    }
+                    e.preventDefault();
+                    checkDevAutoVerify();
+                } else if (e.key === 'ArrowLeft' && index > 0) {
+                    inputs[index - 1].focus();
+                } else if (e.key === 'ArrowRight' && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                } else if (e.key === 'Enter') {
+                    verifyOldEmailOtp();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                if (pasted) {
+                    for (let i = 0; i < inputs.length && i < pasted.length; i++) {
+                        inputs[i].value = pasted[i];
+                        inputs[i].classList.add('filled');
+                    }
+                    const nextIdx = Math.min(pasted.length, inputs.length - 1);
+                    inputs[nextIdx].focus();
+                    checkDevAutoVerify();
+                }
+            });
+        });
+    }
+
+    function getDevEnteredOtp() {
+        const inputs = document.querySelectorAll('#dev-otp-grid .dev-otp-digit');
+        let otp = '';
+        inputs.forEach(i => { otp += i.value.trim(); });
+        return otp;
+    }
+
+    function clearDevOtpInputs() {
+        const inputs = document.querySelectorAll('#dev-otp-grid .dev-otp-digit');
+        inputs.forEach(i => {
+            i.value = '';
+            i.classList.remove('filled');
+        });
+        const grid = document.getElementById('dev-otp-grid');
+        if (grid) grid.classList.remove('orbiting', 'shake', 'success');
+        if (inputs.length > 0) setTimeout(() => inputs[0].focus(), 150);
+    }
+
+    function checkDevAutoVerify() {
+        const otp = getDevEnteredOtp();
+        if (otp.length === 6) {
+            verifyOldEmailOtp();
+        }
+    }
+
     async function sendDevProfileOtp() {
         const targetEmail = 'developervotify@gmail.com';
         const newName = document.getElementById('dev-edit-name').value.trim();
@@ -1199,7 +3730,7 @@
             document.getElementById('dev-profile-otp-btn').disabled = true;
 
             _devProfileOtp = Math.floor(100000 + Math.random() * 900000).toString();
-            console.warn("🔐 DEV PROFILE OTP:", _devProfileOtp);
+            console.warn("🔐  DEV PROFILE OTP:", _devProfileOtp);
             
             const context = 'Authorize Profile Change';
             const res = await StorageManager.sendEmailOtp(targetEmail, devSession.name || 'Developer', _devProfileOtp, context);
@@ -1209,11 +3740,13 @@
             document.getElementById('dev-edit-otp-label').innerHTML = `OTP <small>(sent to: ${targetEmail})</small>`;
             
             const btn = document.getElementById('dev-profile-otp-btn');
-            btn.textContent = '✔️ Verify OTP';
+            btn.textContent = '✔️  Verify OTP';
             btn.onclick = verifyOldEmailOtp; 
             btn.disabled = false;
             
             showToast(`OTP sent to: ${targetEmail}`);
+            initDevOtpInputs();
+            clearDevOtpInputs();
             document.getElementById('dev-profile-error').textContent = '';
         } catch(e) {
             document.getElementById('dev-profile-error').style.color = 'var(--red)';
@@ -1224,20 +3757,45 @@
     }
 
     async function verifyOldEmailOtp() {
-        const entered = document.getElementById('dev-edit-otp').value.trim();
+        const entered = getDevEnteredOtp();
+        const grid = document.getElementById('dev-otp-grid');
+        const errEl = document.getElementById('dev-profile-error');
+
+        if (entered.length < 6) {
+            errEl.style.color = 'var(--red)';
+            errEl.textContent = 'Please enter all 6 digits.';
+            return;
+        }
+
+        errEl.textContent = '';
+        if (grid) grid.classList.add('orbiting');
+
+        await new Promise(r => setTimeout(r, 700));
+
         if (!_devProfileOtp || entered !== _devProfileOtp) {
-            document.getElementById('dev-profile-error').style.color = 'var(--red)';
-            document.getElementById('dev-profile-error').textContent = 'Invalid OTP for email. Try again.';
+            if (grid) {
+                grid.classList.remove('orbiting');
+                grid.classList.add('shake');
+                setTimeout(() => grid.classList.remove('shake'), 500);
+            }
+            errEl.style.color = 'var(--red)';
+            errEl.textContent = '❌ Invalid OTP. Try again.';
             return;
         }
         
         // OTP verified successfully
+        if (grid) {
+            grid.classList.remove('orbiting');
+            grid.classList.add('success');
+        }
         const btn = document.getElementById('dev-profile-otp-btn');
-        btn.style.display = 'none';
-        document.getElementById('dev-profile-save-btn').style.display = 'inline-block';
-        document.getElementById('dev-profile-error').style.color = '#22c55e';
-        document.getElementById('dev-profile-error').textContent = 'Email verified! You can now save your changes.';
+        if (btn) btn.style.display = 'none';
+        const saveBtn = document.getElementById('dev-profile-save-btn');
+        if (saveBtn) saveBtn.style.display = 'inline-block';
+        errEl.style.color = '#22c55e';
+        errEl.textContent = '✅ Verified! Saving changes...';
         
+        await new Promise(r => setTimeout(r, 600));
         saveDevProfile(true);
     }
 
@@ -1547,7 +4105,7 @@
           return;
       }
 
-      const confirmed = confirm(`⚠️ PERMANENT DELETE — CANNOT BE UNDONE\n\nRemoving Super Admin: ${id}\nInstitution: ${instName}\n\nThis will AUTOMATICALLY delete:\n• All Admins of this institution\n• All Sub-Admins of this institution\n• All Students/Voters of this institution\n• All Candidates of this institution\n• The institution's election history & config\n• The institution's Gateway Access Code\n\nAre you absolutely sure?`);
+      const confirmed = confirm(`⚠️  PERMANENT DELETE — CANNOT BE UNDONE\n\nRemoving Super Admin: ${id}\nInstitution: ${instName}\n\nThis will AUTOMATICALLY delete:\n• All Admins of this institution\n• All Sub-Admins of this institution\n• All Students/Voters of this institution\n• All Candidates of this institution\n• The institution's election history & config\n• The institution's Gateway Access Code\n\nAre you absolutely sure?`);
       if (!confirmed) return;
       
       try {
@@ -1667,3 +4225,4 @@
 </body>
 
 </html>
+

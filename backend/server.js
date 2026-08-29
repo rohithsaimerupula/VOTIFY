@@ -53,7 +53,13 @@ const turso = createClient({
 function authGuard(req, res, next) {
     const regNum = req.headers['x-ovs-reg-num'];
     const institution = decodeURIComponent(req.headers['x-ovs-institution'] || '');
+    const callerRole = req.headers['x-ovs-caller-role'];
     
+    // Developer root or global dev session bypasses institution scoping
+    if (callerRole === 'developer' || regNum === 'OVS-CORE-ROOT' || regNum === 'DEVELOPER_ROOT') {
+        return next();
+    }
+
     if (!regNum || !institution) {
         if (req.method === 'GET' && req.path.startsWith('/api/config')) return next();
         return res.status(401).json({ error: "Unauthorized: Registration Number and Institution required in headers." });
